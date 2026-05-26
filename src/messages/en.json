@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "title": "Golify",
+    "subtitle": "Football Tracker • Retas • EA FC Catalog",
+    "description": "Follow your favorite matches, compete in retas with friends, and explore the complete EA FC catalog. All in one app.",
+    "downloadIOS": "Download for iOS",
+    "downloadAndroid": "Download for Android"
+  },
+  "features": {
+    "title": "Main Features",
+    "matchTracking": {
+      "title": "⚽ Match Tracking",
+      "description": "Follow live matches with real-time notifications for goals, cards, and more."
+    },
+    "retas": {
+      "title": "🏆 Retas",
+      "description": "Create custom tournaments and compete with friends in predictions and rankings."
+    },
+    "eaFcCatalog": {
+      "title": "🎮 EA FC Catalog",
+      "description": "Explore detailed statistics of players and teams from the EA FC catalog."
+    },
+    "notifications": {
+      "title": "🔔 Notifications",
+      "description": "Customize alerts for your favorite teams, leagues, and players."
+    }
+  },
+  "leagues": {
+    "title": "Supported Leagues"
+  },
+  "cta": {
+    "title": "Ready to get started?",
+    "description": "Download Golify now and take your football passion to the next level.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play"
+  },
+  "footer": {
+    "copyright": "© 2026 Golify. All rights reserved."
+  }
+}

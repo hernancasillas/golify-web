@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "title": "Golify",
+    "subtitle": "Football Tracker • Retas • EA FC Catalog",
+    "description": "Sigue tus partidos favoritos, compite en retas con amigos, y explora el catálogo completo de EA FC. Todo en una sola app.",
+    "downloadIOS": "Descargar para iOS",
+    "downloadAndroid": "Descargar para Android"
+  },
+  "features": {
+    "title": "Características Principales",
+    "matchTracking": {
+      "title": "⚽ Match Tracking",
+      "description": "Sigue partidos en vivo con notificaciones en tiempo real para goles, tarjetas y más."
+    },
+    "retas": {
+      "title": "🏆 Retas",
+      "description": "Crea torneos personalizados y compite con tus amigos en predicciones y rankings."
+    },
+    "eaFcCatalog": {
+      "title": "🎮 EA FC Catalog",
+      "description": "Explora estadísticas detalladas de jugadores y equipos del catálogo de EA FC."
+    },
+    "notifications": {
+      "title": "🔔 Notificaciones",
+      "description": "Personaliza alertas para tus equipos, ligas y jugadores favoritos."
+    }
+  },
+  "leagues": {
+    "title": "Ligas Soportadas"
+  },
+  "cta": {
+    "title": "¿Listo para empezar?",
+    "description": "Descarga Golify ahora y lleva tu pasión por el fútbol al siguiente nivel.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play"
+  },
+  "footer": {
+    "copyright": "© 2026 Golify. Todos los derechos reservados."
+  }
+}
