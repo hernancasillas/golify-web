@@ -36,5 +36,99 @@
   },
   "footer": {
     "copyright": "© 2026 Golify. Todos los derechos reservados."
+  },
+  "privacy": {
+    "title": "Legal y Privacidad",
+    "backToHome": "← Volver al inicio",
+    "privacyPolicy": {
+      "title": "Política de Privacidad",
+      "lastUpdated": "Última actualización: 26 de mayo de 2026",
+      "intro": "Golify respeta tu privacidad. Esta política explica qué información recopilamos, cómo la usamos y tus derechos.",
+      "infoWeCollect": {
+        "title": "1. Información que Recopilamos",
+        "accountData": "Datos de cuenta: correo, nombre de usuario, foto de perfil.",
+        "usageData": "Datos de uso: partidos seguidos, retas unidas, interacciones con el catálogo de EA FC.",
+        "deviceData": "Datos del dispositivo: tipo de dispositivo, versión del SO, token de notificaciones push.",
+        "locationData": "Datos de ubicación: solo si otorgas permiso, usado para retas locales."
+      },
+      "howWeUse": {
+        "title": "2. Cómo Usamos Tu Información",
+        "provide": "Proporcionar y mejorar los servicios de la app.",
+        "notifications": "Enviar notificaciones de partidos y retas.",
+        "personalize": "Personalizar contenido y recomendaciones.",
+        "security": "Garantizar seguridad y prevenir fraudes."
+      },
+      "sharing": {
+        "title": "3. Compartir Tu Información",
+        "text": "No vendemos tus datos personales. Solo compartimos datos con proveedores de confianza (ej. hosting en la nube, analítica) bajo acuerdos de confidencialidad estrictos, o cuando lo exige la ley."
+      },
+      "yourRights": {
+        "title": "4. Tus Derechos",
+        "text": "Puedes acceder, corregir o eliminar tus datos personales en cualquier momento a través de la configuración de la app o contactándonos en"
+      },
+      "security": {
+        "title": "5. Seguridad",
+        "text": "Usamos medidas estándar de la industria para proteger tus datos. Sin embargo, ningún método de transmisión por internet es 100% seguro."
+      },
+      "children": {
+        "title": "6. Privacidad de Menores",
+        "text": "Golify no está destinado a usuarios menores de 13 años. Si crees que un menor nos ha proporcionado datos personales, contáctanos de inmediato."
+      }
+    },
+    "terms": {
+      "title": "Términos de Servicio",
+      "lastUpdated": "Última actualización: 26 de mayo de 2026",
+      "intro": "Al usar Golify, aceptas estos términos. Si no estás de acuerdo, por favor no uses la app.",
+      "use": {
+        "title": "1. Uso del Servicio",
+        "text": "Golify proporciona seguimiento de partidos de fútbol, organización de retas y navegación en el catálogo de EA FC. Aceptas usar el servicio solo para fines legales y de acuerdo con estos términos."
+      },
+      "accounts": {
+        "title": "2. Cuentas de Usuario",
+        "text": "Eres responsable de mantener la confidencialidad de tus credenciales de cuenta. Notifícanos de inmediato cualquier uso no autorizado."
+      },
+      "content": {
+        "title": "3. Contenido",
+        "text": "Conservas la propiedad del contenido que publiques. Al publicar, otorgas a Golify una licencia para usar, mostrar y distribuirlo dentro de la app. No publiques contenido ilegal, abusivo o que infrinja derechos."
+      },
+      "termination": {
+        "title": "4. Terminación",
+        "text": "Podemos suspender o terminar tu cuenta por violaciones de estos términos. También puedes eliminar tu cuenta en cualquier momento (ver abajo)."
+      },
+      "disclaimer": {
+        "title": "5. Descargo de Responsabilidad",
+        "text": "Golify se proporciona \"tal cual\" sin garantías de ningún tipo. No somos responsables de ningún daño derivado del uso de la app."
+      },
+      "changes": {
+        "title": "6. Cambios en los Términos",
+        "text": "Podemos actualizar estos términos en cualquier momento. El uso continuado después de los cambios constituye aceptación."
+      }
+    },
+    "accountDeletion": {
+      "title": "Eliminación de Cuenta",
+      "intro": "Tienes derecho a eliminar tu cuenta y los datos personales asociados en cualquier momento.",
+      "howToDelete": {
+        "title": "Cómo eliminar tu cuenta",
+        "step1": "Abre la app Golify.",
+        "step2": "Ve a Perfil → Configuración → Cuenta.",
+        "step3": "Toca Eliminar Cuenta y confirma.",
+        "alternative": "Alternativamente, puedes solicitar la eliminación enviándonos un correo a"
+      },
+      "whatGetsDeleted": {
+        "title": "Qué se elimina",
+        "profile": "Tu información de perfil (nombre, correo, foto).",
+        "history": "Tu historial de seguimiento de partidos y retas.",
+        "catalog": "Tus favoritos e interacciones del catálogo de EA FC.",
+        "push": "Tokens de notificaciones push y asociaciones de dispositivo."
+      },
+      "retention": {
+        "title": "Retención de datos",
+        "text": "Algunos datos pueden conservarse hasta 30 días en copias de seguridad encriptadas antes de la eliminación permanente. También podemos conservar información mínima según lo requiera la ley o para fines comerciales legítimos (ej. prevención de fraudes)."
+      },
+      "contact": "Para preguntas sobre eliminación de cuenta o manejo de datos, contáctanos en"
+    },
+    "contactEmail": "privacy@golify.futbol",
+    "supportEmail": "support@golify.futbol",
+    "emailSubject": "Solicitud de Eliminación de Cuenta"
   }
 }

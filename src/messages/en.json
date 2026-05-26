@@ -36,5 +36,99 @@
   },
   "footer": {
     "copyright": "© 2026 Golify. All rights reserved."
+  },
+  "privacy": {
+    "title": "Legal & Privacy",
+    "backToHome": "← Back to home",
+    "privacyPolicy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last updated: May 26, 2026",
+      "intro": "Golify respects your privacy. This policy explains what information we collect, how we use it, and your rights.",
+      "infoWeCollect": {
+        "title": "1. Information We Collect",
+        "accountData": "Account data: email, username, profile photo.",
+        "usageData": "Usage data: matches tracked, retas joined, EA FC catalog interactions.",
+        "deviceData": "Device data: device type, OS version, push notification token.",
+        "locationData": "Location data: only if you grant permission, used for local retas."
+      },
+      "howWeUse": {
+        "title": "2. How We Use Your Information",
+        "provide": "Provide and improve the app services.",
+        "notifications": "Send match and reta notifications.",
+        "personalize": "Personalize content and recommendations.",
+        "security": "Ensure security and prevent fraud."
+      },
+      "sharing": {
+        "title": "3. Sharing Your Information",
+        "text": "We do not sell your personal data. We only share data with trusted service providers (e.g., cloud hosting, analytics) under strict confidentiality agreements, or when required by law."
+      },
+      "yourRights": {
+        "title": "4. Your Rights",
+        "text": "You can access, correct, or delete your personal data at any time through the app settings or by contacting us at"
+      },
+      "security": {
+        "title": "5. Security",
+        "text": "We use industry-standard measures to protect your data. However, no method of transmission over the internet is 100% secure."
+      },
+      "children": {
+        "title": "6. Children's Privacy",
+        "text": "Golify is not intended for users under 13. If you believe a child has provided us with personal data, contact us immediately."
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "lastUpdated": "Last updated: May 26, 2026",
+      "intro": "By using Golify, you agree to these terms. If you do not agree, please do not use the app.",
+      "use": {
+        "title": "1. Use of the Service",
+        "text": "Golify provides football match tracking, retas organization, and EA FC catalog browsing. You agree to use the service only for lawful purposes and in accordance with these terms."
+      },
+      "accounts": {
+        "title": "2. User Accounts",
+        "text": "You are responsible for maintaining the confidentiality of your account credentials. Notify us immediately of any unauthorized use."
+      },
+      "content": {
+        "title": "3. Content",
+        "text": "You retain ownership of content you post. By posting, you grant Golify a license to use, display, and distribute it within the app. Do not post illegal, abusive, or infringing content."
+      },
+      "termination": {
+        "title": "4. Termination",
+        "text": "We may suspend or terminate your account for violations of these terms. You may also delete your account at any time (see below)."
+      },
+      "disclaimer": {
+        "title": "5. Disclaimer",
+        "text": "Golify is provided \"as is\" without warranties of any kind. We are not liable for any damages arising from your use of the app."
+      },
+      "changes": {
+        "title": "6. Changes to Terms",
+        "text": "We may update these terms at any time. Continued use after changes constitutes acceptance."
+      }
+    },
+    "accountDeletion": {
+      "title": "Account Deletion",
+      "intro": "You have the right to delete your account and associated personal data at any time.",
+      "howToDelete": {
+        "title": "How to delete your account",
+        "step1": "Open the Golify app.",
+        "step2": "Go to Profile → Settings → Account.",
+        "step3": "Tap Delete Account and confirm.",
+        "alternative": "Alternatively, you can request deletion by emailing us at"
+      },
+      "whatGetsDeleted": {
+        "title": "What gets deleted",
+        "profile": "Your profile information (name, email, photo).",
+        "history": "Your match tracking history and retas.",
+        "catalog": "Your EA FC catalog favorites and interactions.",
+        "push": "Push notification tokens and device associations."
+      },
+      "retention": {
+        "title": "Data retention",
+        "text": "Some data may be retained for up to 30 days in encrypted backups before permanent deletion. We may also retain minimal information as required by law or for legitimate business purposes (e.g., fraud prevention)."
+      },
+      "contact": "For questions about account deletion or data handling, contact us at"
+    },
+    "contactEmail": "privacy@golify.futbol",
+    "supportEmail": "support@golify.futbol",
+    "emailSubject": "Account Deletion Request"
   }
 }

@@ -5,6 +5,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from 'next/link';
 
 export default function Home() {
   const { t } = useI18n();
@@ -130,8 +131,11 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 border-t border-gray-200 dark:border-gray-800">
-        <div className="text-center text-gray-600 dark:text-gray-400">
+        <div className="text-center text-gray-600 dark:text-gray-400 space-y-2">
           <p>{t('footer.copyright')}</p>
+          <Link href="/privacy" className="text-green-600 dark:text-green-400 hover:underline text-sm">
+            Privacy & Terms
+          </Link>
         </div>
       </footer>
     </div>
