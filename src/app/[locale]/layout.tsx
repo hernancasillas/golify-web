@@ -1,6 +1,8 @@
 import { I18nProvider } from '@/components/I18nProvider';
-import { locales } from '@/i18n';
 import { notFound } from 'next/navigation';
+
+const locales = ['en', 'es'] as const;
+type Locale = (typeof locales)[number];
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -8,21 +10,16 @@ export function generateStaticParams() {
 
 export default async function LocaleLayout({
   children,
-  params
+  params,
 }: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  
-  // Validate that the incoming `locale` parameter is valid
-  if (!locales.includes(locale as any)) {
+
+  if (!locales.includes(locale as Locale)) {
     notFound();
   }
 
-  return (
-    <I18nProvider locale={locale as 'en' | 'es'}>
-      {children}
-    </I18nProvider>
-  );
+  return <I18nProvider locale={locale as Locale}>{children}</I18nProvider>;
 }

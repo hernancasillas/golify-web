@@ -1,26 +1,25 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { locales } from './i18n';
 
-export default function middleware(request: NextRequest) {
+const locales = ['en', 'es'] as const;
+const defaultLocale = 'es';
+
+export default function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  
-  // Check if the pathname already starts with a locale
-  const pathnameIsMissingLocale = locales.every(
-    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
+
+  const hasLocale = locales.some(
+    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)
   );
-  
-  // Redirect if there is no locale
-  if (pathnameIsMissingLocale) {
-    const locale = 'es'; // default locale
-    return NextResponse.redirect(
-      new URL(`/${locale}${pathname}`, request.url)
-    );
+
+  if (hasLocale) {
+    return NextResponse.next();
   }
-  
-  return NextResponse.next();
+
+  return NextResponse.redirect(
+    new URL(`/${defaultLocale}${pathname === '/' ? '' : pathname}`, request.url)
+  );
 }
 
 export const config = {
-  matcher: ['/', '/(es|en)/:path*']
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 };
