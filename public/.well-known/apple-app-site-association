@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["C5K9S2BT45.com.goligulias.fuchibol"],
+        "components": [
+          {
+            "/": "/app/*",
+            "comment": "Matches any URL whose path starts with /app/"
+          }
+        ]
+      }
+    ]
+  }
+}

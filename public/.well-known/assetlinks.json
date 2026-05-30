@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.goligulias.fuchibol",
+      "sha256_cert_fingerprints": [
+        "64:96:A8:75:AA:74:94:CE:23:E9:17:63:56:D5:53:F2:3F:08:59:54:CE:BB:7F:50:B8:77:E5:17:EF:AF:82:E6",
+        "D7:3F:70:8C:95:CE:40:49:D7:C5:0A:E6:28:07:C7:90:75:52:06:7E:71:39:C2:14:09:F6:A3:F3:3A:B0:07:0B"
+      ]
+    }
+  }
+]
