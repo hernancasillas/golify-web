@@ -8,6 +8,22 @@
           {
             "/": "/app/*",
             "comment": "Matches any URL whose path starts with /app/"
+          },
+          {
+            "/": "/quiniela/join/*",
+            "comment": "Quiniela invite"
+          },
+          {
+            "/": "/collector/*",
+            "comment": "Collector profile"
+          },
+          {
+            "/": "/retas/join/*",
+            "comment": "Retas invite"
+          },
+          {
+            "/": "/local/join/*",
+            "comment": "Local tournament invite"
           }
         ]
       }
