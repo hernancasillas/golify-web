@@ -6,9 +6,9 @@ import Link from 'next/link';
 export default function TermsPage() {
   const { t } = useI18n();
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-white dark:bg-[#06180E] text-gray-900 dark:text-gray-100">
       <div className="container mx-auto px-4 py-12 max-w-3xl">
-        <Link href="/" className="text-green-600 dark:text-green-400 hover:underline mb-8 inline-block">
+        <Link href="/" className="text-[#0d5e26] dark:text-[#71F59B] hover:underline mb-8 inline-block">
           {t('privacy.backToHome')}
         </Link>
 
@@ -37,7 +37,7 @@ export default function TermsPage() {
           <p>{t('privacy.terms.changes.text')}</p>
         </div>
 
-        <footer className="border-t border-gray-200 dark:border-gray-800 pt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+        <footer className="border-t border-gray-200 dark:border-[#71F59B]/10 pt-8 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>© 2026 Golify. All rights reserved.</p>
         </footer>
       </div>

@@ -6,9 +6,9 @@ import Link from 'next/link';
 export default function PrivacyPage() {
   const { t } = useI18n();
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-white dark:bg-[#06180E] text-gray-900 dark:text-gray-100">
       <div className="container mx-auto px-4 py-12 max-w-3xl">
-        <Link href="/" className="text-green-600 dark:text-green-400 hover:underline mb-8 inline-block">
+        <Link href="/" className="text-[#0d5e26] dark:text-[#71F59B] hover:underline mb-8 inline-block">
           {t('privacy.backToHome')}
         </Link>
 
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('privacy.privacyPolicy.yourRights.title')}</h3>
             <p>
-              {t('privacy.privacyPolicy.yourRights.text')} <a href={`mailto:${t('privacy.contactEmail')}`} className="text-green-600 dark:text-green-400 underline">{t('privacy.contactEmail')}</a>.
+              {t('privacy.privacyPolicy.yourRights.text')} <a href={`mailto:${t('privacy.contactEmail')}`} className="text-[#0d5e26] dark:text-[#71F59B] underline">{t('privacy.contactEmail')}</a>.
             </p>
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('privacy.privacyPolicy.security.title')}</h3>
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
               <li>{t('privacy.accountDeletion.howToDelete.step3')}</li>
             </ol>
             <p>
-              {t('privacy.accountDeletion.howToDelete.alternative')} <a href={`mailto:${t('privacy.supportEmail')}`} className="text-green-600 dark:text-green-400 underline">{t('privacy.supportEmail')}</a>.
+              {t('privacy.accountDeletion.howToDelete.alternative')} <a href={`mailto:${t('privacy.supportEmail')}`} className="text-[#0d5e26] dark:text-[#71F59B] underline">{t('privacy.supportEmail')}</a>.
             </p>
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('privacy.accountDeletion.whatGetsDeleted.title')}</h3>
@@ -111,12 +111,12 @@ export default function PrivacyPage() {
             <p>{t('privacy.accountDeletion.retention.text')}</p>
 
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-              {t('privacy.accountDeletion.contact')} <a href={`mailto:${t('privacy.supportEmail')}`} className="text-green-600 dark:text-green-400 underline">{t('privacy.supportEmail')}</a>.
+              {t('privacy.accountDeletion.contact')} <a href={`mailto:${t('privacy.supportEmail')}`} className="text-[#0d5e26] dark:text-[#71F59B] underline">{t('privacy.supportEmail')}</a>.
             </p>
           </div>
         </section>
 
-        <footer className="border-t border-gray-200 dark:border-gray-800 pt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+        <footer className="border-t border-gray-200 dark:border-[#71F59B]/10 pt-8 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>© 2026 Golify. All rights reserved.</p>
         </footer>
       </div>
