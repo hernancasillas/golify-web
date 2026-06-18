@@ -3,6 +3,7 @@ import { InstallCTA } from '@/components/InstallCTA';
 import { SmartAppOpen } from '@/components/SmartAppOpen';
 import {
   SITE_NAME,
+  SITE_URL,
   IOS_APP_ID,
   localeAlternates,
   absoluteUrl,
@@ -172,6 +173,7 @@ export default async function StickersPage({
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
+    publisher: { '@id': `${SITE_URL}/#organization` },
     mainEntity: L.faqs.map((f) => ({
       '@type': 'Question',
       name: f.q,

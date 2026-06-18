@@ -5,6 +5,7 @@ import { InstallCTA } from '@/components/InstallCTA';
 import { SmartAppOpen } from '@/components/SmartAppOpen';
 import {
   SITE_NAME,
+  SITE_URL,
   IOS_APP_ID,
   WORLD_CUP_LEAGUE_ID,
   WORLD_CUP_SEASON,
@@ -173,6 +174,7 @@ export default async function WorldCupPage({
     {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
+      publisher: { '@id': `${SITE_URL}/#organization` },
       mainEntity: L.faqs.map((f) => ({
         '@type': 'Question',
         name: f.q,

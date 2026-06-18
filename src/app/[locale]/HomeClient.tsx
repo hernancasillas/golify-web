@@ -52,6 +52,20 @@ export default function HomeClient() {
         </div>
       </section>
 
+      {/* About Section — definitional prose for SEO/GEO brand-entity signals */}
+      <section className="container mx-auto px-4 py-12">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+            {t('about.title')}
+          </h2>
+          <div className="space-y-4 text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+            <p>{t('about.p1')}</p>
+            <p>{t('about.p2')}</p>
+            <p>{t('about.p3')}</p>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-12">
@@ -175,9 +189,14 @@ export default function HomeClient() {
             </a>
           </div>
           <p>{t('footer.copyright')}</p>
-          <Link href="/privacy" className="text-[#0d5e26] dark:text-[#71F59B] hover:underline text-sm">
-            Privacy & Terms
-          </Link>
+          <div className="flex justify-center gap-5 text-sm">
+            <Link href="/nosotros" className="text-[#0d5e26] dark:text-[#71F59B] hover:underline">
+              {t('footer.about')}
+            </Link>
+            <Link href="/privacy" className="text-[#0d5e26] dark:text-[#71F59B] hover:underline">
+              Privacy & Terms
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

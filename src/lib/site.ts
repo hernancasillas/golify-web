@@ -10,6 +10,24 @@ export const ANDROID_PACKAGE = 'com.goligulias.fuchibol';
 export const APP_STORE_URL = `https://apps.apple.com/app/id${IOS_APP_ID}`;
 export const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`;
 
+// Official social profiles — feed Organization `sameAs` so Google/AI engines
+// consolidate the "Golify" brand entity onto golify.futbol (not lookalikes).
+export const INSTAGRAM_URL = 'https://www.instagram.com/golify.futbol';
+export const TIKTOK_URL = 'https://www.tiktok.com/@golify.futbol';
+export const SAME_AS = [
+  INSTAGRAM_URL,
+  TIKTOK_URL,
+  APP_STORE_URL,
+  PLAY_STORE_URL,
+];
+
+// Brand logo (absolute) for Organization/WebSite JSON-LD.
+export const LOGO_URL = `${SITE_URL}/icon1.png`;
+
+// Brand-first tagline used in metadata + structured data.
+export const SITE_TAGLINE_ES =
+  'Golify — fútbol en vivo, retas, quinielas y álbum de stickers en México.';
+
 export const LOCALES = ['en', 'es'] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = 'es';

@@ -25,6 +25,12 @@
       "description": "Customize alerts for your favorite teams, leagues, and players."
     }
   },
+  "about": {
+    "title": "What is Golify?",
+    "p1": "Golify is a free football (soccer) app for iOS and Android, built for fans in Mexico and Latin America. It brings together live scores, the FIFA World Cup 2026 schedule and results, prediction tournaments with friends (\"retas\"), pools (\"quinielas\"), a digital collectible sticker album, and the EA FC player catalog — all in one place.",
+    "p2": "With Golify you follow your favorite matches with real-time notifications for goals, cards and lineups; create and compete in private retas and quinielas with your group; and explore detailed team and player stats. It covers the world's major leagues, including Liga MX, the Premier League, La Liga, Serie A and more.",
+    "p3": "Golify is free, available in Spanish and English, and requires no account to get started. Download it from the App Store or Google Play and live the World Cup 2026 with your community. Golify's official website is golify.futbol."
+  },
   "leagues": {
     "title": "Supported Leagues"
   },
@@ -35,7 +41,8 @@
     "googlePlay": "Google Play"
   },
   "footer": {
-    "copyright": "© 2026 Golify. All rights reserved."
+    "copyright": "© 2026 Golify. All rights reserved.",
+    "about": "About"
   },
   "privacy": {
     "title": "Legal & Privacy",

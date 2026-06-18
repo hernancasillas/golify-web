@@ -19,7 +19,7 @@ function localized(path: string): MetadataRoute.Sitemap {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticPaths = ['', '/world-cup', '/stickers', '/privacy', '/terms'];
+  const staticPaths = ['', '/nosotros', '/world-cup', '/stickers', '/privacy', '/terms'];
   const entries: MetadataRoute.Sitemap = staticPaths.flatMap(localized);
 
   // Dynamic: every World Cup match + every team derived from the schedule.
