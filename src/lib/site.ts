@@ -29,3 +29,19 @@ export function installLink(path: string, src?: string): string {
 export function absoluteUrl(path: string): string {
   return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
 }
+
+// Per-locale canonical + hreflang alternates for a localized route.
+// `subpath` is the path AFTER the locale segment (e.g. '' for home,
+// '/stickers' for /es/stickers). Canonical self-references the current
+// locale; languages map every locale + x-default (the default locale).
+export function localeAlternates(locale: Locale, subpath = '') {
+  const sub = subpath && !subpath.startsWith('/') ? `/${subpath}` : subpath;
+  const languages: Record<string, string> = {
+    'x-default': `${SITE_URL}/${DEFAULT_LOCALE}${sub}`,
+  };
+  for (const l of LOCALES) languages[l] = `${SITE_URL}/${l}${sub}`;
+  return {
+    canonical: `${SITE_URL}/${locale}${sub}`,
+    languages,
+  };
+}

@@ -1,27 +1,16 @@
-'use client';
+import type { Metadata } from 'next';
+import { localeAlternates, type Locale } from '@/lib/site';
+import StickersClient from './StickersClient';
 
-import { useEffect } from 'react';
-import { OpeningScreen } from '@/components/OpeningScreen';
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return { alternates: localeAlternates(locale as Locale, '/stickers') };
+}
 
-export default function StickersPage() {
-  useEffect(() => {
-    const deeplink = 'golify://stickers';
-    const startTime = Date.now();
-    window.location.href = deeplink;
-    
-    setTimeout(() => {
-      if (Date.now() - startTime < 2000) {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const isAndroid = /Android/.test(navigator.userAgent);
-        
-        if (isIOS) {
-          window.location.href = 'https://apps.apple.com/app/id6772339872';
-        } else if (isAndroid) {
-          window.location.href = 'https://play.google.com/store/apps/details?id=com.goligulias.fuchibol';
-        }
-      }
-    }, 2000);
-  }, []);
-
-  return <OpeningScreen />;
+export default function Page() {
+  return <StickersClient />;
 }
