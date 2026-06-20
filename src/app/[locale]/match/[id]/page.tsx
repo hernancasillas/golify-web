@@ -2,7 +2,14 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getFixtureById, type Fixture } from '@/lib/api-football';
 import { InstallCTA } from '@/components/InstallCTA';
-import { SITE_NAME, IOS_APP_ID, LOCALES, absoluteUrl } from '@/lib/site';
+import {
+  SITE_NAME,
+  IOS_APP_ID,
+  LOCALES,
+  WORLD_CUP_LEAGUE_ID,
+  worldCupEventNode,
+  absoluteUrl,
+} from '@/lib/site';
 
 // SSR content page (was a client redirect funnel). Renders real match facts so
 // Google AND AI answer-engines can index/cite it, with an install CTA below.
@@ -54,6 +61,16 @@ function statusLabel(f: Fixture, locale: string): string {
   if (['1H', '2H', 'HT', 'ET', 'P', 'LIVE'].includes(s)) return L.live;
   if (['FT', 'AET', 'PEN'].includes(s)) return L.finished;
   return L.scheduled;
+}
+
+// schema.org EventStatusType only defines Scheduled/Postponed/Cancelled/
+// Rescheduled/MovedOnline — there is no "live" or "finished" member, so a
+// playing/played match stays EventScheduled; we only flip the abnormal states.
+function schemaEventStatus(f: Fixture): string {
+  const s = f.fixture.status.short;
+  if (s === 'PST') return 'https://schema.org/EventPostponed';
+  if (['CANC', 'ABD'].includes(s)) return 'https://schema.org/EventCancelled';
+  return 'https://schema.org/EventScheduled';
 }
 
 function title(f: Fixture, locale: string): string {
@@ -113,33 +130,64 @@ export default async function MatchPage({
   const L = t(locale);
   const played = f.goals.home != null && f.goals.away != null;
   const kickoff = new Date(f.fixture.date);
+  const isWorldCup = f.league.id === WORLD_CUP_LEAGUE_ID;
+
+  const homeTeam = {
+    '@type': 'SportsTeam',
+    name: f.teams.home.name,
+    logo: f.teams.home.logo,
+  };
+  const awayTeam = {
+    '@type': 'SportsTeam',
+    name: f.teams.away.name,
+    logo: f.teams.away.logo,
+  };
 
   // schema.org SportsEvent — the structured signal AI/Google parse to cite us.
+  // `location` and `startDate` are required by Google; we always emit both
+  // (venue fields fall back to the league's host country so the item stays
+  // valid even when the API hasn't assigned a stadium yet).
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SportsEvent',
     name: `${f.teams.home.name} ${L.vs} ${f.teams.away.name}`,
+    description: `${f.teams.home.name} ${L.vs} ${f.teams.away.name} — ${f.league.name} ${f.league.round}. ${L.followInApp}`,
     sport: 'Soccer',
     startDate: f.fixture.date,
-    eventStatus: 'https://schema.org/EventScheduled',
-    location: f.fixture.venue.name
+    // Football matches run ~2h; gives Google an explicit endDate.
+    endDate: new Date(kickoff.getTime() + 2 * 60 * 60 * 1000).toISOString(),
+    eventStatus: schemaEventStatus(f),
+    location: {
+      '@type': 'Place',
+      name: f.fixture.venue.name ?? f.league.country ?? f.league.name,
+      address: f.fixture.venue.city ?? f.league.country ?? undefined,
+    },
+    image: [f.teams.home.logo, f.teams.away.logo, f.league.logo].filter(
+      Boolean,
+    ),
+    homeTeam,
+    awayTeam,
+    performer: [homeTeam, awayTeam],
+    organizer: isWorldCup
       ? {
-          '@type': 'Place',
-          name: f.fixture.venue.name,
-          address: f.fixture.venue.city ?? undefined,
+          '@type': 'Organization',
+          name: 'FIFA',
+          url: 'https://www.fifa.com',
         }
-      : undefined,
-    homeTeam: {
-      '@type': 'SportsTeam',
-      name: f.teams.home.name,
-      logo: f.teams.home.logo,
-    },
-    awayTeam: {
-      '@type': 'SportsTeam',
-      name: f.teams.away.name,
-      logo: f.teams.away.logo,
-    },
-    superEvent: { '@type': 'SportsEvent', name: f.league.name },
+      : { '@type': 'Organization', name: f.league.name },
+    // superEvent must itself be a valid Event (name + startDate + location):
+    // for World Cup matches we link the canonical tournament node by @id.
+    superEvent: isWorldCup
+      ? worldCupEventNode(absoluteUrl(`/${locale}/world-cup`))
+      : {
+          '@type': 'SportsEvent',
+          name: f.league.name,
+          startDate: f.fixture.date,
+          location: {
+            '@type': 'Place',
+            name: f.league.country ?? f.league.name,
+          },
+        },
     url: absoluteUrl(`/${locale}/match/${id}`),
   };
 

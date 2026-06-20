@@ -9,6 +9,7 @@ import {
   IOS_APP_ID,
   WORLD_CUP_LEAGUE_ID,
   WORLD_CUP_SEASON,
+  worldCupEventNode,
   localeAlternates,
   absoluteUrl,
   type Locale,
@@ -158,18 +159,7 @@ export default async function WorldCupPage({
   const jsonLd = [
     {
       '@context': 'https://schema.org',
-      '@type': 'SportsEvent',
-      name: 'FIFA World Cup 2026',
-      sport: 'Soccer',
-      startDate: '2026-06-11',
-      endDate: '2026-07-19',
-      eventStatus: 'https://schema.org/EventScheduled',
-      location: [
-        { '@type': 'Country', name: 'United States' },
-        { '@type': 'Country', name: 'Canada' },
-        { '@type': 'Country', name: 'Mexico' },
-      ],
-      url: absoluteUrl(`/${locale}/world-cup`),
+      ...worldCupEventNode(absoluteUrl(`/${locale}/world-cup`)),
     },
     {
       '@context': 'https://schema.org',
@@ -196,6 +186,15 @@ export default async function WorldCupPage({
       </p>
       <h1 className="mt-2 text-3xl font-bold sm:text-4xl">{L.title}</h1>
       <p className="mt-4 text-neutral-700 dark:text-neutral-300">{L.intro}</p>
+
+      <Link
+        href={`/${locale}/world-cup/bracket`}
+        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-green-600 px-5 py-3 font-semibold text-white hover:bg-green-700"
+      >
+        {locale === 'en'
+          ? '🏆 View the knockout bracket (live projection)'
+          : '🏆 Ver la llave de eliminatorias (proyección en vivo)'}
+      </Link>
 
       <section className="mt-10">
         <h2 className="text-xl font-semibold">{L.upcoming}</h2>

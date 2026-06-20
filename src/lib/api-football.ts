@@ -3,6 +3,11 @@
 // so content pages render fast and crawlers always get fresh-enough facts.
 // Server-only by convention: only import from Server Components.
 
+import type {
+  APIFootballFixture,
+  APIFootballStanding,
+} from './api-football.types';
+
 const BASE_URL = 'https://v3.football.api-sports.io';
 const API_KEY = process.env.API_FOOTBALL_KEY ?? '';
 
@@ -73,4 +78,46 @@ export async function getWorldCupFixtures(
 ): Promise<Fixture[]> {
   // Whole-tournament schedule. Evergreen-ish — revalidate hourly.
   return apiGet<Fixture>('/fixtures', { league: leagueId, season }, 3600);
+}
+
+// ---- Bracket data ----
+// The bracket engine (src/lib/bracket) reads the fuller API-Football shapes
+// (APIFootballStanding / APIFootballFixture), so these fetchers type their
+// responses against those rather than the trimmed `Fixture`.
+
+interface StandingsEnvelope {
+  league: { standings: APIFootballStanding[][] };
+}
+
+/**
+ * Flat standings for every group of the tournament (A–L). The /standings
+ * endpoint nests rows as standings[group][row]; we flatten so the engine can
+ * bucket by each row's `group` field. Short-ish revalidate so the projected
+ * bracket tracks results within a few minutes.
+ */
+export async function getWorldCupStandings(
+  leagueId: number,
+  season: number,
+): Promise<APIFootballStanding[]> {
+  const rows = await apiGet<StandingsEnvelope>(
+    '/standings',
+    { league: leagueId, season },
+    300,
+  );
+  return rows[0]?.league.standings.flat() ?? [];
+}
+
+/**
+ * Full fixture list typed for the engine (live overlay + clinch detection).
+ * Same endpoint as getWorldCupFixtures; the engine needs the richer type.
+ */
+export async function getWorldCupFixturesForBracket(
+  leagueId: number,
+  season: number,
+): Promise<APIFootballFixture[]> {
+  return apiGet<APIFootballFixture>(
+    '/fixtures',
+    { league: leagueId, season },
+    300,
+  );
 }

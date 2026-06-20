@@ -36,6 +36,44 @@ export const DEFAULT_LOCALE: Locale = 'es';
 export const WORLD_CUP_LEAGUE_ID = 1;
 export const WORLD_CUP_SEASON = 2026;
 
+// FIFA World Cup 2026 — single source of truth for structured data shared by
+// the tournament hub and every match page (match superEvent links here by @id).
+export const WORLD_CUP_EVENT = {
+  id: `${SITE_URL}/#worldcup2026`,
+  name: 'FIFA World Cup 2026',
+  startDate: '2026-06-11',
+  endDate: '2026-07-19',
+  hosts: ['United States', 'Canada', 'Mexico'] as const,
+  organizer: { name: 'FIFA', url: 'https://www.fifa.com' },
+};
+
+// schema.org Place[] for the three host countries.
+export const WORLD_CUP_LOCATION = WORLD_CUP_EVENT.hosts.map((name) => ({
+  '@type': 'Country',
+  name,
+}));
+
+// The full tournament SportsEvent node, reused as the canonical hub event and
+// as the `superEvent` reference on match pages so both share one @id.
+export function worldCupEventNode(url: string) {
+  return {
+    '@type': 'SportsEvent',
+    '@id': WORLD_CUP_EVENT.id,
+    name: WORLD_CUP_EVENT.name,
+    sport: 'Soccer',
+    startDate: WORLD_CUP_EVENT.startDate,
+    endDate: WORLD_CUP_EVENT.endDate,
+    eventStatus: 'https://schema.org/EventScheduled',
+    location: WORLD_CUP_LOCATION,
+    organizer: {
+      '@type': 'Organization',
+      name: WORLD_CUP_EVENT.organizer.name,
+      url: WORLD_CUP_EVENT.organizer.url,
+    },
+    url,
+  };
+}
+
 // Smart install link — points at our own redirect funnel page, which detects
 // platform and opens the right store while tracking the share source.
 // `path` is the in-app deeplink target (e.g. `match/123`), `src` is attribution.
