@@ -11,6 +11,8 @@ import {
   SAME_AS,
   APP_STORE_URL,
   PLAY_STORE_URL,
+  DEFAULT_OG_IMAGE,
+  ogImages,
 } from "@/lib/site";
 import "./globals.css";
 
@@ -38,11 +40,13 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     locale: "es_MX",
+    images: ogImages(),
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE],
   },
   other: {
     "apple-itunes-app": "app-id=6772339872",

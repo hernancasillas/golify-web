@@ -21,5 +21,9 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
+  // Exclude metadata image routes (no file extension, so they'd otherwise be
+  // locale-redirected into a 404) and API/static assets.
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|opengraph-image|twitter-image|icon|apple-icon|sitemap|robots|manifest|.*\\..*).*)',
+  ],
 };

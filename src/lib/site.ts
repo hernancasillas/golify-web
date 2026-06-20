@@ -24,6 +24,18 @@ export const SAME_AS = [
 // Brand logo (absolute) for Organization/WebSite JSON-LD.
 export const LOGO_URL = `${SITE_URL}/icon1.png`;
 
+// Default social-share image (absolute). The root dynamic OG route is served at
+// /opengraph-image. `openGraph` is shallow-merged in Next, so any page that sets
+// its own `openGraph` MUST re-include images or the share card goes blank — use
+// `ogImages()` for that. X/Twitter falls back to og:image when twitter:image is
+// absent, so og:image alone covers both.
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/opengraph-image`;
+
+/** openGraph.images array for a given absolute image URL (defaults to brand OG). */
+export function ogImages(url: string = DEFAULT_OG_IMAGE, alt: string = SITE_NAME) {
+  return [{ url, width: 1200, height: 630, alt }];
+}
+
 // Brand-first tagline used in metadata + structured data.
 export const SITE_TAGLINE_ES =
   'Golify — fútbol en vivo, retas, quinielas y álbum de stickers en México.';

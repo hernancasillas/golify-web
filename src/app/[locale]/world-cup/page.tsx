@@ -12,6 +12,8 @@ import {
   worldCupEventNode,
   localeAlternates,
   absoluteUrl,
+  ogImages,
+  DEFAULT_OG_IMAGE,
   type Locale,
 } from '@/lib/site';
 
@@ -119,8 +121,14 @@ export async function generateMetadata({
       url: absoluteUrl(`/${locale}/world-cup`),
       siteName: SITE_NAME,
       type: 'website',
+      images: ogImages(),
     },
-    twitter: { card: 'summary_large_image', title: L.title, description: desc },
+    twitter: {
+      card: 'summary_large_image',
+      title: L.title,
+      description: desc,
+      images: [DEFAULT_OG_IMAGE],
+    },
     other: {
       'apple-itunes-app': `app-id=${IOS_APP_ID}, app-argument=${DEEPLINK}`,
     },

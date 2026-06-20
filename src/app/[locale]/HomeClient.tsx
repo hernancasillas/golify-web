@@ -9,7 +9,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 export default function HomeClient() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const en = locale === 'en';
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f0fdf4] to-white dark:from-[#06180E] dark:to-[#041008]">
       {/* Header with language switcher and theme toggle */}
@@ -50,6 +51,43 @@ export default function HomeClient() {
             </Button>
           </div>
         </div>
+      </section>
+
+      {/* World Cup 2026 spotlight — viral entry point to the live bracket.
+          Links into the site so home visitors can explore; app download stays
+          the primary CTA above and below. */}
+      <section className="container mx-auto px-4 pb-4">
+        <Link
+          href={`/${locale}/world-cup/bracket`}
+          className="group mx-auto block max-w-4xl rounded-2xl border-2 border-[#71F59B]/40 bg-[#e8fdf0] p-6 transition-colors hover:border-[#71F59B] sm:p-8 dark:bg-[#0d2414]"
+        >
+          <p className="text-sm font-bold uppercase tracking-wide text-[#0d5e26] dark:text-[#71F59B]">
+            {en ? '🏆 World Cup 2026 · Live' : '🏆 Mundial 2026 · En vivo'}
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
+            {en
+              ? 'World Cup 2026 Bracket — live knockout projection'
+              : 'Bracket del Mundial 2026 — proyección en vivo de la llave'}
+          </h2>
+          <p className="mt-2 text-base text-gray-600 dark:text-gray-400">
+            {en
+              ? 'See how the Round of 32 to the Final would look if the group stage ended right now. Updates with every result.'
+              : 'Mira cómo quedarían los dieciseisavos hasta la final si la fase de grupos terminara ahora. Se actualiza con cada resultado.'}
+          </p>
+          <span className="mt-4 inline-flex items-center font-semibold text-[#0d5e26] group-hover:underline dark:text-[#71F59B]">
+            {en ? 'See the bracket →' : 'Ver la llave →'}
+          </span>
+        </Link>
+        <p className="mt-3 text-center text-sm">
+          <Link
+            href={`/${locale}/world-cup`}
+            className="text-[#0d5e26] hover:underline dark:text-[#71F59B]"
+          >
+            {en
+              ? 'Or browse the full World Cup 2026 schedule and results'
+              : 'O explora el calendario y resultados completos del Mundial 2026'}
+          </Link>
+        </p>
       </section>
 
       {/* About Section — definitional prose for SEO/GEO brand-entity signals */}

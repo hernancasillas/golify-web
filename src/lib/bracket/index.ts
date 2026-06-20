@@ -28,3 +28,8 @@ export {
   computeGroupClinch,
   type GroupClinch,
 } from "./clinch";
+export {
+  buildBracketOverlay,
+  type MatchOverlay,
+  type OverlayTeam,
+} from "./overlay";

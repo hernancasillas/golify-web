@@ -20,10 +20,13 @@ import {
 import {
   generateWorldCupBracket,
   buildGroupClinch,
+  buildBracketOverlay,
   type BracketMatch,
   type BracketSlot,
   type WorldCupBracket,
   type GroupClinch,
+  type MatchOverlay,
+  type OverlayTeam,
 } from '@/lib/bracket';
 import { getTeamFlagByName, getTeamCodeByName } from '@/lib/bracket/flags';
 
@@ -47,6 +50,8 @@ interface LocaleStrings {
   howBody: string;
   legendProjected: string;
   legendConfirmed: string;
+  live: string;
+  finalLabel: string;
   updated: string;
   partialNote: string;
   rounds: { R32: string; R16: string; QF: string; SF: string; F: string; P3: string };
@@ -79,6 +84,8 @@ const STR: Record<'es' | 'en', LocaleStrings> = {
       'No es una predicción ni una simulación: es determinista. Tomamos la tabla actual de cada grupo (puntos, diferencia de goles, goles a favor) y colocamos a 1°, 2° y a los 8 mejores terceros en su casilla según el reglamento del Mundial 2026. Cuando una posición ya es matemáticamente segura, la marcamos como Confirmado ✓; mientras pueda cambiar, es una Proyección. Las rondas posteriores a dieciseisavos muestran al ganador proyectado de cada cruce.',
     legendProjected: 'Proyección',
     legendConfirmed: 'Confirmado',
+    live: 'En vivo',
+    finalLabel: 'Final',
     updated: 'Actualizado',
     partialNote:
       'Aún no se pueden proyectar todos los terceros: faltan grupos por definir su top 3. Las casillas de tercero se completan cuando los 12 grupos tengan posiciones determinables.',
@@ -135,6 +142,8 @@ const STR: Record<'es' | 'en', LocaleStrings> = {
       "It's not a prediction or a simulation — it's deterministic. We take each group's current table (points, goal difference, goals for) and place 1st, 2nd and the 8 best third-placed teams into their slots per the World Cup 2026 regulations. Once a position is mathematically secure we mark it Confirmed ✓; while it can still change it's a Projection. Rounds beyond the Round of 32 show the projected winner of each tie.",
     legendProjected: 'Projection',
     legendConfirmed: 'Confirmed',
+    live: 'Live',
+    finalLabel: 'Full time',
     updated: 'Updated',
     partialNote:
       "Third-placed teams can't all be projected yet — some groups still need a determinable top 3. Third-place slots fill in once all 12 groups have decidable positions.",
@@ -270,96 +279,204 @@ function slotLabel(slot: BracketSlot, L: Strings): string {
   }
 }
 
+const FINISHED_STATUS = new Set(['FT', 'AET', 'PEN']);
+const LIVE_STATUS = new Set(['1H', '2H', 'HT', 'ET', 'BT', 'P', 'LIVE', 'INT']);
+
+function fmtDate(date: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'es-ES', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(date));
+}
+
 // ─── presentational pieces (server-rendered) ────────────────────────────────
 
+/** One side of a match card. A resolved `team` wins over the placeholder. */
 function SlotRow({
-  slot,
+  team,
+  placeholder,
   locked,
-  locale,
+  score,
+  winner,
+  dim,
   L,
 }: {
-  slot: BracketSlot;
+  team: OverlayTeam | null;
+  placeholder: string;
   locked: boolean;
-  locale: string;
+  score: number | null;
+  winner: boolean;
+  dim: boolean;
   L: Strings;
 }) {
-  if (slot.team) {
-    const flag = getTeamFlagByName(slot.team.name);
-    const code = getTeamCodeByName(slot.team.name);
-    return (
-      <Link
-        href={`/${locale}/team/${slot.team.id}`}
-        className="flex items-center gap-2 px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-        title={slot.team.name}
-      >
-        <span className="text-base leading-none">{flag || '⚽'}</span>
-        <span className="flex-1 truncate text-sm font-medium">{code}</span>
-        {locked ? (
-          <span
-            className="text-xs text-green-600"
-            title={L.legendConfirmed}
-            aria-label={L.legendConfirmed}
-          >
-            ✓
-          </span>
-        ) : null}
-      </Link>
-    );
-  }
   return (
     <div className="flex items-center gap-2 px-2 py-1.5">
-      <span className="text-base leading-none text-neutral-400">•</span>
-      <span className="flex-1 truncate text-sm text-neutral-500 dark:text-neutral-400">
-        {slotLabel(slot, L)}
-      </span>
+      {team ? (
+        <>
+          <span className="text-base leading-none">
+            {getTeamFlagByName(team.name) || '⚽'}
+          </span>
+          <span
+            className={`flex-1 truncate text-sm ${winner ? 'font-bold' : 'font-medium'} ${
+              dim ? 'text-neutral-400 dark:text-neutral-500' : ''
+            }`}
+            title={team.name}
+          >
+            {getTeamCodeByName(team.name)}
+          </span>
+        </>
+      ) : (
+        <>
+          <span className="text-base leading-none text-neutral-400">•</span>
+          <span className="flex-1 truncate text-sm text-neutral-500 dark:text-neutral-400">
+            {placeholder}
+          </span>
+        </>
+      )}
+      {score != null ? (
+        <span
+          className={`text-sm tabular-nums ${winner ? 'font-bold' : ''} ${
+            dim ? 'text-neutral-400' : ''
+          }`}
+        >
+          {score}
+        </span>
+      ) : locked ? (
+        <span
+          className="text-xs text-green-600"
+          title={L.legendConfirmed}
+          aria-label={L.legendConfirmed}
+        >
+          ✓
+        </span>
+      ) : null}
     </div>
   );
 }
 
 function MatchCard({
   match,
+  overlay,
   clinch,
   locale,
   L,
 }: {
   match: BracketMatch;
+  overlay: Map<number, MatchOverlay>;
   clinch: Map<string, GroupClinch>;
   locale: string;
   L: Strings;
 }) {
-  const homeLocked = slotLocked(match.home, clinch);
-  const awayLocked = slotLocked(match.away, clinch);
-  const bothResolved = !!match.home.team && !!match.away.team;
-  const confirmed = bothResolved && homeLocked && awayLocked;
+  const ov = overlay.get(match.matchNumber);
+  const fx = ov?.fixture ?? null;
+  const home = ov?.home ?? null;
+  const away = ov?.away ?? null;
 
-  return (
-    <div className="w-44 shrink-0 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+  const isFinished = !!fx && FINISHED_STATUS.has(fx.statusShort);
+  const isLive = !!fx && LIVE_STATUS.has(fx.statusShort);
+  const isScheduled = !!fx && !isFinished && !isLive;
+
+  // Align fixture goals to our home/away (fixture home may differ).
+  let homeScore: number | null = null;
+  let awayScore: number | null = null;
+  if (fx) {
+    const homeIsFixtureHome = home?.id === fx.homeId;
+    homeScore = homeIsFixtureHome ? fx.homeGoals : fx.awayGoals;
+    awayScore = homeIsFixtureHome ? fx.awayGoals : fx.homeGoals;
+  }
+
+  const winnerId = isFinished ? ov?.winnerId ?? null : null;
+  const homeWinner = winnerId != null && home?.id === winnerId;
+  const awayWinner = winnerId != null && away?.id === winnerId;
+  const homeDim = winnerId != null && !homeWinner;
+  const awayDim = winnerId != null && !awayWinner;
+
+  // R32 clinch ticks only matter while there's no real fixture yet.
+  const homeLocked = !fx && slotLocked(match.home, clinch);
+  const awayLocked = !fx && slotLocked(match.away, clinch);
+  const confirmed =
+    !fx && !!match.home.team && !!match.away.team && homeLocked && awayLocked;
+
+  let label: string;
+  let headerClass: string;
+  if (isFinished) {
+    label = L.finalLabel;
+    headerClass =
+      'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400';
+  } else if (isLive) {
+    label = fx && fx.elapsed != null ? `${fx.elapsed}'` : L.live;
+    headerClass = 'bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400';
+  } else if (isScheduled && fx) {
+    label = fmtDate(fx.date, locale);
+    headerClass =
+      'bg-neutral-50 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300';
+  } else {
+    label = confirmed ? L.legendConfirmed : L.legendProjected;
+    headerClass = confirmed
+      ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400'
+      : 'bg-neutral-50 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400';
+  }
+
+  const cardClass = `block w-40 shrink-0 overflow-hidden rounded-lg border bg-white shadow-sm sm:w-44 dark:bg-neutral-900 ${
+    isLive
+      ? 'border-red-300 dark:border-red-800'
+      : 'border-neutral-200 dark:border-neutral-700'
+  } ${fx ? 'hover:border-green-400 dark:hover:border-green-700' : ''}`;
+
+  const body = (
+    <>
       <div
-        className={`flex items-center justify-between px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-          confirmed
-            ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400'
-            : 'bg-neutral-50 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400'
-        }`}
+        className={`flex items-center justify-between px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${headerClass}`}
       >
         <span>P{match.matchNumber}</span>
-        <span>{confirmed ? L.legendConfirmed : L.legendProjected}</span>
+        <span>{label}</span>
       </div>
-      <SlotRow slot={match.home} locked={homeLocked} locale={locale} L={L} />
+      <SlotRow
+        team={home}
+        placeholder={slotLabel(match.home, L)}
+        locked={homeLocked}
+        score={homeScore}
+        winner={homeWinner}
+        dim={homeDim}
+        L={L}
+      />
       <div className="border-t border-neutral-100 dark:border-neutral-800" />
-      <SlotRow slot={match.away} locked={awayLocked} locale={locale} L={L} />
-    </div>
+      <SlotRow
+        team={away}
+        placeholder={slotLabel(match.away, L)}
+        locked={awayLocked}
+        score={awayScore}
+        winner={awayWinner}
+        dim={awayDim}
+        L={L}
+      />
+    </>
+  );
+
+  // Real fixtures link to the match page; projections link nowhere (the rows
+  // would otherwise nest <a>s). Undetermined slots stay static.
+  return fx ? (
+    <Link href={`/${locale}/match/${fx.id}`} className={cardClass}>
+      {body}
+    </Link>
+  ) : (
+    <div className={cardClass}>{body}</div>
   );
 }
 
 function RoundColumn({
   title,
   matches,
+  overlay,
   clinch,
   locale,
   L,
 }: {
   title: string;
   matches: BracketMatch[];
+  overlay: Map<number, MatchOverlay>;
   clinch: Map<string, GroupClinch>;
   locale: string;
   L: Strings;
@@ -371,7 +488,14 @@ function RoundColumn({
       </h3>
       <div className="flex flex-1 flex-col justify-around gap-3">
         {matches.map((m) => (
-          <MatchCard key={m.matchNumber} match={m} clinch={clinch} locale={locale} L={L} />
+          <MatchCard
+            key={m.matchNumber}
+            match={m}
+            overlay={overlay}
+            clinch={clinch}
+            locale={locale}
+            L={L}
+          />
         ))}
       </div>
     </div>
@@ -380,23 +504,25 @@ function RoundColumn({
 
 function BracketTree({
   bracket,
+  overlay,
   clinch,
   locale,
   L,
 }: {
   bracket: WorldCupBracket;
+  overlay: Map<number, MatchOverlay>;
   clinch: Map<string, GroupClinch>;
   locale: string;
   L: Strings;
 }) {
   return (
-    <div className="overflow-x-auto pb-4">
+    <div className="-mx-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
       <div className="flex min-w-max items-stretch gap-4">
-        <RoundColumn title={L.rounds.R32} matches={bracket.roundOf32} clinch={clinch} locale={locale} L={L} />
-        <RoundColumn title={L.rounds.R16} matches={bracket.roundOf16} clinch={clinch} locale={locale} L={L} />
-        <RoundColumn title={L.rounds.QF} matches={bracket.quarterFinals} clinch={clinch} locale={locale} L={L} />
-        <RoundColumn title={L.rounds.SF} matches={bracket.semiFinals} clinch={clinch} locale={locale} L={L} />
-        <RoundColumn title={L.rounds.F} matches={[bracket.final]} clinch={clinch} locale={locale} L={L} />
+        <RoundColumn title={L.rounds.R32} matches={bracket.roundOf32} overlay={overlay} clinch={clinch} locale={locale} L={L} />
+        <RoundColumn title={L.rounds.R16} matches={bracket.roundOf16} overlay={overlay} clinch={clinch} locale={locale} L={L} />
+        <RoundColumn title={L.rounds.QF} matches={bracket.quarterFinals} overlay={overlay} clinch={clinch} locale={locale} L={L} />
+        <RoundColumn title={L.rounds.SF} matches={bracket.semiFinals} overlay={overlay} clinch={clinch} locale={locale} L={L} />
+        <RoundColumn title={L.rounds.F} matches={[bracket.final]} overlay={overlay} clinch={clinch} locale={locale} L={L} />
       </div>
     </div>
   );
@@ -417,6 +543,8 @@ export default async function BracketPage({
 
   const bracket = generateWorldCupBracket({ standings, liveFixtures: fixtures });
   const clinch = buildGroupClinch(standings, fixtures);
+  // Overlay real knockout fixtures (scores/dates) + propagate winners forward.
+  const overlay = buildBracketOverlay(bracket, fixtures);
 
   const updated = new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'es-ES', {
     day: 'numeric',
@@ -461,7 +589,7 @@ export default async function BracketPage({
   ];
 
   return (
-    <main className="mx-auto max-w-6xl px-5 py-10">
+    <main className="mx-auto max-w-6xl overflow-x-hidden px-4 py-8 sm:px-5 sm:py-10">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -478,8 +606,10 @@ export default async function BracketPage({
       <p className="mt-3 text-sm uppercase tracking-wide text-neutral-500">
         {L.kicker}
       </p>
-      <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{L.h1}</h1>
-      <p className="mt-4 max-w-3xl text-neutral-700 dark:text-neutral-300">
+      <h1 className="mt-2 text-balance text-xl font-bold break-words sm:text-3xl">
+        {L.h1}
+      </h1>
+      <p className="mt-4 max-w-3xl text-sm text-neutral-700 sm:text-base dark:text-neutral-300">
         {L.intro}
       </p>
 
@@ -506,8 +636,11 @@ export default async function BracketPage({
       ) : null}
 
       {/* the bracket */}
-      <div className="mt-8">
-        <BracketTree bracket={bracket} clinch={clinch} locale={locale} L={L} />
+      <p className="mt-8 text-xs text-neutral-400 sm:hidden">
+        {locale === 'en' ? 'Swipe to see all rounds →' : 'Desliza para ver todas las rondas →'}
+      </p>
+      <div className="mt-2 sm:mt-8">
+        <BracketTree bracket={bracket} overlay={overlay} clinch={clinch} locale={locale} L={L} />
       </div>
 
       {/* third place playoff */}
@@ -515,6 +648,7 @@ export default async function BracketPage({
         <RoundColumn
           title={L.rounds.P3}
           matches={[bracket.thirdPlace]}
+          overlay={overlay}
           clinch={clinch}
           locale={locale}
           L={L}
