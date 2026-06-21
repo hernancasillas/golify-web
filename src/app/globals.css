@@ -123,14 +123,20 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Root-level guard: no page should ever overflow horizontally. Inner
-       scroll regions (e.g. the World Cup bracket) keep their own
-       `overflow-x-auto`; this only stops a stray wide child from dragging
-       the whole document past device-width, which clips body text and
-       forces users to zoom out to read. */
-    overflow-x: hidden;
   }
   html {
     @apply font-sans;
+  }
+  /* Root-level horizontal-overflow guard. iOS Safari does NOT reliably clip
+     `overflow-x: hidden` on inner elements (e.g. <main>), so a wide child —
+     like the World Cup bracket's full-bleed scroll strip — leaks and makes
+     the whole document scroll sideways, clipping body text and forcing users
+     to zoom out. Clipping on the root (html + body) stops it for good.
+     `clip` (not `hidden`) avoids creating a scroll container, so inner
+     `overflow-x-auto` regions still scroll normally. */
+  html,
+  body {
+    overflow-x: clip;
+    max-width: 100%;
   }
 }
