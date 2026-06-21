@@ -123,6 +123,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Root-level guard: no page should ever overflow horizontally. Inner
+       scroll regions (e.g. the World Cup bracket) keep their own
+       `overflow-x-auto`; this only stops a stray wide child from dragging
+       the whole document past device-width, which clips body text and
+       forces users to zoom out to read. */
+    overflow-x: hidden;
   }
   html {
     @apply font-sans;
