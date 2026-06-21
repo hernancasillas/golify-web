@@ -516,7 +516,7 @@ function BracketTree({
   L: Strings;
 }) {
   return (
-    <div className="-mx-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
+    <div className="w-full max-w-full overflow-x-auto pb-4">
       <div className="flex min-w-max items-stretch gap-4">
         <RoundColumn title={L.rounds.R32} matches={bracket.roundOf32} overlay={overlay} clinch={clinch} locale={locale} L={L} />
         <RoundColumn title={L.rounds.R16} matches={bracket.roundOf16} overlay={overlay} clinch={clinch} locale={locale} L={L} />
