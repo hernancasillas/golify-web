@@ -69,7 +69,7 @@ const STR = {
       },
       {
         q: '¿Es gratis?',
-        a: 'Sí, puedes descargar Golify y empezar tu álbum de stickers gratis.',
+        a: 'Descargar Golify es gratis y puedes empezar tu álbum de stickers. Algunas funciones premium requieren suscripción.',
       },
     ],
     open: 'Abrir en Golify',
@@ -123,7 +123,7 @@ const STR = {
       },
       {
         q: 'Is it free?',
-        a: 'Yes, you can download Golify and start your sticker album for free.',
+        a: 'Downloading Golify is free and you can start your sticker album. Some premium features require a subscription.',
       },
     ],
     open: 'Open in Golify',

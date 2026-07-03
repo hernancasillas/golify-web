@@ -27,9 +27,9 @@
   },
   "about": {
     "title": "¿Qué es Golify?",
-    "p1": "Golify es una aplicación gratuita de fútbol para iOS y Android, pensada para aficionados en México y América Latina. Reúne en un solo lugar marcadores en vivo, el calendario y los resultados de la Copa Mundial 2026, retas de predicciones con amigos, quinielas, un álbum digital de stickers coleccionables y el catálogo de jugadores de EA FC.",
+    "p1": "Golify es una aplicación de fútbol para iOS y Android, gratis de descargar, pensada para aficionados en México y América Latina. Reúne en un solo lugar marcadores en vivo, el calendario y los resultados de la Copa Mundial 2026, retas de predicciones con amigos, quinielas, un álbum digital de stickers coleccionables y el catálogo de jugadores de EA FC.",
     "p2": "Con Golify sigues tus partidos favoritos con notificaciones en tiempo real de goles, tarjetas y alineaciones; creas y compites en retas y quinielas privadas con tu grupo; y exploras estadísticas detalladas de equipos y jugadores. Cubre las principales ligas del mundo, incluidas la Liga MX, la Premier League, La Liga, la Serie A y más.",
-    "p3": "Golify es gratis, está disponible en español e inglés y no requiere crear una cuenta para empezar. Descárgala desde la App Store o Google Play y vive el Mundial 2026 con tu comunidad. El sitio oficial de Golify es golify.futbol."
+    "p3": "Golify es gratis de descargar y está disponible en español e inglés. Algunas funciones premium requieren suscripción. Descárgala desde la App Store o Google Play y vive el Mundial 2026 con tu comunidad. El sitio oficial de Golify es golify.futbol."
   },
   "leagues": {
     "title": "Ligas Soportadas"
@@ -43,6 +43,57 @@
   "footer": {
     "copyright": "© 2026 Golify. Todos los derechos reservados.",
     "about": "Nosotros"
+  },
+  "home": {
+    "badge": "🏆 Mundial 2026 en vivo",
+    "heroPre": "Vive cada ",
+    "heroHighlight": "gol",
+    "heroPost": "como si estuvieras ahí",
+    "heroSub": "Marcadores en vivo, retas con tus cuates, quinielas y el camino al Mundial 2026. Todo en Golify.",
+    "downloadIOS": "Descargar iOS",
+    "downloadAndroid": "Descargar Android",
+    "mockupGoal": "⚽ GOOOL 78'",
+    "mockupScore": "México 2-1 Brasil",
+    "mockupReta": "🏆 ¡Vas 1° en tu reta!",
+    "mockupRetaName": "Reta \"Los Cuates\"",
+    "wcEyebrow": "🔥 Lo más hot ahorita",
+    "wcTitle": "La llave del Mundial, en vivo",
+    "wcBody": "Así quedaría el cuadro completo hasta la final si la fase de grupos terminara hoy. Cada resultado mueve la llave al instante.",
+    "wcCta": "Ver la llave →",
+    "wcPreviewRound": "Octavos de final",
+    "wcPreviewTag": "Proyección",
+    "wcPreviewFooter": "Se actualiza con cada resultado",
+    "featuresTitle": "Todo tu fútbol, en un solo lugar",
+    "featuresSub": "Desde el silbatazo inicial hasta la premiación 🏆",
+    "leaguesTitle": "Cubrimos las ligas que sigues",
+    "finalCtaTitle": "¿Listo pa'l Mundial, crack?",
+    "finalCtaBody": "No te pierdas ni un minuto del camino a la final.",
+    "featureItems": {
+      "liveScores": {
+        "title": "Marcadores en vivo",
+        "description": "Goles, tarjetas, alineaciones y estadísticas al instante, de todas tus ligas favoritas."
+      },
+      "retas": {
+        "title": "Retas",
+        "description": "Arma torneos de predicciones con tus amigos y presume tu lugar en la tabla."
+      },
+      "quinielas": {
+        "title": "Quinielas",
+        "description": "Compite por jornada o por partido completo con tu grupo, sin complicaciones."
+      },
+      "eaFc": {
+        "title": "Catálogo EA FC",
+        "description": "Stats completos de jugadores y equipos, directo desde el videojuego."
+      },
+      "stickers": {
+        "title": "Álbum de stickers",
+        "description": "Colecciona y completa tu álbum digital del Mundial 2026."
+      },
+      "notifications": {
+        "title": "Notificaciones a tu medida",
+        "description": "Elige tus equipos y ligas favoritas, y entérate antes que nadie."
+      }
+    }
   },
   "privacy": {
     "title": "Legal y Privacidad",

@@ -1,242 +1,272 @@
 'use client';
 
-import { useI18n } from '@/components/I18nProvider';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from 'next/image';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
+import { useI18n } from '@/components/I18nProvider';
+import { SiteNav } from '@/components/SiteNav';
+import { SiteFooter } from '@/components/SiteFooter';
+import {
+  DisplayHeading,
+  DownloadGlyph,
+  Eyebrow,
+  FeatureCard,
+  LeagueChip,
+  PillLink,
+} from '@/components/revamp/ui';
+import { APP_STORE_URL, PLAY_STORE_URL, type Locale } from '@/lib/site';
+
+// Feature icons (stroke = currentColor so they invert on the mint/gold tiles).
+const ICONS: Record<string, ReactNode> = {
+  liveScores: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+      <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.6" opacity=".6" />
+      <circle cx="12" cy="12" r="10.5" stroke="currentColor" strokeWidth="1.6" opacity=".3" />
+    </svg>
+  ),
+  retas: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 3h10v4a5 5 0 0 1-10 0V3z" />
+      <path d="M7 4H4a3 3 0 0 0 3 4" />
+      <path d="M17 4h3a3 3 0 0 1-3 4" />
+      <path d="M12 12v4" />
+      <path d="M9 20h6" />
+      <path d="M10 16h4l1 4H9l1-4z" />
+    </svg>
+  ),
+  quinielas: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1a2 2 0 0 0 0 4v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1a2 2 0 0 0 0-4V8z" />
+      <path d="M9 10.5l1.8 1.8L15 8.5" />
+    </svg>
+  ),
+  eaFc: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2.5" y="7.5" width="19" height="10" rx="5" />
+      <path d="M7 10.5v4M5 12.5h4" />
+      <circle cx="16" cy="10.8" r="1" />
+      <circle cx="18.2" cy="13" r="1" />
+    </svg>
+  ),
+  stickers: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <rect x="3" y="3" width="7.5" height="7.5" rx="1.6" />
+      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6" />
+      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6" />
+      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" />
+    </svg>
+  ),
+  notifications: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z" />
+      <path d="M10 19a2 2 0 0 0 4 0" />
+    </svg>
+  ),
+};
+
+const FEATURES = [
+  { key: 'liveScores', tone: 'mint' as const },
+  { key: 'retas', tone: 'gold' as const },
+  { key: 'quinielas', tone: 'mint' as const },
+  { key: 'eaFc', tone: 'gold' as const },
+  { key: 'stickers', tone: 'mint' as const },
+  { key: 'notifications', tone: 'gold' as const },
+];
+
+const LEAGUES = [
+  'Liga MX',
+  'Premier League',
+  'La Liga',
+  'Bundesliga',
+  'Serie A',
+  'Ligue 1',
+  'MLS',
+  'Saudi Pro League',
+  'Liga Argentina',
+  'Primeira Liga',
+];
 
 export default function HomeClient() {
   const { t, locale } = useI18n();
-  const en = locale === 'en';
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f0fdf4] to-white dark:from-[#06180E] dark:to-[#041008]">
-      {/* Header with language switcher and theme toggle */}
-      <header className="container mx-auto px-4 py-4 flex justify-end gap-4">
-        <ThemeToggle />
-        <LanguageSwitcher />
-      </header>
+    <div className="min-h-screen bg-background text-foreground">
+      <SiteNav />
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="max-w-4xl mx-auto">
-          <Image
-            src="/icon.png"
-            alt="Golify"
-            width={96}
-            height={96}
-            className="mx-auto mb-6 rounded-2xl"
-          />
-          <h1 className="text-5xl md:text-7xl font-bold text-[#0d5e26] dark:text-[#71F59B] mb-6">
-            {t('hero.title')}
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-4">
-            {t('hero.subtitle')}
-          </p>
-          <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
-            {t('hero.description')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-[#71F59B] hover:bg-[#4edd7a] text-[#06180E]" asChild>
-              <a href="https://apps.apple.com/app/id6772339872" target="_blank" rel="noopener noreferrer">
-                {t('hero.downloadIOS')}
-              </a>
-            </Button>
-            <Button size="lg" variant="outline" className="border-[#0d5e26] text-[#0d5e26] dark:border-[#71F59B] dark:text-[#71F59B] hover:bg-[#71F59B]/10" asChild>
-              <a href="https://play.google.com/store/apps/details?id=com.goligulias.fuchibol" target="_blank" rel="noopener noreferrer">
-                {t('hero.downloadAndroid')}
-              </a>
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* ── HERO ───────────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute -top-64 -left-40 h-[640px] w-[640px] rounded-full bg-[radial-gradient(circle,rgba(92,242,154,0.25),transparent_70%)]" />
+        <div className="pointer-events-none absolute -top-24 -right-52 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(255,193,69,0.16),transparent_70%)]" />
 
-      {/* World Cup 2026 spotlight — viral entry point to the live bracket.
-          Links into the site so home visitors can explore; app download stays
-          the primary CTA above and below. */}
-      <section className="container mx-auto px-4 pb-4">
-        <Link
-          href={`/${locale}/world-cup/bracket`}
-          className="group mx-auto block max-w-4xl rounded-2xl border-2 border-[#71F59B]/40 bg-[#e8fdf0] p-6 transition-colors hover:border-[#71F59B] sm:p-8 dark:bg-[#0d2414]"
-        >
-          <p className="text-sm font-bold uppercase tracking-wide text-[#0d5e26] dark:text-[#71F59B]">
-            {en ? '🏆 World Cup 2026 · Live' : '🏆 Mundial 2026 · En vivo'}
-          </p>
-          <h2 className="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl dark:text-white">
-            {en
-              ? 'World Cup 2026 Bracket — live knockout projection'
-              : 'Bracket del Mundial 2026 — proyección en vivo de la llave'}
-          </h2>
-          <p className="mt-2 text-base text-gray-600 dark:text-gray-400">
-            {en
-              ? 'See how the Round of 32 to the Final would look if the group stage ended right now. Updates with every result.'
-              : 'Mira cómo quedarían los dieciseisavos hasta la final si la fase de grupos terminara ahora. Se actualiza con cada resultado.'}
-          </p>
-          <span className="mt-4 inline-flex items-center font-semibold text-[#0d5e26] group-hover:underline dark:text-[#71F59B]">
-            {en ? 'See the bracket →' : 'Ver la llave →'}
-          </span>
-        </Link>
-        <p className="mt-3 text-center text-sm">
-          <Link
-            href={`/${locale}/world-cup`}
-            className="text-[#0d5e26] hover:underline dark:text-[#71F59B]"
-          >
-            {en
-              ? 'Or browse the full World Cup 2026 schedule and results'
-              : 'O explora el calendario y resultados completos del Mundial 2026'}
-          </Link>
-        </p>
-      </section>
-
-      {/* About Section — definitional prose for SEO/GEO brand-entity signals */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-            {t('about.title')}
-          </h2>
-          <div className="space-y-4 text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
-            <p>{t('about.p1')}</p>
-            <p>{t('about.p2')}</p>
-            <p>{t('about.p3')}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-12">
-          {t('features.title')}
-        </h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          <Card className="border-[#71F59B]/25">
-            <CardHeader>
-              <CardTitle className="text-[#0d5e26] dark:text-[#71F59B]">{t('features.matchTracking.title')}</CardTitle>
-              <CardDescription>
-                {t('features.matchTracking.description')}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-[#71F59B]/25">
-            <CardHeader>
-              <CardTitle className="text-[#0d5e26] dark:text-[#71F59B]">{t('features.retas.title')}</CardTitle>
-              <CardDescription>
-                {t('features.retas.description')}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-[#71F59B]/25">
-            <CardHeader>
-              <CardTitle className="text-[#0d5e26] dark:text-[#71F59B]">{t('features.eaFcCatalog.title')}</CardTitle>
-              <CardDescription>
-                {t('features.eaFcCatalog.description')}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="border-[#71F59B]/25">
-            <CardHeader>
-              <CardTitle className="text-[#0d5e26] dark:text-[#71F59B]">{t('features.notifications.title')}</CardTitle>
-              <CardDescription>
-                {t('features.notifications.description')}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      </section>
-
-      {/* Leagues Section */}
-      <section className="container mx-auto px-4 py-16 bg-[#e8fdf0] dark:bg-[#0d2414]">
-        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-12">
-          {t('leagues.title')}
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-4xl mx-auto">
-          {[
-            "Premier League",
-            "La Liga",
-            "Bundesliga",
-            "Serie A",
-            "Ligue 1",
-            "Liga MX",
-            "MLS",
-            "Saudi Pro League",
-            "Argentina",
-            "Primeira Liga"
-          ].map((league) => (
-            <div key={league} className="bg-white dark:bg-[#0d2414] rounded-lg p-4 text-center font-semibold text-gray-700 dark:text-gray-300 shadow-sm">
-              {league}
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-5 pt-6 pb-20 sm:px-8 lg:grid-cols-[1.05fr_.95fr]">
+          <div>
+            <Eyebrow tone="gold">{t('home.badge')}</Eyebrow>
+            <DisplayHeading as="h1" className="mt-6 text-5xl sm:text-6xl md:text-7xl lg:text-[82px]">
+              {t('home.heroPre')}
+              <span className="rounded-lg bg-primary px-3 text-primary-foreground">
+                {t('home.heroHighlight')}
+              </span>{' '}
+              {t('home.heroPost')}
+            </DisplayHeading>
+            <p className="mt-6 max-w-lg text-lg leading-relaxed font-semibold text-muted-foreground">
+              {t('home.heroSub')}
+            </p>
+            <div className="mt-9 flex flex-wrap gap-3.5">
+              <PillLink href={APP_STORE_URL} variant="mint">
+                <DownloadGlyph /> {t('home.downloadIOS')}
+              </PillLink>
+              <PillLink href={PLAY_STORE_URL} variant="outline">
+                <DownloadGlyph /> {t('home.downloadAndroid')}
+              </PillLink>
             </div>
+          </div>
+
+          {/* Phone mockup — intrinsically dark "device" surface in both themes. */}
+          <div className="flex justify-center">
+            <div className="relative">
+              <div className="relative h-[520px] w-[260px] overflow-hidden rounded-[42px] border-[10px] border-[#0B1A11] bg-[#050D08] shadow-[0_30px_90px_rgba(0,0,0,0.55)] sm:h-[600px] sm:w-[290px]">
+                <div className="absolute top-0 left-1/2 z-10 h-5 w-28 -translate-x-1/2 rounded-b-2xl bg-[#0B1A11]" />
+                {/* Real app capture — dark UI shown on the light site, light UI on
+                    the dark site (best contrast against each page background). */}
+                <Image
+                  src="/app-screenshot-dark.png"
+                  alt="Golify app"
+                  fill
+                  sizes="270px"
+                  className="object-cover dark:hidden"
+                />
+                <Image
+                  src="/app-screenshot-light.png"
+                  alt="Golify app"
+                  fill
+                  sizes="270px"
+                  className="hidden object-cover dark:block"
+                />
+              </div>
+              <div className="absolute top-[50px] -right-[52px] rotate-3 rounded-2xl border border-primary/40 bg-[#0C2418] px-4 py-3 shadow-[0_14px_34px_rgba(0,0,0,0.45)]">
+                <div className="text-xs font-extrabold text-primary">{t('home.mockupGoal')}</div>
+                <div className="text-[10.5px] font-bold text-white/55">{t('home.mockupScore')}</div>
+              </div>
+              <div className="absolute bottom-[120px] -left-[58px] -rotate-3 rounded-2xl border border-gold/40 bg-[#241a0c] px-4 py-3 shadow-[0_14px_34px_rgba(0,0,0,0.45)]">
+                <div className="text-xs font-extrabold text-gold">{t('home.mockupReta')}</div>
+                <div className="text-[10.5px] font-bold text-white/50">{t('home.mockupRetaName')}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── WORLD CUP BANNER ───────────────────────────────────────────── */}
+      <section className="bg-band py-20">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <div className="grid items-center gap-12 rounded-3xl border border-gold/30 bg-gradient-to-br from-surface-2 to-band p-8 sm:p-14 lg:grid-cols-[1.2fr_.8fr]">
+            <div>
+              <div className="mb-3.5 text-xs font-extrabold tracking-wide text-gold uppercase">
+                {t('home.wcEyebrow')}
+              </div>
+              <DisplayHeading as="h2" className="text-4xl sm:text-5xl">
+                {t('home.wcTitle')}
+              </DisplayHeading>
+              <p className="mt-4 max-w-md text-base leading-relaxed font-semibold text-muted-foreground">
+                {t('home.wcBody')}
+              </p>
+              <div className="mt-7">
+                <PillLink href={`/${locale}/world-cup/bracket`} variant="gold">
+                  {t('home.wcCta')}
+                </PillLink>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <Link
+                href={`/${locale}/world-cup/bracket`}
+                className="w-full max-w-xs rounded-2xl border border-gold/25 bg-surface p-6 transition-colors hover:border-gold/50"
+              >
+                <div className="mb-5 flex items-center justify-between">
+                  <span className="text-[11px] font-extrabold tracking-wide text-muted-foreground uppercase">
+                    {t('home.wcPreviewRound')}
+                  </span>
+                  <span className="text-[10.5px] font-extrabold text-gold uppercase">
+                    {t('home.wcPreviewTag')}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between rounded-lg bg-foreground/5 px-3.5 py-3 text-sm font-bold text-foreground">
+                    <span>🇲🇽 México</span>
+                    <span className="text-muted-foreground">vs</span>
+                    <span>Inglaterra 🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg bg-foreground/5 px-3.5 py-3 text-sm font-bold text-foreground">
+                    <span>🇺🇸 USA</span>
+                    <span className="text-muted-foreground">vs</span>
+                    <span>Bélgica 🇧🇪</span>
+                  </div>
+                </div>
+                <div className="mt-4 text-[11.5px] font-bold text-muted-foreground">
+                  {t('home.wcPreviewFooter')}
+                </div>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURES ───────────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-6xl px-5 py-24 sm:px-8">
+        <div className="mb-14 text-center">
+          <DisplayHeading as="h2" className="text-4xl sm:text-5xl">
+            {t('home.featuresTitle')}
+          </DisplayHeading>
+          <p className="mt-3 font-semibold text-muted-foreground">
+            {t('home.featuresSub')}
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map(({ key, tone }) => (
+            <FeatureCard
+              key={key}
+              tone={tone}
+              icon={ICONS[key]}
+              title={t(`home.featureItems.${key}.title`)}
+              description={t(`home.featureItems.${key}.description`)}
+            />
           ))}
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-            {t('cta.title')}
+      {/* ── LEAGUES ────────────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-6xl px-5 pb-24 text-center sm:px-8">
+        <DisplayHeading as="h2" className="mb-8 text-3xl sm:text-4xl">
+          {t('home.leaguesTitle')}
+        </DisplayHeading>
+        <div className="flex flex-wrap justify-center gap-3">
+          {LEAGUES.map((league) => (
+            <LeagueChip key={league}>{league}</LeagueChip>
+          ))}
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ──────────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-6xl px-5 pb-16 sm:px-8">
+        <div className="rounded-3xl bg-[linear-gradient(120deg,#5CF29A,#FFC145)] px-8 py-16 text-center sm:px-16 sm:py-20">
+          <h2 className="font-display text-4xl leading-none tracking-wide text-[#06170D] uppercase sm:text-5xl md:text-[56px]">
+            {t('home.finalCtaTitle')}
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-            {t('cta.description')}
+          <p className="mx-auto mt-4 max-w-xl text-lg font-bold text-[#06170D]/75">
+            {t('home.finalCtaBody')}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-[#71F59B] hover:bg-[#4edd7a] text-[#06180E]" asChild>
-              <a href="https://apps.apple.com/app/id6772339872" target="_blank" rel="noopener noreferrer">
-                {t('cta.appStore')}
-              </a>
-            </Button>
-            <Button size="lg" variant="outline" className="border-[#0d5e26] text-[#0d5e26] dark:border-[#71F59B] dark:text-[#71F59B] hover:bg-[#71F59B]/10" asChild>
-              <a href="https://play.google.com/store/apps/details?id=com.goligulias.fuchibol" target="_blank" rel="noopener noreferrer">
-                {t('cta.googlePlay')}
-              </a>
-            </Button>
+          <div className="mt-8 flex flex-wrap justify-center gap-3.5">
+            <PillLink href={APP_STORE_URL} variant="dark">
+              <DownloadGlyph /> {t('cta.appStore')}
+            </PillLink>
+            <PillLink href={PLAY_STORE_URL} variant="dark">
+              <DownloadGlyph /> {t('cta.googlePlay')}
+            </PillLink>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 border-t border-gray-200 dark:border-[#71F59B]/10">
-        <div className="text-center text-gray-600 dark:text-gray-400 space-y-4">
-          <div className="flex justify-center gap-5">
-            <a
-              href="https://www.instagram.com/golify.futbol"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram"
-              className="text-gray-500 dark:text-gray-400 hover:text-[#0d5e26] dark:hover:text-[#71F59B] transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-                <circle cx="12" cy="12" r="4"/>
-                <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
-              </svg>
-            </a>
-            <a
-              href="https://www.tiktok.com/@golify.futbol"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="TikTok"
-              className="text-gray-500 dark:text-gray-400 hover:text-[#0d5e26] dark:hover:text-[#71F59B] transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.74a4.85 4.85 0 0 1-1.01-.05z"/>
-              </svg>
-            </a>
-          </div>
-          <p>{t('footer.copyright')}</p>
-          <div className="flex justify-center gap-5 text-sm">
-            <Link href="/nosotros" className="text-[#0d5e26] dark:text-[#71F59B] hover:underline">
-              {t('footer.about')}
-            </Link>
-            <Link href="/privacy" className="text-[#0d5e26] dark:text-[#71F59B] hover:underline">
-              Privacy & Terms
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter locale={locale as Locale} />
     </div>
   );
 }

@@ -1,12 +1,21 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { getWorldCupFixtures, type Fixture } from '@/lib/api-football';
-import { InstallCTA } from '@/components/InstallCTA';
 import { SmartAppOpen } from '@/components/SmartAppOpen';
+import { SiteNav } from '@/components/SiteNav';
+import { SiteFooter } from '@/components/SiteFooter';
+import {
+  CalendarMatchCard,
+  DisplayHeading,
+  Eyebrow,
+  FaqCard,
+  PillLink,
+} from '@/components/revamp/ui';
 import {
   SITE_NAME,
   SITE_URL,
   IOS_APP_ID,
+  APP_STORE_URL,
+  PLAY_STORE_URL,
   WORLD_CUP_LEAGUE_ID,
   WORLD_CUP_SEASON,
   worldCupEventNode,
@@ -16,6 +25,9 @@ import {
   DEFAULT_OG_IMAGE,
   type Locale,
 } from '@/lib/site';
+
+/** The projection highlights Mexico's card (home crowd bias in the handoff). */
+const isMx = (name: string) => /m[eé]xico/i.test(name);
 
 // SSR content hub for the FIFA World Cup 2026. Real, crawlable facts +
 // upcoming fixtures so Google and AI answer-engines can index and cite us,
@@ -33,6 +45,15 @@ const STR = {
     title: 'Mundial 2026: calendario, partidos y resultados',
     intro:
       'La Copa Mundial de la FIFA 2026 se juega del 11 de junio al 19 de julio de 2026 en Estados Unidos, Canadá y México. Es el primer Mundial con 48 selecciones y 104 partidos. Sigue el calendario completo, resultados en vivo y notificaciones de tus equipos en Golify.',
+    badge: '🏆 Mundial 2026',
+    h1: 'Calendario y resultados, minuto a minuto',
+    heroSub:
+      'Del 11 de junio al 19 de julio, en Estados Unidos, Canadá y México. 48 selecciones, 104 partidos — todos con marcador en vivo en Golify.',
+    stats: ['48 selecciones', '104 partidos', '3 países'],
+    viewBracket: '🏆 Ver la llave de eliminatorias →',
+    midTitle: 'Resultados en vivo, alineaciones y notificaciones',
+    midBody:
+      'Sigue a tus selecciones favoritas y recibe avisos antes de cada arranque, directo en Golify.',
     upcoming: 'Próximos partidos',
     noFixtures:
       'El calendario se está actualizando. Vuelve pronto para ver los próximos partidos.',
@@ -68,6 +89,15 @@ const STR = {
     title: 'World Cup 2026: schedule, matches and results',
     intro:
       'The FIFA World Cup 2026 runs from June 11 to July 19, 2026 across the United States, Canada and Mexico. It is the first World Cup with 48 national teams and 104 matches. Follow the full schedule, live results and match notifications for your teams on Golify.',
+    badge: '🏆 World Cup 2026',
+    h1: 'Schedule and results, minute by minute',
+    heroSub:
+      'From June 11 to July 19, across the United States, Canada and Mexico. 48 teams, 104 matches — all with live scores on Golify.',
+    stats: ['48 teams', '104 matches', '3 host countries'],
+    viewBracket: '🏆 View the knockout bracket →',
+    midTitle: 'Live results, lineups and notifications',
+    midBody:
+      'Follow your favorite national teams and get alerts before every kickoff, right in Golify.',
     upcoming: 'Upcoming matches',
     noFixtures: 'The schedule is updating. Check back soon for upcoming matches.',
     followTitle: 'How to follow the World Cup on Golify',
@@ -182,91 +212,111 @@ export default async function WorldCupPage({
   ];
 
   return (
-    <main className="mx-auto max-w-2xl px-5 py-10">
+    <div className="min-h-screen bg-background text-foreground">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <SmartAppOpen deeplink={DEEPLINK} />
+      <SiteNav />
 
-      <p className="text-sm uppercase tracking-wide text-neutral-500">
-        {L.kicker}
-      </p>
-      <h1 className="mt-2 text-3xl font-bold sm:text-4xl">{L.title}</h1>
-      <p className="mt-4 text-neutral-700 dark:text-neutral-300">{L.intro}</p>
-
-      <Link
-        href={`/${locale}/world-cup/bracket`}
-        className="mt-6 inline-flex items-center gap-2 rounded-lg bg-green-600 px-5 py-3 font-semibold text-white hover:bg-green-700"
-      >
-        {locale === 'en'
-          ? '🏆 View the knockout bracket (live projection)'
-          : '🏆 Ver la llave de eliminatorias (proyección en vivo)'}
-      </Link>
-
-      <section className="mt-10">
-        <h2 className="text-xl font-semibold">{L.upcoming}</h2>
-        {next.length ? (
-          <ul className="mt-4 divide-y divide-neutral-200 dark:divide-neutral-800">
-            {next.map((f) => {
-              const kickoff = new Date(f.fixture.date);
-              return (
-                <li key={f.fixture.id}>
-                  <Link
-                    href={`/${locale}/match/${f.fixture.id}`}
-                    className="flex items-center justify-between gap-3 py-3 hover:opacity-80"
-                  >
-                    <span className="font-medium">
-                      {f.teams.home.name} {L.vs} {f.teams.away.name}
-                    </span>
-                    <time
-                      dateTime={f.fixture.date}
-                      className="shrink-0 text-sm text-neutral-500"
-                    >
-                      {kickoff.toLocaleDateString(locale, {
-                        day: 'numeric',
-                        month: 'short',
-                      })}
-                    </time>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="mt-4 text-neutral-600 dark:text-neutral-400">
-            {L.noFixtures}
+      {/* HERO */}
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute -top-64 -left-40 h-[600px] w-[600px] rounded-full bg-[radial-gradient(circle,rgba(92,242,154,0.2),transparent_70%)]" />
+        <div className="relative mx-auto max-w-6xl px-5 pt-2 pb-16 sm:px-8">
+          <Eyebrow tone="gold">{L.badge}</Eyebrow>
+          <DisplayHeading as="h1" className="mt-5 max-w-3xl text-5xl sm:text-6xl">
+            {L.h1}
+          </DisplayHeading>
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed font-semibold text-muted-foreground">
+            {L.heroSub}
           </p>
-        )}
-      </section>
-
-      <section className="mt-10">
-        <h2 className="text-xl font-semibold">{L.followTitle}</h2>
-        <p className="mt-3 text-neutral-700 dark:text-neutral-300">
-          {L.followBody}
-        </p>
-      </section>
-
-      <InstallCTA
-        deeplink={DEEPLINK}
-        labels={{ open: L.open, ios: L.ios, android: L.android }}
-      />
-
-      <section className="mt-6">
-        <h2 className="text-xl font-semibold">{L.faqTitle}</h2>
-        <dl className="mt-4 space-y-5">
-          {L.faqs.map((f) => (
-            <div key={f.q}>
-              <dt className="font-medium text-neutral-900 dark:text-neutral-100">
-                {f.q}
-              </dt>
-              <dd className="mt-1 text-neutral-700 dark:text-neutral-300">
-                {f.a}
-              </dd>
+          <div className="mt-7 flex flex-wrap items-center gap-4">
+            <PillLink href={`/${locale}/world-cup/bracket`} variant="mint">
+              {L.viewBracket}
+            </PillLink>
+            <div className="flex flex-wrap items-center gap-3 text-sm font-bold text-muted-foreground">
+              {L.stats.map((s, i) => (
+                <span key={s} className="flex items-center gap-3">
+                  {i > 0 ? (
+                    <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+                  ) : null}
+                  {s}
+                </span>
+              ))}
             </div>
-          ))}
-        </dl>
+          </div>
+        </div>
       </section>
-    </main>
+
+      {/* PRÓXIMOS PARTIDOS */}
+      <section className="bg-band py-16">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <DisplayHeading as="h2" className="mb-7 text-3xl sm:text-4xl">
+            {L.upcoming}
+          </DisplayHeading>
+          {next.length ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {next.map((f) => {
+                const home = f.teams.home.name;
+                const away = f.teams.away.name;
+                const dateLabel = new Date(f.fixture.date).toLocaleDateString(
+                  locale,
+                  { day: 'numeric', month: 'short' },
+                );
+                return (
+                  <CalendarMatchCard
+                    key={f.fixture.id}
+                    homeName={home}
+                    awayName={away}
+                    dateLabel={dateLabel}
+                    vs={L.vs}
+                    highlight={isMx(home) || isMx(away)}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">{L.noFixtures}</p>
+          )}
+        </div>
+      </section>
+
+      {/* MID CTA */}
+      <section className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-10 rounded-3xl border border-gold/25 bg-gradient-to-br from-surface-2 to-band p-10 sm:p-14">
+          <div className="max-w-xl">
+            <DisplayHeading as="h2" className="text-3xl sm:text-4xl">
+              {L.midTitle}
+            </DisplayHeading>
+            <p className="mt-3.5 leading-relaxed font-semibold text-muted-foreground">
+              {L.midBody}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3.5">
+            <PillLink href={APP_STORE_URL} variant="mint">
+              {L.ios}
+            </PillLink>
+            <PillLink href={PLAY_STORE_URL} variant="outline">
+              {L.android}
+            </PillLink>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="mx-auto max-w-6xl px-5 pb-24 sm:px-8">
+        <DisplayHeading as="h2" className="mb-7 text-3xl sm:text-4xl">
+          {L.faqTitle}
+        </DisplayHeading>
+        <div className="flex flex-col gap-3.5">
+          {L.faqs.map((f) => (
+            <FaqCard key={f.q} q={f.q} a={f.a} />
+          ))}
+        </div>
+      </section>
+
+      <SiteFooter locale={locale as Locale} />
+    </div>
   );
 }

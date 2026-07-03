@@ -4,12 +4,17 @@ import {
   getWorldCupStandings,
   getWorldCupFixturesForBracket,
 } from '@/lib/api-football';
-import { InstallCTA } from '@/components/InstallCTA';
 import { SmartAppOpen } from '@/components/SmartAppOpen';
+import { SiteNav } from '@/components/SiteNav';
+import { SiteFooter } from '@/components/SiteFooter';
+import { DisplayHeading, Eyebrow, FaqCard, PillLink } from '@/components/revamp/ui';
+import { cn } from '@/lib/utils';
 import {
   SITE_NAME,
   SITE_URL,
   IOS_APP_ID,
+  APP_STORE_URL,
+  PLAY_STORE_URL,
   WORLD_CUP_LEAGUE_ID,
   WORLD_CUP_SEASON,
   worldCupEventNode,
@@ -312,16 +317,18 @@ function SlotRow({
   L: Strings;
 }) {
   return (
-    <div className="flex items-center gap-2 px-2 py-1.5">
+    <div className="flex items-center gap-2 px-3 py-2">
       {team ? (
         <>
           <span className="text-base leading-none">
             {getTeamFlagByName(team.name) || '⚽'}
           </span>
           <span
-            className={`flex-1 truncate text-sm ${winner ? 'font-bold' : 'font-medium'} ${
-              dim ? 'text-neutral-400 dark:text-neutral-500' : ''
-            }`}
+            className={cn(
+              'flex-1 truncate text-sm',
+              winner ? 'font-bold' : 'font-medium',
+              dim ? 'text-muted-foreground' : 'text-foreground',
+            )}
             title={team.name}
           >
             {getTeamCodeByName(team.name)}
@@ -329,23 +336,25 @@ function SlotRow({
         </>
       ) : (
         <>
-          <span className="text-base leading-none text-neutral-400">•</span>
-          <span className="flex-1 truncate text-sm text-neutral-500 dark:text-neutral-400">
+          <span className="text-base leading-none text-muted-foreground">•</span>
+          <span className="flex-1 truncate text-sm text-muted-foreground">
             {placeholder}
           </span>
         </>
       )}
       {score != null ? (
         <span
-          className={`text-sm tabular-nums ${winner ? 'font-bold' : ''} ${
-            dim ? 'text-neutral-400' : ''
-          }`}
+          className={cn(
+            'text-sm tabular-nums',
+            winner ? 'font-bold text-foreground' : '',
+            dim ? 'text-muted-foreground' : 'text-foreground',
+          )}
         >
           {score}
         </span>
       ) : locked ? (
         <span
-          className="text-xs text-green-600"
+          className="text-xs text-primary"
           title={L.legendConfirmed}
           aria-label={L.legendConfirmed}
         >
@@ -399,36 +408,47 @@ function MatchCard({
   const confirmed =
     !fx && !!match.home.team && !!match.away.team && homeLocked && awayLocked;
 
+  const resolved = !!home && !!away;
+
   let label: string;
   let headerClass: string;
   if (isFinished) {
     label = L.finalLabel;
-    headerClass =
-      'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400';
+    headerClass = 'bg-primary/12 text-primary';
   } else if (isLive) {
     label = fx && fx.elapsed != null ? `${fx.elapsed}'` : L.live;
-    headerClass = 'bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400';
+    headerClass = 'bg-red-500/15 text-red-400';
   } else if (isScheduled && fx) {
     label = fmtDate(fx.date, locale);
-    headerClass =
-      'bg-neutral-50 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300';
+    headerClass = 'bg-gold/12 text-gold';
   } else {
     label = confirmed ? L.legendConfirmed : L.legendProjected;
     headerClass = confirmed
-      ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400'
-      : 'bg-neutral-50 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400';
+      ? 'bg-primary/12 text-primary'
+      : 'bg-foreground/5 text-muted-foreground';
   }
 
-  const cardClass = `block w-40 shrink-0 overflow-hidden rounded-lg border bg-white shadow-sm sm:w-44 dark:bg-neutral-900 ${
+  const cardClass = cn(
+    'block w-44 shrink-0 overflow-hidden rounded-xl border',
     isLive
-      ? 'border-red-300 dark:border-red-800'
-      : 'border-neutral-200 dark:border-neutral-700'
-  } ${fx ? 'hover:border-green-400 dark:hover:border-green-700' : ''}`;
+      ? 'border-red-500/40 bg-surface'
+      : isFinished || confirmed
+        ? 'border-primary/25 bg-surface-2'
+        : isScheduled && fx
+          ? 'border-gold/25 bg-surface'
+          : resolved
+            ? 'border-border bg-surface'
+            : 'border-dashed border-foreground/15 bg-surface',
+    fx ? 'transition-colors hover:border-primary/50' : '',
+  );
 
   const body = (
     <>
       <div
-        className={`flex items-center justify-between px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${headerClass}`}
+        className={cn(
+          'flex items-center justify-between px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide',
+          headerClass,
+        )}
       >
         <span>P{match.matchNumber}</span>
         <span>{label}</span>
@@ -442,7 +462,7 @@ function MatchCard({
         dim={homeDim}
         L={L}
       />
-      <div className="border-t border-neutral-100 dark:border-neutral-800" />
+      <div className="border-t border-border" />
       <SlotRow
         team={away}
         placeholder={slotLabel(match.away, L)}
@@ -473,6 +493,7 @@ function RoundColumn({
   clinch,
   locale,
   L,
+  accent = false,
 }: {
   title: string;
   matches: BracketMatch[];
@@ -480,10 +501,16 @@ function RoundColumn({
   clinch: Map<string, GroupClinch>;
   locale: string;
   L: Strings;
+  accent?: boolean;
 }) {
   return (
     <div className="flex flex-col">
-      <h3 className="mb-3 text-center text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+      <h3
+        className={cn(
+          'mb-3 text-center text-xs font-extrabold uppercase tracking-wider',
+          accent ? 'text-gold' : 'text-muted-foreground',
+        )}
+      >
         {title}
       </h3>
       <div className="flex flex-1 flex-col justify-around gap-3">
@@ -522,7 +549,7 @@ function BracketTree({
         <RoundColumn title={L.rounds.R16} matches={bracket.roundOf16} overlay={overlay} clinch={clinch} locale={locale} L={L} />
         <RoundColumn title={L.rounds.QF} matches={bracket.quarterFinals} overlay={overlay} clinch={clinch} locale={locale} L={L} />
         <RoundColumn title={L.rounds.SF} matches={bracket.semiFinals} overlay={overlay} clinch={clinch} locale={locale} L={L} />
-        <RoundColumn title={L.rounds.F} matches={[bracket.final]} overlay={overlay} clinch={clinch} locale={locale} L={L} />
+        <RoundColumn title={`🏆 ${L.rounds.F}`} matches={[bracket.final]} overlay={overlay} clinch={clinch} locale={locale} L={L} accent />
       </div>
     </div>
   );
@@ -589,113 +616,129 @@ export default async function BracketPage({
   ];
 
   return (
-    <main className="mx-auto max-w-6xl overflow-x-hidden px-4 py-8 sm:px-5 sm:py-10">
+    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <SmartAppOpen deeplink={DEEPLINK} />
+      <SiteNav />
 
-      <Link
-        href={`/${locale}/world-cup`}
-        className="text-sm text-green-600 hover:underline"
-      >
-        {L.backToHub}
-      </Link>
-
-      <p className="mt-3 text-sm uppercase tracking-wide text-neutral-500">
-        {L.kicker}
-      </p>
-      <h1 className="mt-2 text-balance text-xl font-bold break-words sm:text-3xl">
-        {L.h1}
-      </h1>
-      <p className="mt-4 max-w-3xl text-sm text-neutral-700 sm:text-base dark:text-neutral-300">
-        {L.intro}
-      </p>
-
-      <p className="mt-3 text-xs text-neutral-500">
-        {L.updated}: {updated}
-      </p>
-
-      {/* legend */}
-      <div className="mt-5 flex flex-wrap items-center gap-4 text-xs text-neutral-600 dark:text-neutral-400">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded-sm bg-neutral-200 dark:bg-neutral-700" />
-          {L.legendProjected}
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="text-green-600">✓</span>
-          {L.legendConfirmed}
-        </span>
-      </div>
-
-      {!bracket.meta.canProjectThirdPlace ? (
-        <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-          {L.partialNote}
-        </p>
-      ) : null}
-
-      {/* the bracket */}
-      <p className="mt-8 text-xs text-neutral-400 sm:hidden">
-        {locale === 'en' ? 'Swipe to see all rounds →' : 'Desliza para ver todas las rondas →'}
-      </p>
-      <div className="mt-2 sm:mt-8">
-        <BracketTree bracket={bracket} overlay={overlay} clinch={clinch} locale={locale} L={L} />
-      </div>
-
-      {/* third place playoff */}
-      <div className="mt-8 max-w-xs">
-        <RoundColumn
-          title={L.rounds.P3}
-          matches={[bracket.thirdPlace]}
-          overlay={overlay}
-          clinch={clinch}
-          locale={locale}
-          L={L}
-        />
-      </div>
-
-      <p className="mt-8">
-        <Link
-          href={`/${locale}/world-cup`}
-          className="font-medium text-green-600 hover:underline"
-        >
-          {L.seeMatches} →
-        </Link>
-      </p>
-
-      {/* how it works — depth for SEO + AI citation */}
-      <section className="mt-12 max-w-3xl">
-        <h2 className="text-xl font-bold">{L.howTitle}</h2>
-        <p className="mt-3 text-neutral-700 dark:text-neutral-300">{L.howBody}</p>
+      {/* HERO */}
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute -top-64 -right-40 h-[600px] w-[600px] rounded-full bg-[radial-gradient(circle,rgba(255,193,69,0.16),transparent_70%)]" />
+        <div className="relative mx-auto max-w-6xl px-5 pt-2 pb-10 sm:px-8">
+          <Link
+            href={`/${locale}/world-cup`}
+            className="mb-4 inline-flex text-sm font-bold text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {L.backToHub}
+          </Link>
+          <div className="mb-5">
+            <Eyebrow tone="gold">{L.legendProjected} · {L.kicker}</Eyebrow>
+          </div>
+          <DisplayHeading as="h1" className="max-w-3xl text-4xl break-words sm:text-5xl">
+            {L.h1}
+          </DisplayHeading>
+          <p className="mt-4 max-w-3xl text-base leading-relaxed font-semibold text-muted-foreground">
+            {L.intro}
+          </p>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <span className="text-xs font-bold text-muted-foreground">
+              {L.updated}: {updated}
+            </span>
+            <span className="inline-flex items-center rounded-full bg-gold/12 px-3 py-1.5 text-xs font-extrabold text-gold">
+              {L.legendProjected}
+            </span>
+            <span className="inline-flex items-center rounded-full bg-primary/12 px-3 py-1.5 text-xs font-extrabold text-primary">
+              ✓ {L.legendConfirmed}
+            </span>
+          </div>
+        </div>
       </section>
 
-      {/* follow / install */}
-      <section className="mt-12 max-w-3xl">
-        <h2 className="text-xl font-bold">{L.followTitle}</h2>
-        <p className="mt-3 text-neutral-700 dark:text-neutral-300">
-          {L.followBody}
-        </p>
-        <InstallCTA
-          deeplink={DEEPLINK}
-          labels={{ open: L.openApp, ios: L.ios, android: L.android }}
-        />
+      {!bracket.meta.canProjectThirdPlace ? (
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <p className="rounded-2xl border border-gold/30 bg-gold/10 px-5 py-4 text-sm font-semibold text-gold">
+            {L.partialNote}
+          </p>
+        </div>
+      ) : null}
+
+      {/* BRACKET */}
+      <section className="mt-8 bg-band py-12">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <p className="mb-3 text-xs font-bold text-muted-foreground">
+            {locale === 'en'
+              ? 'Swipe to see all rounds →'
+              : 'Desliza para ver todas las rondas →'}
+          </p>
+          <BracketTree bracket={bracket} overlay={overlay} clinch={clinch} locale={locale} L={L} />
+
+          <div className="mt-8 max-w-xs">
+            <RoundColumn
+              title={L.rounds.P3}
+              matches={[bracket.thirdPlace]}
+              overlay={overlay}
+              clinch={clinch}
+              locale={locale}
+              L={L}
+              accent
+            />
+          </div>
+
+          <p className="mt-8">
+            <Link
+              href={`/${locale}/world-cup`}
+              className="font-bold text-primary hover:underline"
+            >
+              {L.seeMatches} →
+            </Link>
+          </p>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS + FOLLOW */}
+      <section className="mx-auto grid max-w-6xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-2">
+        <div>
+          <DisplayHeading as="h2" className="text-3xl sm:text-4xl">
+            {L.howTitle}
+          </DisplayHeading>
+          <p className="mt-4 leading-relaxed font-medium text-muted-foreground">
+            {L.howBody}
+          </p>
+        </div>
+        <div className="rounded-3xl border border-primary/20 bg-gradient-to-br from-surface-2 to-band p-8 sm:p-10">
+          <div className="text-sm font-extrabold tracking-wide text-primary uppercase">
+            {L.followTitle}
+          </div>
+          <p className="mt-3 leading-relaxed font-semibold text-muted-foreground">
+            {L.followBody}
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3.5">
+            <PillLink href={APP_STORE_URL} variant="mint">
+              {L.ios}
+            </PillLink>
+            <PillLink href={PLAY_STORE_URL} variant="outline">
+              {L.android}
+            </PillLink>
+          </div>
+        </div>
       </section>
 
       {/* FAQ */}
-      <section className="mt-12 max-w-3xl">
-        <h2 className="text-xl font-bold">{L.faqTitle}</h2>
-        <dl className="mt-4 space-y-5">
+      <section className="mx-auto max-w-6xl px-5 pb-24 sm:px-8">
+        <DisplayHeading as="h2" className="mb-7 text-3xl sm:text-4xl">
+          {L.faqTitle}
+        </DisplayHeading>
+        <div className="flex flex-col gap-3.5">
           {L.faqs.map((f) => (
-            <div key={f.q}>
-              <dt className="font-semibold">{f.q}</dt>
-              <dd className="mt-1 text-neutral-700 dark:text-neutral-300">
-                {f.a}
-              </dd>
-            </div>
+            <FaqCard key={f.q} q={f.q} a={f.a} />
           ))}
-        </dl>
+        </div>
       </section>
-    </main>
+
+      <SiteFooter locale={locale as Locale} />
+    </div>
   );
 }

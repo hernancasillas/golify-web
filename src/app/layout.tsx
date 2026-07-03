@@ -2,7 +2,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Manrope, Bebas_Neue } from "next/font/google";
 import {
   SITE_URL,
   SITE_NAME,
@@ -16,8 +16,17 @@ import {
 } from "@/lib/site";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+// Manrope drives all body/UI copy; Bebas Neue is the condensed poster display
+// face for big all-caps headlines (exposed as the `font-display` utility).
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const bebasNeue = Bebas_Neue({
+  variable: "--font-bebas",
+  weight: "400",
   subsets: ["latin"],
   display: "swap",
 });
@@ -113,7 +122,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${inter.variable} h-full antialiased dark`}
+      className={`${manrope.variable} ${bebasNeue.variable} h-full antialiased dark`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans">

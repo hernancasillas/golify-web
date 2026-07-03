@@ -7,9 +7,19 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Energetic direction: mint + gold accents on a near-black green base.
+     `gold`, `band` (alt section), `surface`/`surface-2` (card / chip) are new
+     semantic tokens with light+dark values so the revamped pages theme cleanly. */
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-band: var(--band);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+  /* Bebas Neue — condensed poster display face for big all-caps headlines. */
+  --font-display: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,72 +59,84 @@
 }
 
 :root {
-  --background: #f0fdf4;
-  --foreground: #06180E;
+  /* Light adaptation of the energetic direction (handoff specifies dark only). */
+  --background: #f2fbf5;
+  --foreground: #06170D;
   --card: #ffffff;
-  --card-foreground: #06180E;
+  --card-foreground: #06170D;
   --popover: #ffffff;
-  --popover-foreground: #06180E;
-  --primary: #71F59B;
-  --primary-foreground: #06180E;
-  --secondary: #e8fdf0;
-  --secondary-foreground: #06180E;
-  --muted: #e8fdf0;
+  --popover-foreground: #06170D;
+  --primary: #5CF29A;
+  --primary-foreground: #06170D;
+  --secondary: #e6fbef;
+  --secondary-foreground: #06170D;
+  --muted: #e6fbef;
   --muted-foreground: #4a7a5a;
-  --accent: #71F59B;
-  --accent-foreground: #06180E;
+  --accent: #5CF29A;
+  --accent-foreground: #06170D;
   --destructive: oklch(0.577 0.245 27.325);
   --border: #c6efd6;
   --input: #c6efd6;
-  --ring: #71F59B;
-  --chart-1: #71F59B;
+  --ring: #5CF29A;
+  --gold: #C8890B;
+  --gold-foreground: #241a0c;
+  --band: #e9f7ee;
+  --surface: #ffffff;
+  --surface-2: #e6fbef;
+  --chart-1: #5CF29A;
   --chart-2: #4edd7a;
   --chart-3: #0d5e26;
-  --chart-4: #06180E;
+  --chart-4: #06170E;
   --chart-5: #041008;
   --radius: 0.625rem;
-  --sidebar: #e8fdf0;
-  --sidebar-foreground: #06180E;
-  --sidebar-primary: #71F59B;
-  --sidebar-primary-foreground: #06180E;
+  --sidebar: #e6fbef;
+  --sidebar-foreground: #06170D;
+  --sidebar-primary: #5CF29A;
+  --sidebar-primary-foreground: #06170D;
   --sidebar-accent: #c6efd6;
-  --sidebar-accent-foreground: #06180E;
+  --sidebar-accent-foreground: #06170D;
   --sidebar-border: #c6efd6;
-  --sidebar-ring: #71F59B;
+  --sidebar-ring: #5CF29A;
 }
 
 .dark {
-  --background: #06180E;
-  --foreground: #ffffff;
-  --card: #0d2414;
-  --card-foreground: #ffffff;
-  --popover: #0d2414;
-  --popover-foreground: #ffffff;
-  --primary: #71F59B;
-  --primary-foreground: #06180E;
-  --secondary: #0d2414;
-  --secondary-foreground: #ffffff;
-  --muted: #0d2414;
-  --muted-foreground: #7fba96;
-  --accent: #71F59B;
-  --accent-foreground: #06180E;
+  /* Energetic direction — exact handoff tokens. */
+  --background: #081712;
+  --foreground: #F4F7F5;
+  --card: #0F1D17;
+  --card-foreground: #F4F7F5;
+  --popover: #0F1D17;
+  --popover-foreground: #F4F7F5;
+  --primary: #5CF29A;
+  --primary-foreground: #06170D;
+  --secondary: #0F2A1C;
+  --secondary-foreground: #F4F7F5;
+  --muted: #0B1F16;
+  --muted-foreground: rgba(244, 247, 245, 0.6);
+  --accent: #5CF29A;
+  --accent-foreground: #06170D;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: rgba(113, 245, 155, 0.15);
-  --input: rgba(113, 245, 155, 0.15);
-  --ring: #71F59B;
-  --chart-1: #71F59B;
-  --chart-2: #4edd7a;
-  --chart-3: #0d5e26;
-  --chart-4: #0d2414;
+  --border: rgba(255, 255, 255, 0.06);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: #5CF29A;
+  --gold: #FFC145;
+  --gold-foreground: #241a0c;
+  --band: #0B1F16;
+  --surface: #0F1D17;
+  --surface-2: #0F2A1C;
+  --chart-1: #5CF29A;
+  --chart-2: #FFC145;
+  --chart-3: #4edd7a;
+  --chart-4: #0F2A1C;
   --chart-5: #041008;
-  --sidebar: #0d2414;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #71F59B;
-  --sidebar-primary-foreground: #06180E;
-  --sidebar-accent: #0d2414;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(113, 245, 155, 0.15);
-  --sidebar-ring: #71F59B;
+  --sidebar: #0B1F16;
+  --sidebar-foreground: #F4F7F5;
+  --sidebar-primary: #5CF29A;
+  --sidebar-primary-foreground: #06170D;
+  --sidebar-accent: #0F2A1C;
+  --sidebar-accent-foreground: #F4F7F5;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: #5CF29A;
 }
 
 @layer base {
@@ -132,4 +154,21 @@
   html {
     @apply font-sans;
   }
+}
+
+/* "En vivo" indicator dot — pulse loop used in eyebrows/badges. */
+@keyframes pulseDot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(1.5);
+  }
+}
+
+.animate-pulse-dot {
+  animation: pulseDot 1.6s ease-in-out infinite;
 }

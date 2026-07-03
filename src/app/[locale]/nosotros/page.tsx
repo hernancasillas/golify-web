@@ -28,7 +28,7 @@ const STR = {
     sections: [
       {
         h: '¿Qué es Golify?',
-        p: 'Golify es una aplicación gratuita de fútbol para iOS y Android, pensada para aficionados en México y América Latina. Reúne todo lo que un fanático del fútbol necesita: marcadores y resultados en vivo, el calendario completo del Mundial 2026, estadísticas de las principales ligas del mundo, notificaciones de tus equipos y un álbum digital de stickers coleccionables. En vez de saltar entre varias apps, lo tienes todo en una sola.',
+        p: 'Golify es una aplicación de fútbol para iOS y Android, gratis de descargar, pensada para aficionados en México y América Latina. Reúne todo lo que un fanático del fútbol necesita: marcadores y resultados en vivo, el calendario completo del Mundial 2026, estadísticas de las principales ligas del mundo, notificaciones de tus equipos y un álbum digital de stickers coleccionables. En vez de saltar entre varias apps, lo tienes todo en una sola.',
       },
       {
         h: 'Fútbol con amigos: retas, quinielas y torneos',
@@ -39,15 +39,15 @@ const STR = {
         p: 'Golify Futbol nació en mayo de 2026 en México. Somos un equipo de aficionados al fútbol que quería una sola app, hecha para el fan latinoamericano, que reuniera todo lo que vivimos alrededor del deporte: seguir los partidos, competir con amigos y coleccionar. Por eso construimos Golify.',
       },
       {
-        h: 'Gratis y en tu idioma',
-        p: 'Golify es gratis, está disponible en español e inglés y no requiere crear una cuenta para empezar. Descárgala desde la App Store o Google Play y vive el fútbol con tu comunidad. El sitio oficial de Golify es golify.futbol y puedes contactarnos en contacto@golify.futbol.',
+        h: 'Gratis de descargar y en tu idioma',
+        p: 'Golify es gratis de descargar y está disponible en español e inglés. Algunas funciones premium requieren suscripción. Descárgala desde la App Store o Google Play y vive el fútbol con tu comunidad. El sitio oficial de Golify es golify.futbol y puedes contactarnos en contacto@golify.futbol.',
       },
     ],
     faqTitle: 'Preguntas frecuentes',
     faqs: [
       {
         q: '¿Qué es Golify?',
-        a: 'Golify es una app gratuita de fútbol para iOS y Android con marcadores en vivo, el Mundial 2026, retas, quinielas, torneos y un álbum de stickers, todo en una sola app. Su sitio oficial es golify.futbol.',
+        a: 'Golify es una app de fútbol para iOS y Android, gratis de descargar, con marcadores en vivo, el Mundial 2026, retas, quinielas, torneos y un álbum de stickers, todo en una sola app. Su sitio oficial es golify.futbol.',
       },
       {
         q: '¿Quién está detrás de Golify?',
@@ -55,7 +55,7 @@ const STR = {
       },
       {
         q: '¿Golify es gratis?',
-        a: 'Sí. Golify es gratis y no necesitas crear una cuenta para empezar a usarla.',
+        a: 'Golify es gratis de descargar. Algunas funciones premium requieren suscripción.',
       },
       {
         q: '¿Qué hace diferente a Golify de otras apps de fútbol?',
@@ -74,7 +74,7 @@ const STR = {
     sections: [
       {
         h: 'What is Golify?',
-        p: 'Golify is a free football (soccer) app for iOS and Android, built for fans in Mexico and Latin America. It brings together everything a football fan needs: live scores and results, the full World Cup 2026 schedule, stats for the world’s major leagues, notifications for your teams, and a digital collectible sticker album. Instead of jumping between several apps, you have it all in one.',
+        p: 'Golify is a football (soccer) app for iOS and Android, free to download, built for fans in Mexico and Latin America. It brings together everything a football fan needs: live scores and results, the full World Cup 2026 schedule, stats for the world’s major leagues, notifications for your teams, and a digital collectible sticker album. Instead of jumping between several apps, you have it all in one.',
       },
       {
         h: 'Football with friends: retas, quinielas and tournaments',
@@ -85,15 +85,15 @@ const STR = {
         p: 'Golify Futbol was founded in May 2026 in Mexico. We are a team of football fans who wanted a single app, made for the Latin American fan, that brought together everything we live around the sport: following matches, competing with friends and collecting. That is why we built Golify.',
       },
       {
-        h: 'Free and in your language',
-        p: 'Golify is free, available in Spanish and English, and requires no account to get started. Download it from the App Store or Google Play and live football with your community. Golify’s official website is golify.futbol and you can reach us at contacto@golify.futbol.',
+        h: 'Free to download and in your language',
+        p: 'Golify is free to download and available in Spanish and English. Some premium features require a subscription. Download it from the App Store or Google Play and live football with your community. Golify’s official website is golify.futbol and you can reach us at contacto@golify.futbol.',
       },
     ],
     faqTitle: 'Frequently asked questions',
     faqs: [
       {
         q: 'What is Golify?',
-        a: 'Golify is a free football app for iOS and Android with live scores, the World Cup 2026, retas, quinielas, tournaments and a sticker album, all in one app. Its official website is golify.futbol.',
+        a: 'Golify is a football app for iOS and Android, free to download, with live scores, the World Cup 2026, retas, quinielas, tournaments and a sticker album, all in one app. Its official website is golify.futbol.',
       },
       {
         q: 'Who is behind Golify?',
@@ -101,7 +101,7 @@ const STR = {
       },
       {
         q: 'Is Golify free?',
-        a: 'Yes. Golify is free and you do not need an account to start using it.',
+        a: 'Golify is free to download. Some premium features require a subscription.',
       },
       {
         q: 'What makes Golify different from other football apps?',
