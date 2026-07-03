@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    // API-Football CDN — league and team logos.
+    remotePatterns: [
+      { protocol: "https", hostname: "media.api-sports.io" },
+    ],
+  },
   async redirects() {
     // Keyword-friendly aliases for the World Cup bracket page. These catch
     // typed/shared URLs and funnel them to the canonical localized route — the

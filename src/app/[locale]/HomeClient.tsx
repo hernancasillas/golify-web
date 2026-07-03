@@ -74,17 +74,18 @@ const FEATURES = [
   { key: 'notifications', tone: 'gold' as const },
 ];
 
+// API-Football league IDs — logos served from media.api-sports.io.
 const LEAGUES = [
-  'Liga MX',
-  'Premier League',
-  'La Liga',
-  'Bundesliga',
-  'Serie A',
-  'Ligue 1',
-  'MLS',
-  'Saudi Pro League',
-  'Liga Argentina',
-  'Primeira Liga',
+  { name: 'Liga MX', id: 262 },
+  { name: 'Premier League', id: 39 },
+  { name: 'La Liga', id: 140 },
+  { name: 'Bundesliga', id: 78 },
+  { name: 'Serie A', id: 135 },
+  { name: 'Ligue 1', id: 61 },
+  { name: 'MLS', id: 253 },
+  { name: 'Saudi Pro League', id: 307 },
+  { name: 'Liga Argentina', id: 128 },
+  { name: 'Primeira Liga', id: 94 },
 ];
 
 export default function HomeClient() {
@@ -241,7 +242,12 @@ export default function HomeClient() {
         </DisplayHeading>
         <div className="flex flex-wrap justify-center gap-3">
           {LEAGUES.map((league) => (
-            <LeagueChip key={league}>{league}</LeagueChip>
+            <LeagueChip
+              key={league.name}
+              logo={`https://media.api-sports.io/football/leagues/${league.id}.png`}
+            >
+              {league.name}
+            </LeagueChip>
           ))}
         </div>
       </section>

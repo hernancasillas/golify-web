@@ -3,6 +3,7 @@
 // and Client Components (Home). Colors come from the semantic tokens defined in
 // globals.css (mint = primary, gold, band, surface, surface-2) so every piece
 // themes correctly in both light and dark.
+import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
@@ -172,9 +173,26 @@ export function FeatureCard({
 
 // ─── League chip ─────────────────────────────────────────────────────────────
 
-export function LeagueChip({ children }: { children: ReactNode }) {
+export function LeagueChip({
+  logo,
+  children,
+}: {
+  logo?: string;
+  children: ReactNode;
+}) {
   return (
-    <span className="rounded-full border border-primary/20 bg-surface-2 px-5 py-2.5 text-sm font-bold text-foreground">
+    <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-surface-2 py-2 pr-5 pl-2 text-sm font-bold text-foreground">
+      {logo ? (
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white">
+          <Image
+            src={logo}
+            alt=""
+            width={18}
+            height={18}
+            className="h-[18px] w-[18px] object-contain"
+          />
+        </span>
+      ) : null}
       {children}
     </span>
   );
