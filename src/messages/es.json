@@ -131,6 +131,11 @@
       "children": {
         "title": "6. Privacidad de Menores",
         "text": "Golify no está destinado a usuarios menores de 13 años. Si crees que un menor nos ha proporcionado datos personales, contáctanos de inmediato."
+      },
+      "thirdPartyServices": {
+        "title": "7. Servicios de Terceros — Radio Browser API",
+        "text": "La función de radio en Golify utiliza Radio Browser (api.radio-browser.info), un directorio público, gratuito y de código abierto mantenido por la comunidad. Radio Browser no requiere autenticación ni registro; únicamente proporciona información de descubrimiento: nombre de la emisora, país de origen y la URL pública del stream que cada emisora ha elegido transmitir abiertamente. Golify no transmite ningún dato personal tuyo a Radio Browser. El audio se reproduce directamente desde los servidores de cada emisora — Golify no actúa como intermediario ni almacena los streams. Las emisoras que deseen restringir el acceso público pueden hacerlo en su propia infraestructura.",
+        "apiLink": "Documentación de la API de Radio Browser"
       }
     },
     "terms": {

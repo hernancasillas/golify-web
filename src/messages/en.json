@@ -131,6 +131,11 @@
       "children": {
         "title": "6. Children's Privacy",
         "text": "Golify is not intended for users under 13. If you believe a child has provided us with personal data, contact us immediately."
+      },
+      "thirdPartyServices": {
+        "title": "7. Third-Party Services — Radio Browser API",
+        "text": "Golify's radio feature uses Radio Browser (api.radio-browser.info), a free, open-source, community-maintained directory of public internet radio stations. Radio Browser requires no authentication or registration; it provides discovery information only: station name, country, and the public stream URL each station has chosen to broadcast openly. Golify does not transmit any personal data to Radio Browser. Audio plays directly from each station's own servers — Golify does not act as a proxy or cache streams. Stations that wish to restrict public access may do so at their own infrastructure level.",
+        "apiLink": "Radio Browser API documentation"
       }
     },
     "terms": {

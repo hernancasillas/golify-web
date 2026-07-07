@@ -51,6 +51,19 @@ export default function PrivacyClient() {
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('privacy.privacyPolicy.children.title')}</h3>
             <p>{t('privacy.privacyPolicy.children.text')}</p>
+
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('privacy.privacyPolicy.thirdPartyServices.title')}</h3>
+            <p>{t('privacy.privacyPolicy.thirdPartyServices.text')}</p>
+            <p>
+              <a
+                href="https://api.radio-browser.info/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#0d5e26] dark:text-[#71F59B] underline text-sm"
+              >
+                {t('privacy.privacyPolicy.thirdPartyServices.apiLink')} ↗
+              </a>
+            </p>
           </div>
         </section>
 
