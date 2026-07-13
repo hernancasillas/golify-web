@@ -28,6 +28,7 @@ export default function PrivacyClient() {
               <li><strong>{t('privacy.privacyPolicy.infoWeCollect.usageData')}</strong></li>
               <li><strong>{t('privacy.privacyPolicy.infoWeCollect.deviceData')}</strong></li>
               <li><strong>{t('privacy.privacyPolicy.infoWeCollect.locationData')}</strong></li>
+              <li><strong>{t('privacy.privacyPolicy.infoWeCollect.healthData')}</strong></li>
             </ul>
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('privacy.privacyPolicy.howWeUse.title')}</h3>
@@ -37,6 +38,17 @@ export default function PrivacyClient() {
               <li>{t('privacy.privacyPolicy.howWeUse.personalize')}</li>
               <li>{t('privacy.privacyPolicy.howWeUse.security')}</li>
             </ul>
+
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('privacy.privacyPolicy.healthData.title')}</h3>
+            <p>{t('privacy.privacyPolicy.healthData.intro')}</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>{t('privacy.privacyPolicy.healthData.heartRate')}</li>
+              <li>{t('privacy.privacyPolicy.healthData.hrv')}</li>
+              <li>{t('privacy.privacyPolicy.healthData.restingHeartRate')}</li>
+              <li>{t('privacy.privacyPolicy.healthData.sleep')}</li>
+            </ul>
+            <p>{t('privacy.privacyPolicy.healthData.processing')}</p>
+            <p>{t('privacy.privacyPolicy.healthData.revoke')}</p>
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('privacy.privacyPolicy.sharing.title')}</h3>
             <p>{t('privacy.privacyPolicy.sharing.text')}</p>

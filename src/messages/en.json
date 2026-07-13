@@ -100,14 +100,15 @@
     "backToHome": "← Back to home",
     "privacyPolicy": {
       "title": "Privacy Policy",
-      "lastUpdated": "Last updated: May 26, 2026",
+      "lastUpdated": "Last updated: July 13, 2026",
       "intro": "Golify respects your privacy. This policy explains what information we collect, how we use it, and your rights.",
       "infoWeCollect": {
         "title": "1. Information We Collect",
         "accountData": "Account data: email, username, profile photo.",
         "usageData": "Usage data: matches tracked, retas joined, EA FC catalog interactions.",
         "deviceData": "Device data: device type, OS version, push notification token.",
-        "locationData": "Location data: only if you grant permission, used for local retas."
+        "locationData": "Location data: only if you grant permission, used for local retas.",
+        "healthData": "Health data: only if you grant permission, read from Apple HealthKit or Google Health Connect for the Pulso wellness feature. Processed exclusively on your device — see the Health Data section below."
       },
       "howWeUse": {
         "title": "2. How We Use Your Information",
@@ -116,24 +117,34 @@
         "personalize": "Personalize content and recommendations.",
         "security": "Ensure security and prevent fraud."
       },
+      "healthData": {
+        "title": "3. Health Data (Apple HealthKit & Google Health Connect)",
+        "intro": "Golify's Pulso feature is an optional health and wellness experience. If — and only if — you grant explicit permission, Golify reads the following data from Apple HealthKit (iOS / Apple Watch) or Google Health Connect (Android):",
+        "heartRate": "Heart rate: samples during the time window of a match you played or watched, used to show your physical effort (peak, average, intensity zones) or your fan stress response.",
+        "hrv": "Heart rate variability (HRV): baseline vs. HRV at your heart-rate peak, used to quantify your stress response during a match.",
+        "restingHeartRate": "Resting heart rate: your personal baseline, used to normalize effort and stress scores so results are personalized rather than absolute BPM.",
+        "sleep": "Sleep: duration of the night following a match compared against your 7-night average, used to show a recovery insight.",
+        "processing": "How we process it: all health data is read-only and processed exclusively on your device. It is never uploaded to our servers or any third party, never stored outside your device, never used for advertising or marketing, and never sold or shared. Golify never writes data to HealthKit or Health Connect.",
+        "revoke": "Your control: health access is entirely optional — Pulso simply shows no analysis without it. You can revoke access at any time from the Health app (iOS) or Health Connect settings (Android), which immediately stops all reading of health data."
+      },
       "sharing": {
-        "title": "3. Sharing Your Information",
+        "title": "4. Sharing Your Information",
         "text": "We do not sell your personal data. We only share data with trusted service providers (e.g., cloud hosting, analytics) under strict confidentiality agreements, or when required by law."
       },
       "yourRights": {
-        "title": "4. Your Rights",
+        "title": "5. Your Rights",
         "text": "You can access, correct, or delete your personal data at any time through the app settings or by contacting us at"
       },
       "security": {
-        "title": "5. Security",
+        "title": "6. Security",
         "text": "We use industry-standard measures to protect your data. However, no method of transmission over the internet is 100% secure."
       },
       "children": {
-        "title": "6. Children's Privacy",
+        "title": "7. Children's Privacy",
         "text": "Golify is not intended for users under 13. If you believe a child has provided us with personal data, contact us immediately."
       },
       "thirdPartyServices": {
-        "title": "7. Third-Party Services — Radio Browser API",
+        "title": "8. Third-Party Services — Radio Browser API",
         "text": "Golify's radio feature uses Radio Browser (api.radio-browser.info), a free, open-source, community-maintained directory of public internet radio stations. Radio Browser requires no authentication or registration; it provides discovery information only: station name, country, and the public stream URL each station has chosen to broadcast openly. Golify does not transmit any personal data to Radio Browser. Audio plays directly from each station's own servers — Golify does not act as a proxy or cache streams. Stations that wish to restrict public access may do so at their own infrastructure level.",
         "apiLink": "Radio Browser API documentation"
       }

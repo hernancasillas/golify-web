@@ -100,14 +100,15 @@
     "backToHome": "← Volver al inicio",
     "privacyPolicy": {
       "title": "Política de Privacidad",
-      "lastUpdated": "Última actualización: 26 de mayo de 2026",
+      "lastUpdated": "Última actualización: 13 de julio de 2026",
       "intro": "Golify respeta tu privacidad. Esta política explica qué información recopilamos, cómo la usamos y tus derechos.",
       "infoWeCollect": {
         "title": "1. Información que Recopilamos",
         "accountData": "Datos de cuenta: correo, nombre de usuario, foto de perfil.",
         "usageData": "Datos de uso: partidos seguidos, retas unidas, interacciones con el catálogo de EA FC.",
         "deviceData": "Datos del dispositivo: tipo de dispositivo, versión del SO, token de notificaciones push.",
-        "locationData": "Datos de ubicación: solo si otorgas permiso, usado para retas locales."
+        "locationData": "Datos de ubicación: solo si otorgas permiso, usado para retas locales.",
+        "healthData": "Datos de salud: solo si otorgas permiso, leídos desde Apple HealthKit o Google Health Connect para la función de bienestar Pulso. Se procesan exclusivamente en tu dispositivo — consulta la sección Datos de Salud más abajo."
       },
       "howWeUse": {
         "title": "2. Cómo Usamos Tu Información",
@@ -116,24 +117,34 @@
         "personalize": "Personalizar contenido y recomendaciones.",
         "security": "Garantizar seguridad y prevenir fraudes."
       },
+      "healthData": {
+        "title": "3. Datos de Salud (Apple HealthKit y Google Health Connect)",
+        "intro": "La función Pulso de Golify es una experiencia opcional de salud y bienestar. Si — y solo si — otorgas permiso explícito, Golify lee los siguientes datos desde Apple HealthKit (iOS / Apple Watch) o Google Health Connect (Android):",
+        "heartRate": "Frecuencia cardiaca: muestras durante la ventana de tiempo de un partido que jugaste o viste, usadas para mostrar tu esfuerzo físico (pico, promedio, zonas de intensidad) o tu respuesta de estrés como aficionado.",
+        "hrv": "Variabilidad de la frecuencia cardiaca (HRV): línea base vs. HRV en tu pico de frecuencia cardiaca, usada para cuantificar tu respuesta de estrés durante un partido.",
+        "restingHeartRate": "Frecuencia cardiaca en reposo: tu línea base personal, usada para normalizar los puntajes de esfuerzo y estrés, de modo que los resultados sean personalizados y no BPM absolutos.",
+        "sleep": "Sueño: duración de la noche posterior a un partido comparada con tu promedio de 7 noches, usada para mostrar un análisis de recuperación.",
+        "processing": "Cómo los procesamos: todos los datos de salud son de solo lectura y se procesan exclusivamente en tu dispositivo. Nunca se suben a nuestros servidores ni a terceros, nunca se almacenan fuera de tu dispositivo, nunca se usan para publicidad o marketing, y nunca se venden ni se comparten. Golify nunca escribe datos en HealthKit ni en Health Connect.",
+        "revoke": "Tu control: el acceso a salud es totalmente opcional — sin él, Pulso simplemente no muestra análisis. Puedes revocar el acceso en cualquier momento desde la app Salud (iOS) o la configuración de Health Connect (Android), lo que detiene de inmediato toda lectura de datos de salud."
+      },
       "sharing": {
-        "title": "3. Compartir Tu Información",
+        "title": "4. Compartir Tu Información",
         "text": "No vendemos tus datos personales. Solo compartimos datos con proveedores de confianza (ej. hosting en la nube, analítica) bajo acuerdos de confidencialidad estrictos, o cuando lo exige la ley."
       },
       "yourRights": {
-        "title": "4. Tus Derechos",
+        "title": "5. Tus Derechos",
         "text": "Puedes acceder, corregir o eliminar tus datos personales en cualquier momento a través de la configuración de la app o contactándonos en"
       },
       "security": {
-        "title": "5. Seguridad",
+        "title": "6. Seguridad",
         "text": "Usamos medidas estándar de la industria para proteger tus datos. Sin embargo, ningún método de transmisión por internet es 100% seguro."
       },
       "children": {
-        "title": "6. Privacidad de Menores",
+        "title": "7. Privacidad de Menores",
         "text": "Golify no está destinado a usuarios menores de 13 años. Si crees que un menor nos ha proporcionado datos personales, contáctanos de inmediato."
       },
       "thirdPartyServices": {
-        "title": "7. Servicios de Terceros — Radio Browser API",
+        "title": "8. Servicios de Terceros — Radio Browser API",
         "text": "La función de radio en Golify utiliza Radio Browser (api.radio-browser.info), un directorio público, gratuito y de código abierto mantenido por la comunidad. Radio Browser no requiere autenticación ni registro; únicamente proporciona información de descubrimiento: nombre de la emisora, país de origen y la URL pública del stream que cada emisora ha elegido transmitir abiertamente. Golify no transmite ningún dato personal tuyo a Radio Browser. El audio se reproduce directamente desde los servidores de cada emisora — Golify no actúa como intermediario ni almacena los streams. Las emisoras que deseen restringir el acceso público pueden hacerlo en su propia infraestructura.",
         "apiLink": "Documentación de la API de Radio Browser"
       }
