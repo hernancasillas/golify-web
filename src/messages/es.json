@@ -125,6 +125,8 @@
         "restingHeartRate": "Frecuencia cardiaca en reposo: tu línea base personal, usada para normalizar los puntajes de esfuerzo y estrés, de modo que los resultados sean personalizados y no BPM absolutos.",
         "sleep": "Sueño: duración de la noche posterior a un partido comparada con tu promedio de 7 noches, usada para mostrar un análisis de recuperación.",
         "processing": "Cómo los procesamos: todos los datos de salud son de solo lectura y se procesan exclusivamente en tu dispositivo. Nunca se suben a nuestros servidores ni a terceros, nunca se almacenan fuera de tu dispositivo, nunca se usan para publicidad o marketing, y nunca se venden ni se comparten. Golify nunca escribe datos en HealthKit ni en Health Connect.",
+        "retention": "Retención y eliminación: Golify no retiene datos de salud. Las muestras se leen bajo demanda únicamente para calcular el análisis que solicitas y no se copian a ninguna base de datos. Los resultados existen solo en tu dispositivo y se eliminan al desinstalar la app. Como nada sale de tu dispositivo, no existen datos de salud en servidores que haya que eliminar.",
+        "security": "Seguridad: los datos de salud nunca salen de tu dispositivo, lo que elimina por completo el riesgo de transmisión y de brechas en servidores. El procesamiento on-device se apoya en el sandboxing y cifrado del sistema operativo (cifrado de dispositivo de iOS y Android).",
         "revoke": "Tu control: el acceso a salud es totalmente opcional — sin él, Pulso simplemente no muestra análisis. Puedes revocar el acceso en cualquier momento desde la app Salud (iOS) o la configuración de Health Connect (Android), lo que detiene de inmediato toda lectura de datos de salud."
       },
       "sharing": {

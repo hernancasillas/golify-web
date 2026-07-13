@@ -125,6 +125,8 @@
         "restingHeartRate": "Resting heart rate: your personal baseline, used to normalize effort and stress scores so results are personalized rather than absolute BPM.",
         "sleep": "Sleep: duration of the night following a match compared against your 7-night average, used to show a recovery insight.",
         "processing": "How we process it: all health data is read-only and processed exclusively on your device. It is never uploaded to our servers or any third party, never stored outside your device, never used for advertising or marketing, and never sold or shared. Golify never writes data to HealthKit or Health Connect.",
+        "retention": "Retention and deletion: Golify does not retain health data. Samples are read on demand only to compute the analysis you request and are not copied into any database. The resulting insights exist only on your device and are removed when you uninstall the app. Because nothing leaves your device, there is no server-side health data to delete.",
+        "security": "Security: health data never leaves your device, which removes transmission and server-breach risk entirely. On-device processing relies on the operating system's sandboxing and encryption (iOS and Android device encryption).",
         "revoke": "Your control: health access is entirely optional — Pulso simply shows no analysis without it. You can revoke access at any time from the Health app (iOS) or Health Connect settings (Android), which immediately stops all reading of health data."
       },
       "sharing": {

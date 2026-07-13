@@ -48,6 +48,8 @@ export default function PrivacyClient() {
               <li>{t('privacy.privacyPolicy.healthData.sleep')}</li>
             </ul>
             <p>{t('privacy.privacyPolicy.healthData.processing')}</p>
+            <p>{t('privacy.privacyPolicy.healthData.retention')}</p>
+            <p>{t('privacy.privacyPolicy.healthData.security')}</p>
             <p>{t('privacy.privacyPolicy.healthData.revoke')}</p>
 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('privacy.privacyPolicy.sharing.title')}</h3>
