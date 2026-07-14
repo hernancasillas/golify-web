@@ -148,7 +148,8 @@
       "thirdPartyServices": {
         "title": "8. Third-Party Services — Radio Browser API",
         "text": "Golify's radio feature uses Radio Browser (api.radio-browser.info), a free, open-source, community-maintained directory of public internet radio stations. Radio Browser requires no authentication or registration; it provides discovery information only: station name, country, and the public stream URL each station has chosen to broadcast openly. Golify does not transmit any personal data to Radio Browser. Audio plays directly from each station's own servers — Golify does not act as a proxy or cache streams. Stations that wish to restrict public access may do so at their own infrastructure level.",
-        "apiLink": "Radio Browser API documentation"
+        "apiLink": "Radio Browser API documentation",
+        "radioPolicyLink": "Radio Content & Takedown Policy"
       }
     },
     "terms": {
@@ -203,8 +204,43 @@
       },
       "contact": "For questions about account deletion or data handling, contact us at"
     },
-    "contactEmail": "privacy@golify.futbol",
-    "supportEmail": "support@golify.futbol",
+    "contactEmail": "contacto@golify.futbol",
+    "supportEmail": "contacto@golify.futbol",
     "emailSubject": "Account Deletion Request"
+  },
+  "radioPolicy": {
+    "title": "Radio Content & Takedown Policy",
+    "lastUpdated": "Last updated: July 13, 2026",
+    "intro": "This policy covers the Radio feature of the Golify mobile apps. Golify lets listeners tune in to publicly available internet radio streams that broadcasters themselves publish openly. We respect broadcasters' rights and provide a fast, no-questions-asked removal path.",
+    "architecture": {
+      "title": "1. How playback works",
+      "noRehost": "Golify does not host, store, proxy, transcode, cache, or record any third-party audio.",
+      "directPlayback": "Playback is a direct connection from the listener's device to the streaming server operated by (or on behalf of) each radio broadcaster.",
+      "publicUrls": "Stream URLs are the broadcasters' own public endpoints — identical to the ones broadcasters publish on their own websites and players.",
+      "attribution": "The app displays station attribution (station name, country, and the station's own logo) during playback."
+    },
+    "catalog": {
+      "title": "2. Catalog and discovery",
+      "source": "Station metadata is sourced from Radio Browser (radio-browser.info), an open, community-maintained public directory of internet radio stations. The default catalog surfaces sports and news broadcasters that intentionally and openly publish their live streams to the general public.",
+      "control": "Broadcasters retain full technical control of their streams at all times (start, stop, geo-restriction, content). Golify reflects the live stream state without modification.",
+      "apiLink": "Radio Browser API documentation"
+    },
+    "monetization": {
+      "title": "3. No monetization of third-party streams",
+      "text": "The radio feature is free for all users. It is not gated behind any subscription, and we do not sell or license access to any third-party stream."
+    },
+    "takedown": {
+      "title": "4. Takedown policy",
+      "intro": "Any broadcaster or rights holder may request removal of a station by:",
+      "inApp": "Using the in-app “Report station” control, available on every station row and on the player, or",
+      "email": "Emailing us at",
+      "commitment": "We will remove the reported station from the catalog within 48 hours of a valid request, without requiring legal process."
+    },
+    "contact": {
+      "title": "5. Contact",
+      "text": "Questions about this policy:",
+      "seeAlso": "See also our",
+      "privacyLink": "Privacy Policy & Terms"
+    }
   }
 }

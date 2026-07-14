@@ -148,7 +148,8 @@
       "thirdPartyServices": {
         "title": "8. Servicios de Terceros — Radio Browser API",
         "text": "La función de radio en Golify utiliza Radio Browser (api.radio-browser.info), un directorio público, gratuito y de código abierto mantenido por la comunidad. Radio Browser no requiere autenticación ni registro; únicamente proporciona información de descubrimiento: nombre de la emisora, país de origen y la URL pública del stream que cada emisora ha elegido transmitir abiertamente. Golify no transmite ningún dato personal tuyo a Radio Browser. El audio se reproduce directamente desde los servidores de cada emisora — Golify no actúa como intermediario ni almacena los streams. Las emisoras que deseen restringir el acceso público pueden hacerlo en su propia infraestructura.",
-        "apiLink": "Documentación de la API de Radio Browser"
+        "apiLink": "Documentación de la API de Radio Browser",
+        "radioPolicyLink": "Política de Contenido y Remoción de Radio"
       }
     },
     "terms": {
@@ -203,8 +204,43 @@
       },
       "contact": "Para preguntas sobre eliminación de cuenta o manejo de datos, contáctanos en"
     },
-    "contactEmail": "privacy@golify.futbol",
-    "supportEmail": "support@golify.futbol",
+    "contactEmail": "contacto@golify.futbol",
+    "supportEmail": "contacto@golify.futbol",
     "emailSubject": "Solicitud de Eliminación de Cuenta"
+  },
+  "radioPolicy": {
+    "title": "Política de Contenido y Remoción de Radio",
+    "lastUpdated": "Última actualización: 13 de julio de 2026",
+    "intro": "Esta política cubre la función de Radio de las apps móviles de Golify. Golify permite escuchar transmisiones de radio por internet disponibles públicamente, que las propias emisoras publican de forma abierta. Respetamos los derechos de las emisoras y ofrecemos una vía de remoción rápida y sin trabas.",
+    "architecture": {
+      "title": "1. Cómo funciona la reproducción",
+      "noRehost": "Golify no aloja, almacena, retransmite, transcodifica, cachea ni graba audio de terceros.",
+      "directPlayback": "La reproducción es una conexión directa del dispositivo del oyente al servidor de streaming operado por (o en nombre de) cada emisora.",
+      "publicUrls": "Las URLs de stream son los endpoints públicos de las propias emisoras — idénticos a los que las emisoras publican en sus sitios web y reproductores oficiales.",
+      "attribution": "La app muestra la atribución de la estación (nombre, país y logo propio de la estación) durante la reproducción."
+    },
+    "catalog": {
+      "title": "2. Catálogo y descubrimiento",
+      "source": "Los metadatos de estaciones provienen de Radio Browser (radio-browser.info), un directorio público, abierto y mantenido por la comunidad. El catálogo por defecto muestra emisoras deportivas y de noticias que publican sus transmisiones en vivo de forma abierta e intencional al público general.",
+      "control": "Las emisoras conservan control técnico total de sus streams en todo momento (iniciar, detener, geo-restringir, contenido). Golify refleja el estado del stream en vivo sin modificarlo.",
+      "apiLink": "Documentación del API de Radio Browser"
+    },
+    "monetization": {
+      "title": "3. Sin monetización de streams de terceros",
+      "text": "La función de radio es gratuita para todos los usuarios. No está detrás de ninguna suscripción, y no vendemos ni licenciamos acceso a ningún stream de terceros."
+    },
+    "takedown": {
+      "title": "4. Política de remoción",
+      "intro": "Cualquier emisora o titular de derechos puede solicitar la remoción de una estación:",
+      "inApp": "Usando el control “Reportar estación” dentro de la app, disponible en cada fila de estación y en el reproductor, o",
+      "email": "Escribiéndonos a",
+      "commitment": "Removeremos la estación reportada del catálogo dentro de las 48 horas siguientes a una solicitud válida, sin requerir proceso legal."
+    },
+    "contact": {
+      "title": "5. Contacto",
+      "text": "Dudas sobre esta política:",
+      "seeAlso": "Consulta también nuestra",
+      "privacyLink": "Política de Privacidad y Términos"
+    }
   }
 }

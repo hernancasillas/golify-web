@@ -4,7 +4,7 @@ import { useI18n } from '@/components/I18nProvider';
 import Link from 'next/link';
 
 export default function PrivacyClient() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   return (
     <div className="min-h-screen bg-white dark:bg-[#06180E] text-gray-900 dark:text-gray-100">
       <div className="container mx-auto px-4 py-12 max-w-3xl">
@@ -77,6 +77,14 @@ export default function PrivacyClient() {
               >
                 {t('privacy.privacyPolicy.thirdPartyServices.apiLink')} ↗
               </a>
+            </p>
+            <p>
+              <Link
+                href={`/${locale}/radio-policy`}
+                className="text-[#0d5e26] dark:text-[#71F59B] underline text-sm"
+              >
+                {t('privacy.privacyPolicy.thirdPartyServices.radioPolicyLink')}
+              </Link>
             </p>
           </div>
         </section>
