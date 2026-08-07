@@ -24,6 +24,10 @@
           {
             "/": "/local/join/*",
             "comment": "Local tournament invite"
+          },
+          {
+            "/": "/fantasy/join/*",
+            "comment": "Fantasy league invite"
           }
         ]
       }
