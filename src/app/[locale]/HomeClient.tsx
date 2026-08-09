@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { useI18n } from '@/components/I18nProvider';
 import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
+import { StoreLink } from '@/components/StoreLink';
 import {
   DisplayHeading,
   DownloadGlyph,
@@ -14,7 +15,7 @@ import {
   LeagueChip,
   PillLink,
 } from '@/components/revamp/ui';
-import { APP_STORE_URL, PLAY_STORE_URL, type Locale } from '@/lib/site';
+import { type Locale } from '@/lib/site';
 
 // Feature icons (stroke = currentColor so they invert on the mint/gold tiles).
 const ICONS: Record<string, ReactNode> = {
@@ -114,12 +115,12 @@ export default function HomeClient() {
               {t('home.heroSub')}
             </p>
             <div className="mt-9 flex flex-wrap gap-3.5">
-              <PillLink href={APP_STORE_URL} variant="mint">
+              <StoreLink store="ios" variant="mint">
                 <DownloadGlyph /> {t('home.downloadIOS')}
-              </PillLink>
-              <PillLink href={PLAY_STORE_URL} variant="outline">
+              </StoreLink>
+              <StoreLink store="android" variant="outline">
                 <DownloadGlyph /> {t('home.downloadAndroid')}
-              </PillLink>
+              </StoreLink>
             </div>
           </div>
 
@@ -262,12 +263,12 @@ export default function HomeClient() {
             {t('home.finalCtaBody')}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3.5">
-            <PillLink href={APP_STORE_URL} variant="dark">
+            <StoreLink store="ios" variant="dark">
               <DownloadGlyph /> {t('cta.appStore')}
-            </PillLink>
-            <PillLink href={PLAY_STORE_URL} variant="dark">
+            </StoreLink>
+            <StoreLink store="android" variant="dark">
               <DownloadGlyph /> {t('cta.googlePlay')}
-            </PillLink>
+            </StoreLink>
           </div>
         </div>
       </section>

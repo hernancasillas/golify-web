@@ -1,6 +1,6 @@
 'use client';
 
-import { APP_STORE_URL, PLAY_STORE_URL } from '@/lib/site';
+import { StoreLink } from '@/components/StoreLink';
 
 // Install call-to-action. Replaces the old auto-redirect funnels: content stays
 // crawlable/visible, the user (or crawler) sees real facts, and a human can tap
@@ -23,18 +23,22 @@ export function InstallCTA({
           {labels.open}
         </a>
       ) : null}
-      <a
-        href={APP_STORE_URL}
-        className="rounded-lg bg-black px-5 py-3 text-center font-semibold text-white hover:bg-neutral-800"
+      {/* StoreLink handles social in-app browsers: Android escapes via
+          intent://, iOS opens the "open in browser" hint sheet. */}
+      <StoreLink
+        store="ios"
+        variant="dark"
+        className="rounded-lg px-5 py-3 font-semibold"
       >
         {labels.ios}
-      </a>
-      <a
-        href={PLAY_STORE_URL}
-        className="rounded-lg bg-black px-5 py-3 text-center font-semibold text-white hover:bg-neutral-800"
+      </StoreLink>
+      <StoreLink
+        store="android"
+        variant="dark"
+        className="rounded-lg px-5 py-3 font-semibold"
       >
         {labels.android}
-      </a>
+      </StoreLink>
     </div>
   );
 }

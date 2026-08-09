@@ -48,27 +48,39 @@ export function PillLink({
   variant = 'mint',
   className,
   children,
+  onClick,
 }: {
   href: string;
   variant?: PillVariant;
   className?: string;
   children: ReactNode;
+  /** Only usable from Client Components (see StoreLink). */
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 }) {
   const cls = cn(
     'inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-extrabold whitespace-nowrap transition',
     PILL[variant],
     className,
   );
-  const isExternal = /^https?:/.test(href);
+  // `intent:` (Android WebView escape) is external too, but must NOT open in a
+  // new tab — the intent handler needs the current navigation.
+  const isIntent = href.startsWith('intent://');
+  const isExternal = isIntent || /^https?:/.test(href);
   if (isExternal) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>
+      <a
+        href={href}
+        target={isIntent ? undefined : '_blank'}
+        rel={isIntent ? undefined : 'noopener noreferrer'}
+        className={cls}
+        onClick={onClick}
+      >
         {children}
       </a>
     );
   }
   return (
-    <Link href={href} className={cls}>
+    <Link href={href} className={cls} onClick={onClick}>
       {children}
     </Link>
   );

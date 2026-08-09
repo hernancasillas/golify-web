@@ -1,4 +1,18 @@
 {
+  "inApp": {
+    "title": "Ábrelo en tu navegador",
+    "body": "Estás viendo Golify dentro del navegador de otra app. Desde aquí la App Store casi nunca abre.",
+    "bodyNamed": "Estás viendo Golify dentro del navegador de {app}. Desde aquí la App Store casi nunca abre.",
+    "stepMenuTop": "Toca los ⋯ de arriba a la derecha",
+    "stepMenuBottom": "Toca los ⋯ de abajo a la derecha",
+    "stepOpen": "Elige “Abrir en el navegador”",
+    "copy": "Copiar liga",
+    "copied": "¡Liga copiada!",
+    "close": "Cerrar",
+    "continueAnyway": "Continuar aquí",
+    "bannerText": "Estás en el navegador de otra app: la descarga puede fallar.",
+    "bannerCta": "Cómo abrirlo →"
+  },
   "hero": {
     "title": "Golify",
     "subtitle": "Football Tracker • Retas • EA FC Catalog",

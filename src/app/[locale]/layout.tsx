@@ -1,4 +1,5 @@
 import { I18nProvider } from '@/components/I18nProvider';
+import { InAppBrowserBanner } from '@/components/InAppBrowserHint';
 import { notFound } from 'next/navigation';
 
 const locales = ['en', 'es'] as const;
@@ -21,5 +22,11 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  return <I18nProvider locale={locale as Locale}>{children}</I18nProvider>;
+  return (
+    <I18nProvider locale={locale as Locale}>
+      {/* Instagram/TikTok/Facebook webview → hint on how to escape it. */}
+      <InAppBrowserBanner />
+      {children}
+    </I18nProvider>
+  );
 }

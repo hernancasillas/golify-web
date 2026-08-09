@@ -1,4 +1,18 @@
 {
+  "inApp": {
+    "title": "Open this in your browser",
+    "body": "You're viewing Golify inside another app's built-in browser. App Store links rarely open from here.",
+    "bodyNamed": "You're viewing Golify inside {app}'s built-in browser. App Store links rarely open from here.",
+    "stepMenuTop": "Tap the ⋯ at the top right",
+    "stepMenuBottom": "Tap the ⋯ at the bottom right",
+    "stepOpen": "Choose “Open in browser”",
+    "copy": "Copy link",
+    "copied": "Link copied!",
+    "close": "Close",
+    "continueAnyway": "Continue here",
+    "bannerText": "You're in an in-app browser — the download may fail.",
+    "bannerCta": "How to open it →"
+  },
   "hero": {
     "title": "Golify",
     "subtitle": "Football Tracker • Retas • EA FC Catalog",
