@@ -3,6 +3,7 @@
 // Same list, single source of truth for both surfaces.
 export const TRACKED_LEAGUES = [
   { name: 'Liga MX', id: 262 },
+  { name: 'UEFA Champions League', id: 2 },
   { name: 'Premier League', id: 39 },
   { name: 'La Liga', id: 140 },
   { name: 'Bundesliga', id: 78 },

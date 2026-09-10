@@ -58,14 +58,18 @@ function MatchRow({ f, locale }: { f: Fixture; locale: string }) {
       className="block rounded-2xl border border-border bg-surface p-4 transition hover:border-primary/40 hover:bg-surface-2"
     >
       <div className="mb-2.5 flex items-center gap-1.5 text-xs font-bold tracking-wide text-muted-foreground uppercase">
-        <Image
-          src={f.league.logo}
-          alt=""
-          width={14}
-          height={14}
-          unoptimized
-          className="h-3.5 w-3.5 shrink-0 object-contain"
-        />
+        {/* White backdrop: some league logos (e.g. Champions League) are dark
+            on a transparent background and disappear on a dark card. */}
+        <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-white">
+          <Image
+            src={f.league.logo}
+            alt=""
+            width={11}
+            height={11}
+            unoptimized
+            className="h-[11px] w-[11px] object-contain"
+          />
+        </span>
         <span className="truncate">{f.league.name}</span>
       </div>
       <div className="flex items-center gap-4">
