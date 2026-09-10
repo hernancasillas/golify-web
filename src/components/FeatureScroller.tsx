@@ -67,7 +67,11 @@ export function FeatureScroller({ stories }: { stories: FeatureStory[] }) {
       // 100vh/step felt like too much scroll per swap.
       style={{ height: `${100 + stories.length * 45}vh` }}
     >
-      <div className="sticky top-0 flex h-screen items-center">
+      {/* min-h-screen (not a rigid h-screen) — the phone below is full Home-hero
+          size, which on a short mobile viewport can be taller than 100vh
+          together with the text; min-height lets the pin release a little
+          early there instead of invisibly clipping content off-screen. */}
+      <div className="sticky top-0 flex min-h-screen items-center py-10">
         <div className="mx-auto grid w-full max-w-6xl items-center gap-4 px-5 sm:gap-8 sm:px-8 lg:grid-cols-2 lg:gap-10">
           {/* Text — crossfade stack, all sharing the same box. Every story
               sits in the same grid cell (grid-area 1/1) instead of an
@@ -114,7 +118,8 @@ export function FeatureScroller({ stories }: { stories: FeatureStory[] }) {
 
           {/* Phone — one frame, crossfading screens inside it */}
           <div className="order-1 flex justify-center lg:order-2">
-            <PhoneFrame className="h-[250px] w-[125px] sm:h-[380px] sm:w-[190px] lg:h-[520px] lg:w-[260px]">
+            {/* No size override — identical to the Home hero phone. */}
+            <PhoneFrame>
               {stories.map((s, i) => (
                 <div
                   key={s.key}
