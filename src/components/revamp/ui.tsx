@@ -225,6 +225,10 @@ export function PhoneFrame({
   children: ReactNode;
   className?: string;
 }) {
+  // No synthetic notch/Dynamic Island overlay: it only reads right on top of
+  // a dark-topped screenshot (the pill blends into a dark status bar) — on a
+  // light screenshot it renders as a stray black blob over real content.
+  // The bezel alone still reads as "a phone".
   return (
     <div
       className={cn(
@@ -232,7 +236,6 @@ export function PhoneFrame({
         className,
       )}
     >
-      <div className="absolute top-0 left-1/2 z-10 h-5 w-28 -translate-x-1/2 rounded-b-2xl bg-[#0B1A11]" />
       {children}
     </div>
   );
