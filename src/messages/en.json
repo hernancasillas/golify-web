@@ -41,9 +41,9 @@
   },
   "about": {
     "title": "What is Golify?",
-    "p1": "Golify is a football (soccer) app for iOS and Android, free to download, built for fans in Mexico and Latin America. It brings together live scores, the FIFA World Cup 2026 schedule and results, prediction tournaments with friends (\"retas\"), pools (\"quinielas\"), a digital collectible sticker album, and the EA FC player catalog — all in one place.",
+    "p1": "Golify is a football (soccer) app for iOS and Android, free to download, built for fans in Mexico and Latin America. It brings together live scores, prediction tournaments with friends (\"retas\"), pools (\"quinielas\"), a digital collectible sticker album, and the EA FC player catalog — all in one place.",
     "p2": "With Golify you follow your favorite matches with real-time notifications for goals, cards and lineups; create and compete in private retas and quinielas with your group; and explore detailed team and player stats. It covers the world's major leagues, including Liga MX, the Premier League, La Liga, Serie A and more.",
-    "p3": "Golify is free to download and available in Spanish and English. Some premium features require a subscription. Download it from the App Store or Google Play and live the World Cup 2026 with your community. Golify's official website is golify.futbol."
+    "p3": "Golify is free to download and available in Spanish and English. Some premium features require a subscription. Download it from the App Store or Google Play. Golify's official website is golify.futbol."
   },
   "leagues": {
     "title": "Supported Leagues"
@@ -59,29 +59,29 @@
     "about": "About"
   },
   "home": {
-    "badge": "🏆 World Cup 2026 live",
+    "badge": "⚽ Live football, all year round",
     "heroPre": "Live every ",
     "heroHighlight": "goal",
     "heroPost": "like you're right there",
-    "heroSub": "Live scores, retas with your crew, pools and the road to World Cup 2026. All in Golify.",
+    "heroSub": "Live scores, retas with your crew and pools for your favorite leagues. All in Golify.",
     "downloadIOS": "Download iOS",
     "downloadAndroid": "Download Android",
     "mockupGoal": "⚽ GOOOAL 78'",
     "mockupScore": "Mexico 2-1 Brazil",
     "mockupReta": "🏆 You're 1st in your reta!",
     "mockupRetaName": "Reta \"Los Cuates\"",
-    "wcEyebrow": "🔥 Hottest right now",
-    "wcTitle": "The World Cup bracket, live",
-    "wcBody": "Here's how the full bracket to the final would look if the group stage ended today. Every result moves the bracket instantly.",
-    "wcCta": "See the bracket →",
-    "wcPreviewRound": "Round of 16",
-    "wcPreviewTag": "Projection",
-    "wcPreviewFooter": "Updates with every result",
     "featuresTitle": "All your football, in one place",
     "featuresSub": "From the opening whistle to the trophy lift 🏆",
     "leaguesTitle": "We cover the leagues you follow",
-    "finalCtaTitle": "Ready for the World Cup?",
-    "finalCtaBody": "Don't miss a minute of the road to the final.",
+    "live": {
+      "badge": "🔴 Live now",
+      "title": "Matches right now",
+      "subtitle": "Real score, updates itself. Tap a match to see the detail.",
+      "emptyTitle": "No live matches right now",
+      "emptyBody": "Check back soon, or grab the app for the full schedule."
+    },
+    "finalCtaTitle": "Ready to never miss a beat?",
+    "finalCtaBody": "Don't miss a minute of your favorite teams.",
     "featureItems": {
       "liveScores": {
         "title": "Live scores",
@@ -98,10 +98,6 @@
       "eaFc": {
         "title": "EA FC catalog",
         "description": "Full player and team stats, straight from the game."
-      },
-      "stickers": {
-        "title": "Sticker album",
-        "description": "Collect and complete your digital World Cup 2026 album."
       },
       "notifications": {
         "title": "Tailored notifications",

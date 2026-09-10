@@ -1,5 +1,9 @@
 import type { Metadata } from 'next';
 import { InstallCTA } from '@/components/InstallCTA';
+import { Reveal } from '@/components/Reveal';
+import { SiteNav } from '@/components/SiteNav';
+import { SiteFooter } from '@/components/SiteFooter';
+import { DisplayHeading, Eyebrow, FaqCard } from '@/components/revamp/ui';
 import {
   SITE_NAME,
   SITE_URL,
@@ -24,11 +28,11 @@ const STR = {
     kicker: 'Nosotros',
     title: 'Sobre Golify',
     intro:
-      'Golify es la app de fútbol todo en uno: marcadores en vivo, la Copa Mundial 2026, retas, quinielas y un álbum de stickers, todo en un mismo lugar. La idea es simple: si te gusta el fútbol, no necesitas ninguna otra app.',
+      'Golify es la app de fútbol todo en uno: marcadores en vivo, retas, quinielas y un álbum de stickers, todo en un mismo lugar. La idea es simple: si te gusta el fútbol, no necesitas ninguna otra app.',
     sections: [
       {
         h: '¿Qué es Golify?',
-        p: 'Golify es una aplicación de fútbol para iOS y Android, gratis de descargar, pensada para aficionados en México y América Latina. Reúne todo lo que un fanático del fútbol necesita: marcadores y resultados en vivo, el calendario completo del Mundial 2026, estadísticas de las principales ligas del mundo, notificaciones de tus equipos y un álbum digital de stickers coleccionables. En vez de saltar entre varias apps, lo tienes todo en una sola.',
+        p: 'Golify es una aplicación de fútbol para iOS y Android, gratis de descargar, pensada para aficionados en México y América Latina. Reúne todo lo que un fanático del fútbol necesita: marcadores y resultados en vivo, estadísticas de las principales ligas del mundo, notificaciones de tus equipos y un álbum digital de stickers coleccionables. En vez de saltar entre varias apps, lo tienes todo en una sola.',
       },
       {
         h: 'Fútbol con amigos: retas, quinielas y torneos',
@@ -47,7 +51,7 @@ const STR = {
     faqs: [
       {
         q: '¿Qué es Golify?',
-        a: 'Golify es una app de fútbol para iOS y Android, gratis de descargar, con marcadores en vivo, el Mundial 2026, retas, quinielas, torneos y un álbum de stickers, todo en una sola app. Su sitio oficial es golify.futbol.',
+        a: 'Golify es una app de fútbol para iOS y Android, gratis de descargar, con marcadores en vivo, retas, quinielas, torneos y un álbum de stickers, todo en una sola app. Su sitio oficial es golify.futbol.',
       },
       {
         q: '¿Quién está detrás de Golify?',
@@ -70,11 +74,11 @@ const STR = {
     kicker: 'About',
     title: 'About Golify',
     intro:
-      'Golify is the all-in-one football app: live scores, the FIFA World Cup 2026, retas, quinielas and a sticker album, all in one place. The idea is simple: if you love football, you do not need any other app.',
+      'Golify is the all-in-one football app: live scores, retas, quinielas and a sticker album, all in one place. The idea is simple: if you love football, you do not need any other app.',
     sections: [
       {
         h: 'What is Golify?',
-        p: 'Golify is a football (soccer) app for iOS and Android, free to download, built for fans in Mexico and Latin America. It brings together everything a football fan needs: live scores and results, the full World Cup 2026 schedule, stats for the world’s major leagues, notifications for your teams, and a digital collectible sticker album. Instead of jumping between several apps, you have it all in one.',
+        p: 'Golify is a football (soccer) app for iOS and Android, free to download, built for fans in Mexico and Latin America. It brings together everything a football fan needs: live scores and results, stats for the world’s major leagues, notifications for your teams, and a digital collectible sticker album. Instead of jumping between several apps, you have it all in one.',
       },
       {
         h: 'Football with friends: retas, quinielas and tournaments',
@@ -93,7 +97,7 @@ const STR = {
     faqs: [
       {
         q: 'What is Golify?',
-        a: 'Golify is a football app for iOS and Android, free to download, with live scores, the World Cup 2026, retas, quinielas, tournaments and a sticker album, all in one app. Its official website is golify.futbol.',
+        a: 'Golify is a football app for iOS and Android, free to download, with live scores, retas, quinielas, tournaments and a sticker album, all in one app. Its official website is golify.futbol.',
       },
       {
         q: 'Who is behind Golify?',
@@ -173,45 +177,53 @@ export default async function NosotrosPage({
   ];
 
   return (
-    <main className="mx-auto max-w-2xl px-5 py-10">
+    <div className="min-h-screen bg-background text-foreground">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <SiteNav />
 
-      <p className="text-sm uppercase tracking-wide text-neutral-500">
-        {L.kicker}
-      </p>
-      <h1 className="mt-2 text-3xl font-bold sm:text-4xl">{L.title}</h1>
-      <p className="mt-4 text-neutral-700 dark:text-neutral-300">{L.intro}</p>
+      <main className="mx-auto max-w-2xl px-5 pt-2 pb-16 sm:px-8">
+        <Eyebrow tone="mint">{L.kicker}</Eyebrow>
+        <DisplayHeading as="h1" className="mt-5 text-4xl sm:text-5xl">
+          {L.title}
+        </DisplayHeading>
+        <p className="mt-5 leading-relaxed font-semibold text-muted-foreground">
+          {L.intro}
+        </p>
 
-      {L.sections.map((s) => (
-        <section key={s.h} className="mt-10">
-          <h2 className="text-xl font-semibold">{s.h}</h2>
-          <p className="mt-3 text-neutral-700 dark:text-neutral-300">{s.p}</p>
-        </section>
-      ))}
+        {L.sections.map((s) => (
+          <Reveal key={s.h} as="section" className="mt-10">
+            <DisplayHeading as="h2" className="text-2xl">
+              {s.h}
+            </DisplayHeading>
+            <p className="mt-3 leading-relaxed font-semibold text-muted-foreground">
+              {s.p}
+            </p>
+          </Reveal>
+        ))}
 
-      <InstallCTA
-        deeplink={DEEPLINK}
-        labels={{ open: L.open, ios: L.ios, android: L.android }}
-      />
+        <Reveal className="mt-10">
+          <InstallCTA
+            deeplink={DEEPLINK}
+            labels={{ open: L.open, ios: L.ios, android: L.android }}
+          />
+        </Reveal>
 
-      <section className="mt-6">
-        <h2 className="text-xl font-semibold">{L.faqTitle}</h2>
-        <dl className="mt-4 space-y-5">
-          {L.faqs.map((f) => (
-            <div key={f.q}>
-              <dt className="font-medium text-neutral-900 dark:text-neutral-100">
-                {f.q}
-              </dt>
-              <dd className="mt-1 text-neutral-700 dark:text-neutral-300">
-                {f.a}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-    </main>
+        <Reveal as="section" className="mt-12">
+          <DisplayHeading as="h2" className="mb-5 text-2xl">
+            {L.faqTitle}
+          </DisplayHeading>
+          <div className="flex flex-col gap-3">
+            {L.faqs.map((f) => (
+              <FaqCard key={f.q} q={f.q} a={f.a} />
+            ))}
+          </div>
+        </Reveal>
+      </main>
+
+      <SiteFooter locale={locale as Locale} />
+    </div>
   );
 }

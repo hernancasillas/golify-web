@@ -15,7 +15,7 @@ export default async function Image() {
     (
       <div
         style={{
-          background: '#06180E',
+          background: '#232628',
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -30,7 +30,7 @@ export default async function Image() {
             style={{
               fontSize: 80,
               fontWeight: 800,
-              color: '#71F59B',
+              color: '#00C853',
               lineHeight: 1,
               letterSpacing: '-2px',
             }}
@@ -59,8 +59,8 @@ export default async function Image() {
           >
             <div
               style={{
-                background: '#71F59B',
-                color: '#06180E',
+                background: '#00C853',
+                color: '#070710',
                 fontSize: 22,
                 fontWeight: 700,
                 padding: '12px 28px',

@@ -2,7 +2,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { Manrope, Bebas_Neue } from "next/font/google";
+import { Manrope, Jost } from "next/font/google";
 import {
   SITE_URL,
   SITE_NAME,
@@ -16,17 +16,21 @@ import {
 } from "@/lib/site";
 import "./globals.css";
 
-// Manrope drives all body/UI copy; Bebas Neue is the condensed poster display
-// face for big all-caps headlines (exposed as the `font-display` utility).
+// Manrope drives all body/UI copy — it's one of the app's own bundled fonts
+// (constants/theme.ts `Fonts`), so this is shared vocabulary, not a pick of
+// convenience. Jost is the display face (`font-display` utility): the app's
+// real display face, Futura Extra Bold, is a licensed font file bundled in
+// the app and unavailable on the web — Jost is the closest free geometric
+// substitute for big all-caps headlines.
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
   display: "swap",
 });
 
-const bebasNeue = Bebas_Neue({
-  variable: "--font-bebas",
-  weight: "400",
+const jost = Jost({
+  variable: "--font-jost",
+  weight: ["500", "600", "700"],
   subsets: ["latin"],
   display: "swap",
 });
@@ -122,7 +126,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${manrope.variable} ${bebasNeue.variable} h-full antialiased dark`}
+      className={`${manrope.variable} ${jost.variable} h-full antialiased dark`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans">

@@ -1,5 +1,5 @@
 // Presentational building blocks for the "Energético" revamp. No hooks or
-// browser APIs, so these render fine in both Server Components (world-cup pages)
+// browser APIs, so these render fine in both Server Components (content pages)
 // and Client Components (Home). Colors come from the semantic tokens defined in
 // globals.css (mint = primary, gold, band, surface, surface-2) so every piece
 // themes correctly in both light and dark.
@@ -7,7 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { getTeamFlagByName } from '@/lib/bracket/flags';
+import { getTeamFlagByName } from '@/lib/flags';
 
 /** Small down-arrow glyph used on the app-store CTAs (matches the handoff). */
 export function DownloadGlyph({ className }: { className?: string }) {
@@ -39,7 +39,7 @@ const PILL: Record<PillVariant, string> = {
   mint: 'bg-primary text-primary-foreground shadow-[0_10px_30px_rgba(92,242,154,0.35)] hover:brightness-105',
   gold: 'bg-gold text-gold-foreground hover:brightness-105',
   outline: 'border-[1.5px] border-foreground/35 text-foreground hover:bg-foreground/5',
-  dark: 'bg-[#06170D] text-[#F4F7F5] hover:brightness-125',
+  dark: 'bg-[#070710] text-[#E8E8F0] hover:brightness-125',
 };
 
 /** Rounded pill link. Renders <a> for external URLs, next/link otherwise. */
@@ -131,7 +131,10 @@ export function DisplayHeading({
   return (
     <Tag
       className={cn(
-        'font-display leading-none tracking-wide text-foreground uppercase',
+        // Bebas Neue only shipped one weight and read as bold by design; Jost
+        // (its replacement — see globals.css) is a normal geometric sans and
+        // needs an explicit bold weight to read as a headline.
+        'font-display font-bold leading-none tracking-wide text-foreground uppercase',
         className,
       )}
     >
@@ -207,6 +210,31 @@ export function LeagueChip({
       ) : null}
       {children}
     </span>
+  );
+}
+
+// ─── Phone frame (device chrome for screenshots) ─────────────────────────────
+// Fixed dark bezel regardless of site theme — same device shell used by the
+// Home hero mockup and the feature-story screenshots, so every "here's the
+// app" moment on the site reads as the same physical object.
+
+export function PhoneFrame({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        'relative h-[520px] w-[260px] overflow-hidden rounded-[42px] border-[10px] border-[#0B1A11] bg-[#050D08] shadow-[0_30px_90px_rgba(0,0,0,0.55)] sm:h-[600px] sm:w-[290px]',
+        className,
+      )}
+    >
+      <div className="absolute top-0 left-1/2 z-10 h-5 w-28 -translate-x-1/2 rounded-b-2xl bg-[#0B1A11]" />
+      {children}
+    </div>
   );
 }
 

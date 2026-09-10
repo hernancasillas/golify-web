@@ -1,7 +1,11 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getFixtureById, type Fixture } from '@/lib/api-football';
 import { InstallCTA } from '@/components/InstallCTA';
+import { SiteNav } from '@/components/SiteNav';
+import { SiteFooter } from '@/components/SiteFooter';
+import { DisplayHeading } from '@/components/revamp/ui';
 import {
   SITE_NAME,
   IOS_APP_ID,
@@ -9,6 +13,7 @@ import {
   WORLD_CUP_LEAGUE_ID,
   worldCupEventNode,
   absoluteUrl,
+  type Locale,
 } from '@/lib/site';
 
 // SSR content page (was a client redirect funnel). Renders real match facts so
@@ -55,10 +60,14 @@ function t(locale: string) {
   return STR[locale as keyof typeof STR] ?? STR.es;
 }
 
+function isLiveStatus(f: Fixture): boolean {
+  return ['1H', '2H', 'HT', 'ET', 'P', 'LIVE'].includes(f.fixture.status.short);
+}
+
 function statusLabel(f: Fixture, locale: string): string {
   const s = f.fixture.status.short;
   const L = t(locale);
-  if (['1H', '2H', 'HT', 'ET', 'P', 'LIVE'].includes(s)) return L.live;
+  if (isLiveStatus(f)) return L.live;
   if (['FT', 'AET', 'PEN'].includes(s)) return L.finished;
   return L.scheduled;
 }
@@ -191,72 +200,88 @@ export default async function MatchPage({
     url: absoluteUrl(`/${locale}/match/${id}`),
   };
 
+  const live = isLiveStatus(f);
+
   return (
-    <main className="mx-auto max-w-2xl px-5 py-10">
+    <div className="min-h-screen bg-background text-foreground">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <SiteNav />
 
-      <p className="text-sm uppercase tracking-wide text-neutral-500">
-        {f.league.name} · {f.league.round}
-      </p>
+      <main className="mx-auto max-w-2xl px-5 pt-2 pb-16 sm:px-8">
+        <p className="text-sm font-bold tracking-wide text-muted-foreground uppercase">
+          {f.league.name} · {f.league.round}
+        </p>
 
-      <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{title(f, locale)}</h1>
+        <DisplayHeading as="h1" className="mt-3 text-3xl sm:text-4xl">
+          {title(f, locale)}
+        </DisplayHeading>
 
-      <p className="mt-1 text-sm font-medium text-green-600">
-        {statusLabel(f, locale)}
-        {f.fixture.status.elapsed ? ` · ${f.fixture.status.elapsed}'` : ''}
-      </p>
+        {live ? (
+          <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-live-glow px-3 py-1.5 text-sm font-bold text-live">
+            <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-live" />
+            {statusLabel(f, locale)}
+            {f.fixture.status.elapsed ? ` · ${f.fixture.status.elapsed}'` : ''}
+          </span>
+        ) : (
+          <p className="mt-3 text-sm font-bold text-muted-foreground">
+            {statusLabel(f, locale)}
+          </p>
+        )}
 
-      <div className="mt-6 flex items-center justify-between rounded-xl border border-neutral-200 p-5 dark:border-neutral-800">
-        <div className="flex flex-1 flex-col items-center gap-2 text-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={f.teams.home.logo} alt={f.teams.home.name} width={56} height={56} />
-          <span className="font-semibold">{f.teams.home.name}</span>
+        <div className="mt-7 flex items-center justify-between rounded-2xl border border-border bg-surface p-6">
+          <div className="flex flex-1 flex-col items-center gap-2.5 text-center">
+            <Image src={f.teams.home.logo} alt={f.teams.home.name} width={56} height={56} unoptimized />
+            <span className="text-sm font-bold">{f.teams.home.name}</span>
+          </div>
+          <div className="px-4 font-display text-3xl font-bold tabular-nums">
+            {played ? `${f.goals.home} - ${f.goals.away}` : L.vs}
+          </div>
+          <div className="flex flex-1 flex-col items-center gap-2.5 text-center">
+            <Image src={f.teams.away.logo} alt={f.teams.away.name} width={56} height={56} unoptimized />
+            <span className="text-sm font-bold">{f.teams.away.name}</span>
+          </div>
         </div>
-        <div className="px-4 text-3xl font-bold tabular-nums">
-          {played ? `${f.goals.home} - ${f.goals.away}` : L.vs}
-        </div>
-        <div className="flex flex-1 flex-col items-center gap-2 text-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={f.teams.away.logo} alt={f.teams.away.name} width={56} height={56} />
-          <span className="font-semibold">{f.teams.away.name}</span>
-        </div>
-      </div>
 
-      <dl className="mt-6 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-        <div>
-          <dt className="text-neutral-500">{L.kickoff}</dt>
-          <dd className="font-medium">
-            {kickoff.toLocaleString(locale, { dateStyle: 'full', timeStyle: 'short' })}
-          </dd>
-        </div>
-        {f.fixture.venue.name ? (
+        <dl className="mt-7 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-neutral-500">{L.venue}</dt>
-            <dd className="font-medium">
-              {f.fixture.venue.name}
-              {f.fixture.venue.city ? `, ${f.fixture.venue.city}` : ''}
+            <dt className="font-bold text-muted-foreground">{L.kickoff}</dt>
+            <dd className="mt-0.5 font-semibold">
+              {kickoff.toLocaleString(locale, { dateStyle: 'full', timeStyle: 'short' })}
             </dd>
           </div>
-        ) : null}
-        <div>
-          <dt className="text-neutral-500">{L.competition}</dt>
-          <dd className="font-medium">{f.league.name}</dd>
-        </div>
-        <div>
-          <dt className="text-neutral-500">{L.round}</dt>
-          <dd className="font-medium">{f.league.round}</dd>
-        </div>
-      </dl>
+          {f.fixture.venue.name ? (
+            <div>
+              <dt className="font-bold text-muted-foreground">{L.venue}</dt>
+              <dd className="mt-0.5 font-semibold">
+                {f.fixture.venue.name}
+                {f.fixture.venue.city ? `, ${f.fixture.venue.city}` : ''}
+              </dd>
+            </div>
+          ) : null}
+          <div>
+            <dt className="font-bold text-muted-foreground">{L.competition}</dt>
+            <dd className="mt-0.5 font-semibold">{f.league.name}</dd>
+          </div>
+          <div>
+            <dt className="font-bold text-muted-foreground">{L.round}</dt>
+            <dd className="mt-0.5 font-semibold">{f.league.round}</dd>
+          </div>
+        </dl>
 
-      <p className="mt-8 text-neutral-700 dark:text-neutral-300">{L.followInApp}</p>
+        <p className="mt-9 leading-relaxed font-semibold text-muted-foreground">
+          {L.followInApp}
+        </p>
 
-      <InstallCTA
-        deeplink={`golify://match/${id}`}
-        labels={{ open: L.openApp, ios: L.ios, android: L.android }}
-      />
-    </main>
+        <InstallCTA
+          deeplink={`golify://match/${id}`}
+          labels={{ open: L.openApp, ios: L.ios, android: L.android }}
+        />
+      </main>
+
+      <SiteFooter locale={locale as Locale} />
+    </div>
   );
 }

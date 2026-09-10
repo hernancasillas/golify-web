@@ -1,9 +1,6 @@
 import type { MetadataRoute } from 'next';
-import { SITE_URL, LOCALES, WORLD_CUP_LEAGUE_ID, WORLD_CUP_SEASON } from '@/lib/site';
-import { getWorldCupFixtures } from '@/lib/api-football';
+import { SITE_URL, LOCALES } from '@/lib/site';
 
-// Revalidate the sitemap hourly — new fixtures/teams appear as the tournament
-// progresses. Crawlers re-fetch and discover fresh content URLs automatically.
 export const revalidate = 3600;
 
 function localized(path: string): MetadataRoute.Sitemap {
@@ -18,26 +15,7 @@ function localized(path: string): MetadataRoute.Sitemap {
   }));
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticPaths = ['', '/nosotros', '/world-cup', '/world-cup/bracket', '/stickers', '/privacy', '/terms'];
-  const entries: MetadataRoute.Sitemap = staticPaths.flatMap(localized);
-
-  // Dynamic: every World Cup match + every team derived from the schedule.
-  const fixtures = await getWorldCupFixtures(WORLD_CUP_LEAGUE_ID, WORLD_CUP_SEASON);
-
-  const matchEntries = fixtures.flatMap((f) =>
-    localized(`/match/${f.fixture.id}`).map((e) => ({
-      ...e,
-      lastModified: new Date(f.fixture.date),
-    })),
-  );
-
-  const teamIds = new Set<number>();
-  for (const f of fixtures) {
-    teamIds.add(f.teams.home.id);
-    teamIds.add(f.teams.away.id);
-  }
-  const teamEntries = [...teamIds].flatMap((id) => localized(`/team/${id}`));
-
-  return [...entries, ...matchEntries, ...teamEntries];
+export default function sitemap(): MetadataRoute.Sitemap {
+  const staticPaths = ['', '/features', '/nosotros', '/privacy', '/terms'];
+  return staticPaths.flatMap(localized);
 }

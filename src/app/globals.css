@@ -7,19 +7,29 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  /* Energetic direction: mint + gold accents on a near-black green base.
-     `gold`, `band` (alt section), `surface`/`surface-2` (card / chip) are new
-     semantic tokens with light+dark values so the revamped pages theme cleanly. */
+  /* Tokens ported 1:1 from the app's design system (fuchibol/constants/theme.ts,
+     darkColors/lightColors) so the web reads as the SAME product as the app —
+     see the app-alignment pass, sep-2026. `gold` here maps to the app's
+     `accentYellow` (the app has no literal "gold"; it's the closest real
+     secondary-accent token, not an invention). `band`/`surface`/`surface-2`
+     predate that pass (web-only "alt section / card" roles) and now point at
+     the app's bg/bgCard/bgCardAlt. */
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
   --color-band: var(--band);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  /* "En vivo" is its own semantic color in the app (red), separate from the
+     brand accent (green) — never reuse --primary for a live match badge. */
+  --color-live: var(--live);
+  --color-live-glow: var(--live-glow);
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
-  /* Bebas Neue — condensed poster display face for big all-caps headlines. */
-  --font-display: var(--font-bebas), "Bebas Neue", Impact, sans-serif;
+  /* The app's real display face is Futura Extra Bold — a licensed font file
+     bundled in the app, not available on the web. Jost (Google Fonts) is the
+     closest free geometric substitute. */
+  --font-display: var(--font-jost), "Jost", -apple-system, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -59,84 +69,92 @@
 }
 
 :root {
-  /* Light adaptation of the energetic direction (handoff specifies dark only). */
-  --background: #f2fbf5;
-  --foreground: #06170D;
-  --card: #ffffff;
-  --card-foreground: #06170D;
-  --popover: #ffffff;
-  --popover-foreground: #06170D;
-  --primary: #5CF29A;
-  --primary-foreground: #06170D;
-  --secondary: #e6fbef;
-  --secondary-foreground: #06170D;
-  --muted: #e6fbef;
-  --muted-foreground: #4a7a5a;
-  --accent: #5CF29A;
-  --accent-foreground: #06170D;
+  /* Light mode — app's lightColors (constants/theme.ts), green accent palette. */
+  --background: #ECECF2;
+  --foreground: #1A1A2E;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A2E;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A2E;
+  --primary: #00A040;
+  --primary-foreground: #070710;
+  --secondary: #F7F7FA;
+  --secondary-foreground: #1A1A2E;
+  --muted: #F7F7FA;
+  --muted-foreground: #5C5C7A;
+  --accent: #00A040;
+  --accent-foreground: #070710;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #c6efd6;
-  --input: #c6efd6;
-  --ring: #5CF29A;
-  --gold: #C8890B;
+  --border: #E2E2EA;
+  --input: rgba(0, 0, 0, 0.08);
+  --ring: #00A040;
+  --gold: #D4A800;
   --gold-foreground: #241a0c;
-  --band: #e9f7ee;
-  --surface: #ffffff;
-  --surface-2: #e6fbef;
-  --chart-1: #5CF29A;
-  --chart-2: #4edd7a;
+  --band: #F7F7FA;
+  --surface: #FFFFFF;
+  --surface-2: #F7F7FA;
+  --live: #E0304E;
+  --live-glow: rgba(224, 48, 78, 0.10);
+  --chart-1: #00A040;
+  --chart-2: #D4A800;
   --chart-3: #0d5e26;
-  --chart-4: #06170E;
+  --chart-4: #1A1A2E;
   --chart-5: #041008;
   --radius: 0.625rem;
-  --sidebar: #e6fbef;
-  --sidebar-foreground: #06170D;
-  --sidebar-primary: #5CF29A;
-  --sidebar-primary-foreground: #06170D;
-  --sidebar-accent: #c6efd6;
-  --sidebar-accent-foreground: #06170D;
-  --sidebar-border: #c6efd6;
-  --sidebar-ring: #5CF29A;
+  --sidebar: #F7F7FA;
+  --sidebar-foreground: #1A1A2E;
+  --sidebar-primary: #00A040;
+  --sidebar-primary-foreground: #070710;
+  --sidebar-accent: #E2E2EA;
+  --sidebar-accent-foreground: #1A1A2E;
+  --sidebar-border: #E2E2EA;
+  --sidebar-ring: #00A040;
 }
 
 .dark {
-  /* Energetic direction — exact handoff tokens. */
-  --background: #081712;
-  --foreground: #F4F7F5;
-  --card: #0F1D17;
-  --card-foreground: #F4F7F5;
-  --popover: #0F1D17;
-  --popover-foreground: #F4F7F5;
-  --primary: #5CF29A;
-  --primary-foreground: #06170D;
-  --secondary: #0F2A1C;
-  --secondary-foreground: #F4F7F5;
-  --muted: #0B1F16;
-  --muted-foreground: rgba(244, 247, 245, 0.6);
-  --accent: #5CF29A;
-  --accent-foreground: #06170D;
+  /* Dark mode — app's darkColors (constants/theme.ts). This IS the app's real
+     palette, not an approximation: bg/card/border/text/accent are the exact
+     hex the app ships. `accent` = green (DEFAULT_ACCENT_KEY), the default a
+     fresh app install shows — not the legacy pink baked into a few of the
+     app's own older style factories. See app-alignment pass, sep-2026. */
+  --background: #232628;
+  --foreground: #E8E8F0;
+  --card: #1C1C1C;
+  --card-foreground: #E8E8F0;
+  --popover: #1C1C1C;
+  --popover-foreground: #E8E8F0;
+  --primary: #00C853;
+  --primary-foreground: #070710;
+  --secondary: #202020;
+  --secondary-foreground: #E8E8F0;
+  --muted: #202020;
+  --muted-foreground: #8888AA;
+  --accent: #00C853;
+  --accent-foreground: #070710;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: rgba(255, 255, 255, 0.06);
+  --border: #2A2A2A;
   --input: rgba(255, 255, 255, 0.1);
-  --ring: #5CF29A;
-  --gold: #FFC145;
+  --ring: #00C853;
+  --gold: #FFD60A;
   --gold-foreground: #241a0c;
-  --band: #0B1F16;
-  --surface: #0F1D17;
-  --surface-2: #0F2A1C;
-  --chart-1: #5CF29A;
-  --chart-2: #FFC145;
+  --band: #202020;
+  --surface: #1C1C1C;
+  --surface-2: #202020;
+  --live: #FF3B5C;
+  --live-glow: rgba(255, 59, 92, 0.15);
+  --chart-1: #00C853;
+  --chart-2: #FFD60A;
   --chart-3: #4edd7a;
-  --chart-4: #0F2A1C;
+  --chart-4: #202020;
   --chart-5: #041008;
-  --sidebar: #0B1F16;
-  --sidebar-foreground: #F4F7F5;
-  --sidebar-primary: #5CF29A;
-  --sidebar-primary-foreground: #06170D;
-  --sidebar-accent: #0F2A1C;
-  --sidebar-accent-foreground: #F4F7F5;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #5CF29A;
+  --sidebar: #202020;
+  --sidebar-foreground: #E8E8F0;
+  --sidebar-primary: #00C853;
+  --sidebar-primary-foreground: #070710;
+  --sidebar-accent: #202020;
+  --sidebar-accent-foreground: #E8E8F0;
+  --sidebar-border: #2A2A2A;
+  --sidebar-ring: #00C853;
 }
 
 @layer base {

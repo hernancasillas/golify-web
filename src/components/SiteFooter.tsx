@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { INSTAGRAM_URL, TIKTOK_URL, type Locale } from '@/lib/site';
 
 // Shared footer for the public site. Presentational + locale-aware links, so it
-// works in both Server Components (world-cup pages) and the Client home page.
+// works in both Server Components (content pages) and the Client home page.
 export function SiteFooter({ locale }: { locale: Locale }) {
   const en = locale === 'en';
   return (
