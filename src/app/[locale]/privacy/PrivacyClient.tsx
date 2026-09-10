@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useI18n } from '@/components/I18nProvider';
+import { Reveal } from '@/components/Reveal';
 import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
 import { DisplayHeading } from '@/components/revamp/ui';
@@ -22,7 +23,7 @@ export default function PrivacyClient() {
         </DisplayHeading>
 
         {/* Privacy Policy */}
-        <section className="mt-12">
+        <Reveal as="section" className="mt-12">
           <DisplayHeading as="h2" className="text-2xl">
             {t('privacy.privacyPolicy.title')}
           </DisplayHeading>
@@ -118,10 +119,10 @@ export default function PrivacyClient() {
               </Link>
             </p>
           </div>
-        </section>
+        </Reveal>
 
         {/* Terms of Service */}
-        <section className="mt-12">
+        <Reveal as="section" className="mt-12">
           <DisplayHeading as="h2" className="text-2xl">
             {t('privacy.terms.title')}
           </DisplayHeading>
@@ -150,10 +151,10 @@ export default function PrivacyClient() {
             <h3 className="text-lg font-bold text-foreground">{t('privacy.terms.changes.title')}</h3>
             <p>{t('privacy.terms.changes.text')}</p>
           </div>
-        </section>
+        </Reveal>
 
         {/* Account Deletion */}
-        <section className="mt-12">
+        <Reveal as="section" className="mt-12">
           <DisplayHeading as="h2" className="text-2xl">
             {t('privacy.accountDeletion.title')}
           </DisplayHeading>
@@ -200,7 +201,7 @@ export default function PrivacyClient() {
               .
             </p>
           </div>
-        </section>
+        </Reveal>
       </main>
 
       <SiteFooter locale={locale as Locale} />

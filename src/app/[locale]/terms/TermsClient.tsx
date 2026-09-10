@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useI18n } from '@/components/I18nProvider';
+import { Reveal } from '@/components/Reveal';
 import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
 import { DisplayHeading } from '@/components/revamp/ui';
@@ -24,7 +25,7 @@ export default function TermsClient() {
           {t('privacy.terms.lastUpdated')}
         </p>
 
-        <div className="mt-6 space-y-4 leading-relaxed font-semibold text-muted-foreground">
+        <Reveal className="mt-6 space-y-4 leading-relaxed font-semibold text-muted-foreground">
           <p>{t('privacy.terms.intro')}</p>
 
           <h2 className="text-lg font-bold text-foreground">{t('privacy.terms.use.title')}</h2>
@@ -44,7 +45,7 @@ export default function TermsClient() {
 
           <h2 className="text-lg font-bold text-foreground">{t('privacy.terms.changes.title')}</h2>
           <p>{t('privacy.terms.changes.text')}</p>
-        </div>
+        </Reveal>
       </main>
 
       <SiteFooter locale={locale as Locale} />
