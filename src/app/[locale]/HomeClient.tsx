@@ -174,6 +174,7 @@ export default function HomeClient() {
           {TRACKED_LEAGUES.map((league) => (
             <LeagueChip
               key={league.name}
+              href={`/${locale}/league/${league.id}`}
               logo={`https://media.api-sports.io/football/leagues/${league.id}.png`}
             >
               {league.name}

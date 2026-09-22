@@ -19,6 +19,8 @@ export function SiteNav() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const label = {
+    today: en ? 'Today' : 'Hoy',
+    live: en ? 'Live' : 'En vivo',
     features: en ? 'Features' : 'Funciones',
     about: en ? 'About' : 'Nosotros',
     download: en ? 'Download app' : 'Descargar app',
@@ -43,6 +45,18 @@ export function SiteNav() {
 
         <div className="flex items-center gap-4 sm:gap-8">
           <div className="hidden items-center gap-7 text-sm font-bold md:flex">
+            <Link
+              href={`/${locale}/today`}
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {label.today}
+            </Link>
+            <Link
+              href={`/${locale}/live`}
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {label.live}
+            </Link>
             <Link
               href={`/${locale}/features`}
               className="text-muted-foreground transition-colors hover:text-foreground"
@@ -94,6 +108,20 @@ export function SiteNav() {
       {menuOpen ? (
         <div className="absolute inset-x-0 top-full z-20 border-t border-border bg-background px-5 py-5 shadow-[0_16px_40px_rgba(0,0,0,0.25)] sm:px-8 md:hidden">
           <div className="flex flex-col gap-4 text-base font-bold">
+            <Link
+              href={`/${locale}/today`}
+              onClick={() => setMenuOpen(false)}
+              className="text-foreground"
+            >
+              {label.today}
+            </Link>
+            <Link
+              href={`/${locale}/live`}
+              onClick={() => setMenuOpen(false)}
+              className="text-foreground"
+            >
+              {label.live}
+            </Link>
             <Link
               href={`/${locale}/features`}
               onClick={() => setMenuOpen(false)}

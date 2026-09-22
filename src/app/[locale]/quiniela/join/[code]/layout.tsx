@@ -7,6 +7,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { code } = await params
   return {
+    // Invite links are one-off and personal: nothing to index, but the link
+    // should still be crawlable enough to pass its share metadata.
+    robots: { index: false, follow: true },
     title: '¡Te invitaron a una Quiniela! | Golify',
     description: 'Alguien te invitó a competir en una quiniela de fútbol. Abre Golify y únete ahora.',
     openGraph: {

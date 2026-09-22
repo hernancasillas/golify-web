@@ -190,13 +190,20 @@ export function FeatureCard({
 
 export function LeagueChip({
   logo,
+  href,
   children,
 }: {
   logo?: string;
+  /** When set the chip becomes a link. The league chips on Home pass the
+   *  league page, which is what makes those pages reachable from the
+   *  highest-authority page on the site. */
+  href?: string;
   children: ReactNode;
 }) {
-  return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-surface-2 py-2 pr-5 pl-2 text-sm font-bold text-foreground">
+  const className =
+    'inline-flex items-center gap-2 rounded-full border border-primary/20 bg-surface-2 py-2 pr-5 pl-2 text-sm font-bold text-foreground';
+  const inner = (
+    <>
       {logo ? (
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white">
           <Image
@@ -209,8 +216,21 @@ export function LeagueChip({
         </span>
       ) : null}
       {children}
-    </span>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={`${className} transition-colors hover:border-primary/50 hover:bg-surface`}
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return <span className={className}>{inner}</span>;
 }
 
 // ─── Phone frame (device chrome for screenshots) ─────────────────────────────
