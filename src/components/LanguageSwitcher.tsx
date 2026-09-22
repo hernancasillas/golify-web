@@ -4,37 +4,38 @@ import { useI18n } from '@/components/I18nProvider';
 import { Button } from '@/components/ui/button';
 import { usePathname, useRouter } from 'next/navigation';
 
+const LOCALES = [
+  { code: 'es', label: 'ES' },
+  { code: 'pt', label: 'PT' },
+  { code: 'en', label: 'EN' },
+] as const;
+
 export default function LanguageSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
   const { locale } = useI18n();
 
   const switchLocale = (newLocale: string) => {
-    // Remove the current locale from the pathname and add the new one
+    // Swap the locale segment, keeping the rest of the path: a Brazilian
+    // reading the Brasileirão table stays on that table in Portuguese.
     const segments = pathname.split('/');
     segments[1] = newLocale;
-    const newPathname = segments.join('/');
-    router.push(newPathname);
+    router.push(segments.join('/'));
   };
 
   return (
     <div className="flex gap-2">
-      <Button
-        variant={locale === 'es' ? 'default' : 'outline'}
-        size="sm"
-        onClick={() => switchLocale('es')}
-        className="rounded-full"
-      >
-        ES
-      </Button>
-      <Button
-        variant={locale === 'en' ? 'default' : 'outline'}
-        size="sm"
-        onClick={() => switchLocale('en')}
-        className="rounded-full"
-      >
-        EN
-      </Button>
+      {LOCALES.map(({ code, label }) => (
+        <Button
+          key={code}
+          variant={locale === code ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => switchLocale(code)}
+          className="rounded-full"
+        >
+          {label}
+        </Button>
+      ))}
     </div>
   );
 }

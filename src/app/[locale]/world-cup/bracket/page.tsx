@@ -30,6 +30,7 @@ const STR = {
     title: 'Llaves del Mundial 2026',
     intro:
       'El cuadro completo de eliminación directa del Mundial 2026, desde los dieciseisavos hasta la final, con todos los resultados. Toca cualquier llave para ver el partido.',
+    metaTitle: 'Llaves del Mundial 2026 — resultados completos | Golify',
     championLabel: 'Campeón',
     beat: 'venció a',
     inFinal: 'en la final',
@@ -47,6 +48,7 @@ const STR = {
     title: 'World Cup 2026 bracket',
     intro:
       'The full 2026 World Cup knockout bracket, from the round of 32 to the final, with every result. Tap any tie to open the match.',
+    metaTitle: 'World Cup 2026 bracket — full results | Golify',
     championLabel: 'Champions',
     beat: 'beat',
     inFinal: 'in the final',
@@ -58,6 +60,24 @@ const STR = {
     openApp: 'Open in Golify',
     ios: 'Download for iOS',
     android: 'Download for Android',
+  },
+  pt: {
+    eyebrow: 'Copa 2026',
+    title: 'Chaves da Copa do Mundo 2026',
+    intro:
+      'O chaveamento completo do mata-mata da Copa de 2026, das oitavas de 32 até a final, com todos os resultados. Toque em qualquer confronto para ver o jogo.',
+    metaTitle: 'Chaves da Copa do Mundo 2026 — resultados completos | Golify',
+    championLabel: 'Campeã',
+    beat: 'venceu',
+    inFinal: 'na final',
+    hub: 'Tudo sobre a Copa 2026',
+    today: 'Jogos de hoje',
+    live: 'Placares ao vivo',
+    followInApp:
+      'O Golify acompanha futebol o ano todo: placar ao vivo, Retas, bolões e álbum de figurinhas.',
+    openApp: 'Abrir no Golify',
+    ios: 'Baixar para iOS',
+    android: 'Baixar para Android',
   },
 } as const;
 
@@ -72,9 +92,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const L = t(locale);
-  const title = `${L.title} — resultados completos | Golify`;
-  const titleEn = `${L.title} — full results | Golify`;
-  const name = locale === 'en' ? titleEn : title;
+  const name = L.metaTitle;
 
   return {
     title: name,

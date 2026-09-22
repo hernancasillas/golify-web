@@ -1,0 +1,256 @@
+{
+  "inApp": {
+    "title": "Abra no seu navegador",
+    "body": "Você está vendo o Golify dentro do navegador de outro app. Daqui a App Store quase nunca abre.",
+    "bodyNamed": "Você está vendo o Golify dentro do navegador do {app}. Daqui a App Store quase nunca abre.",
+    "stepMenuTop": "Toque nos ⋯ no canto superior direito",
+    "stepMenuBottom": "Toque nos ⋯ no canto inferior direito",
+    "stepOpen": "Escolha “Abrir no navegador”",
+    "copy": "Copiar link",
+    "copied": "Link copiado!",
+    "close": "Fechar",
+    "continueAnyway": "Continuar aqui",
+    "bannerText": "Você está no navegador de outro app: o download pode falhar.",
+    "bannerCta": "Como abrir →"
+  },
+  "hero": {
+    "title": "Golify",
+    "subtitle": "Placar ao vivo • Retas • Catálogo EA FC",
+    "description": "Acompanhe os jogos que você não perde, dispute palpites com os amigos e explore o catálogo completo do EA FC. Tudo em um só app.",
+    "downloadIOS": "Baixar para iOS",
+    "downloadAndroid": "Baixar para Android"
+  },
+  "features": {
+    "title": "Principais recursos",
+    "matchTracking": {
+      "title": "⚽ Jogos ao vivo",
+      "description": "Acompanhe os jogos ao vivo com notificações na hora de gols, cartões e mais."
+    },
+    "retas": {
+      "title": "🏆 Retas",
+      "description": "Monte torneios de palpites do seu jeito e dispute o ranking com os amigos."
+    },
+    "eaFcCatalog": {
+      "title": "🎮 Catálogo EA FC",
+      "description": "Explore estatísticas detalhadas de jogadores e times do catálogo do EA FC."
+    },
+    "notifications": {
+      "title": "🔔 Notificações",
+      "description": "Escolha os alertas dos seus times, ligas e jogadores favoritos."
+    }
+  },
+  "about": {
+    "title": "O que é o Golify?",
+    "p1": "O Golify é um app de futebol para iOS e Android, de download gratuito, feito para quem vive futebol na América Latina. Reúne em um só lugar o placar ao vivo, torneios de palpites com os amigos (as Retas), bolões, um álbum digital de figurinhas para colecionar e o catálogo de jogadores do EA FC.",
+    "p2": "Com o Golify você acompanha seus jogos com notificação na hora de gol, cartão e escalação; cria e disputa Retas e bolões privados com a sua turma; e consulta estatísticas detalhadas de times e jogadores. A cobertura inclui o Brasileirão, a Libertadores, a Sul-Americana, a Liga MX, o Campeonato Argentino, a Premier League, La Liga, a Serie A, a Champions e mais.",
+    "p3": "O Golify é gratuito para baixar. O app está disponível em espanhol e inglês; este site também em português. Alguns recursos premium exigem assinatura. Baixe na App Store ou no Google Play. O site oficial do Golify é golify.futbol."
+  },
+  "leagues": {
+    "title": "Ligas cobertas"
+  },
+  "cta": {
+    "title": "Pronto para começar?",
+    "description": "Baixe o Golify agora e leve o seu futebol para outro nível.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play"
+  },
+  "footer": {
+    "copyright": "© 2026 Golify. Todos os direitos reservados.",
+    "about": "Sobre nós"
+  },
+  "home": {
+    "badge": "⚽ Futebol ao vivo, o ano todo",
+    "heroPre": "Viva cada ",
+    "heroHighlight": "gol",
+    "heroPost": "como se estivesse lá",
+    "heroSub": "Placar ao vivo, Retas com os amigos e bolões das ligas que você acompanha. Tudo no Golify.",
+    "downloadIOS": "Baixar iOS",
+    "downloadAndroid": "Baixar Android",
+    "mockupGoal": "⚽ GOOOL 78'",
+    "mockupScore": "Brasil 2-1 Argentina",
+    "mockupReta": "🏆 Você está em 1º na sua Reta!",
+    "mockupRetaName": "Reta \"Os Parças\"",
+    "featuresTitle": "Todo o seu futebol em um só lugar",
+    "featuresSub": "Do apito inicial até a taça 🏆",
+    "leaguesTitle": "Cobrimos as ligas que você acompanha",
+    "live": {
+      "badge": "🔴 Ao vivo",
+      "title": "Jogos agora",
+      "subtitle": "Placar real, atualizado sozinho. Toque em um jogo para ver o detalhe.",
+      "emptyTitle": "Nenhum jogo ao vivo neste momento",
+      "emptyBody": "Volte mais tarde ou baixe o app para ver a tabela completa."
+    },
+    "finalCtaTitle": "Pronto para não perder nada?",
+    "finalCtaBody": "Não perca um minuto dos seus times.",
+    "featureItems": {
+      "liveScores": {
+        "title": "Placar ao vivo",
+        "description": "Gols, cartões, escalações e estatísticas na hora, de todas as ligas que você acompanha."
+      },
+      "retas": {
+        "title": "Retas",
+        "description": "Monte torneios de palpites com os amigos e mostre o seu lugar na tabela."
+      },
+      "quinielas": {
+        "title": "Bolões",
+        "description": "Dispute por rodada ou por jogo com a sua turma, sem complicação."
+      },
+      "eaFc": {
+        "title": "Catálogo EA FC",
+        "description": "Estatísticas completas de jogadores e times, direto do videogame."
+      },
+      "notifications": {
+        "title": "Notificações do seu jeito",
+        "description": "Escolha seus times e ligas favoritas e saiba antes de todo mundo."
+      }
+    }
+  },
+  "privacy": {
+    "title": "Jurídico e Privacidade",
+    "backToHome": "← Voltar ao início",
+    "privacyPolicy": {
+      "title": "Política de Privacidade",
+      "lastUpdated": "Última atualização: 13 de julho de 2026",
+      "intro": "O Golify respeita a sua privacidade. Esta política explica quais informações coletamos, como as usamos e quais são os seus direitos.",
+      "infoWeCollect": {
+        "title": "1. Informações que coletamos",
+        "accountData": "Dados de conta: e-mail, nome de usuário, foto de perfil.",
+        "usageData": "Dados de uso: jogos acompanhados, Retas em que você entrou, interações com o catálogo do EA FC.",
+        "deviceData": "Dados do dispositivo: tipo de dispositivo, versão do sistema, token de notificações push.",
+        "locationData": "Dados de localização: somente se você autorizar, usados nas Retas locais.",
+        "healthData": "Dados de saúde: somente se você autorizar, lidos do Apple HealthKit ou do Google Health Connect para o recurso de bem-estar Pulso. São processados exclusivamente no seu dispositivo — veja a seção Dados de Saúde abaixo."
+      },
+      "howWeUse": {
+        "title": "2. Como usamos as suas informações",
+        "provide": "Oferecer e melhorar os serviços do app.",
+        "notifications": "Enviar notificações de jogos e Retas.",
+        "personalize": "Personalizar conteúdo e recomendações.",
+        "security": "Garantir a segurança e prevenir fraudes."
+      },
+      "healthData": {
+        "title": "3. Dados de Saúde (Apple HealthKit e Google Health Connect)",
+        "intro": "O recurso Pulso do Golify é uma experiência opcional de saúde e bem-estar. Se — e somente se — você der permissão explícita, o Golify lê os seguintes dados do Apple HealthKit (iOS / Apple Watch) ou do Google Health Connect (Android):",
+        "heartRate": "Frequência cardíaca: amostras durante a janela de tempo de um jogo que você jogou ou assistiu, usadas para mostrar o seu esforço físico (pico, média, zonas de intensidade) ou a sua resposta de estresse como torcedor.",
+        "hrv": "Variabilidade da frequência cardíaca (VFC): a sua linha de base comparada à VFC no pico da frequência cardíaca, usada para quantificar a sua resposta de estresse durante um jogo.",
+        "restingHeartRate": "Frequência cardíaca de repouso: a sua linha de base pessoal, usada para normalizar as pontuações de esforço e de estresse, de modo que os resultados sejam personalizados e não BPM absolutos.",
+        "sleep": "Sono: a duração da noite seguinte a um jogo comparada à sua média de 7 noites, usada para mostrar uma análise de recuperação.",
+        "processing": "Como processamos: todos os dados de saúde são somente leitura e processados exclusivamente no seu dispositivo. Nunca são enviados aos nossos servidores nem a terceiros, nunca são armazenados fora do seu dispositivo, nunca são usados para publicidade ou marketing, e nunca são vendidos ou compartilhados. O Golify nunca escreve dados no HealthKit nem no Health Connect.",
+        "retention": "Retenção e exclusão: o Golify não retém dados de saúde. As amostras são lidas sob demanda apenas para calcular a análise que você pede e não são copiadas para nenhum banco de dados. Os resultados existem somente no seu dispositivo e são apagados ao desinstalar o app. Como nada sai do seu dispositivo, não há dados de saúde em servidores para excluir.",
+        "security": "Segurança: os dados de saúde nunca saem do seu dispositivo, o que elimina por completo o risco de transmissão e de vazamento em servidores. O processamento no dispositivo se apoia no sandboxing e na criptografia do sistema operacional (criptografia de dispositivo do iOS e do Android).",
+        "revoke": "O seu controle: o acesso à saúde é totalmente opcional — sem ele, o Pulso simplesmente não mostra análises. Você pode revogar o acesso quando quiser no app Saúde (iOS) ou nas configurações do Health Connect (Android), o que interrompe imediatamente qualquer leitura de dados de saúde."
+      },
+      "sharing": {
+        "title": "4. Compartilhamento das suas informações",
+        "text": "Não vendemos os seus dados pessoais. Só compartilhamos dados com fornecedores de confiança (por exemplo, hospedagem em nuvem e analytics) sob acordos estritos de confidencialidade, ou quando a lei exige."
+      },
+      "yourRights": {
+        "title": "5. Os seus direitos",
+        "text": "Você pode acessar, corrigir ou excluir os seus dados pessoais quando quiser pelas configurações do app ou entrando em contato conosco em"
+      },
+      "security": {
+        "title": "6. Segurança",
+        "text": "Usamos medidas padrão do setor para proteger os seus dados. Ainda assim, nenhum método de transmissão pela internet é 100% seguro."
+      },
+      "children": {
+        "title": "7. Privacidade de menores",
+        "text": "O Golify não é destinado a usuários com menos de 13 anos. Se você acredita que um menor nos forneceu dados pessoais, entre em contato imediatamente."
+      },
+      "thirdPartyServices": {
+        "title": "8. Serviços de terceiros — Radio Browser API",
+        "text": "O recurso de rádio do Golify usa o Radio Browser (api.radio-browser.info), um diretório público, gratuito e de código aberto mantido pela comunidade. O Radio Browser não exige autenticação nem cadastro; ele fornece apenas informação de descoberta: nome da emissora, país de origem e a URL pública do stream que cada emissora escolheu transmitir abertamente. O Golify não envia nenhum dado pessoal seu ao Radio Browser. O áudio toca direto dos servidores de cada emissora — o Golify não atua como intermediário nem armazena os streams. Emissoras que queiram restringir o acesso público podem fazê-lo na própria infraestrutura.",
+        "apiLink": "Documentação da API do Radio Browser",
+        "radioPolicyLink": "Política de Conteúdo e Remoção de Rádio"
+      }
+    },
+    "terms": {
+      "title": "Termos de Serviço",
+      "lastUpdated": "Última atualização: 26 de maio de 2026",
+      "intro": "Ao usar o Golify, você aceita estes termos. Se não concorda, por favor não use o app.",
+      "use": {
+        "title": "1. Uso do serviço",
+        "text": "O Golify oferece acompanhamento de jogos de futebol, organização de Retas e navegação pelo catálogo do EA FC. Você concorda em usar o serviço apenas para fins legais e de acordo com estes termos."
+      },
+      "accounts": {
+        "title": "2. Contas de usuário",
+        "text": "Você é responsável por manter as suas credenciais de conta em sigilo. Avise-nos imediatamente sobre qualquer uso não autorizado."
+      },
+      "content": {
+        "title": "3. Conteúdo",
+        "text": "Você continua sendo dono do conteúdo que publica. Ao publicar, você concede ao Golify uma licença para usar, exibir e distribuir esse conteúdo dentro do app. Não publique conteúdo ilegal, abusivo ou que viole direitos."
+      },
+      "termination": {
+        "title": "4. Encerramento",
+        "text": "Podemos suspender ou encerrar a sua conta por violações destes termos. Você também pode excluir a sua conta quando quiser (veja abaixo)."
+      },
+      "disclaimer": {
+        "title": "5. Isenção de responsabilidade",
+        "text": "O Golify é fornecido \"como está\", sem garantias de qualquer tipo. Não somos responsáveis por danos decorrentes do uso do app."
+      },
+      "changes": {
+        "title": "6. Alterações nos termos",
+        "text": "Podemos atualizar estes termos a qualquer momento. O uso continuado após as alterações constitui aceitação."
+      }
+    },
+    "accountDeletion": {
+      "title": "Exclusão de conta",
+      "intro": "Você tem o direito de excluir a sua conta e os dados pessoais associados a ela quando quiser.",
+      "howToDelete": {
+        "title": "Como excluir a sua conta",
+        "step1": "Abra o app Golify.",
+        "step2": "Vá em Perfil → Configurações → Conta.",
+        "step3": "Toque em Excluir conta e confirme.",
+        "alternative": "Você também pode pedir a exclusão enviando um e-mail para"
+      },
+      "whatGetsDeleted": {
+        "title": "O que é excluído",
+        "profile": "As informações do seu perfil (nome, e-mail, foto).",
+        "history": "O seu histórico de jogos acompanhados e de Retas.",
+        "catalog": "Os seus favoritos e interações do catálogo do EA FC.",
+        "push": "Tokens de notificações push e associações de dispositivo."
+      },
+      "retention": {
+        "title": "Retenção de dados",
+        "text": "Alguns dados podem ficar até 30 dias em backups criptografados antes da exclusão definitiva. Também podemos guardar o mínimo de informação exigido pela lei ou necessário para fins legítimos de negócio (por exemplo, prevenção de fraudes)."
+      },
+      "contact": "Para dúvidas sobre exclusão de conta ou tratamento de dados, entre em contato em"
+    },
+    "contactEmail": "contacto@golify.futbol",
+    "supportEmail": "contacto@golify.futbol",
+    "emailSubject": "Solicitação de exclusão de conta"
+  },
+  "radioPolicy": {
+    "title": "Política de Conteúdo e Remoção de Rádio",
+    "lastUpdated": "Última atualização: 13 de julho de 2026",
+    "intro": "Esta política cobre o recurso de Rádio dos apps móveis do Golify. O Golify permite ouvir transmissões de rádio pela internet disponíveis publicamente, que as próprias emissoras publicam de forma aberta. Respeitamos os direitos das emissoras e oferecemos um caminho de remoção rápido e sem burocracia.",
+    "architecture": {
+      "title": "1. Como funciona a reprodução",
+      "noRehost": "O Golify não hospeda, armazena, retransmite, transcodifica, faz cache nem grava áudio de terceiros.",
+      "directPlayback": "A reprodução é uma conexão direta do dispositivo de quem ouve com o servidor de streaming operado pela emissora (ou em nome dela).",
+      "publicUrls": "As URLs de stream são os endpoints públicos das próprias emissoras — os mesmos que elas publicam em seus sites e players oficiais.",
+      "attribution": "O app exibe a atribuição da emissora (nome, país e logo da própria emissora) durante a reprodução."
+    },
+    "catalog": {
+      "title": "2. Catálogo e descoberta",
+      "source": "Os metadados das emissoras vêm do Radio Browser (radio-browser.info), um diretório público, aberto e mantido pela comunidade. O catálogo padrão mostra emissoras de esporte e de notícias que publicam suas transmissões ao vivo de forma aberta e intencional ao público geral.",
+      "control": "As emissoras mantêm controle técnico total dos seus streams a todo momento (iniciar, parar, restringir por região, conteúdo). O Golify reflete o estado do stream ao vivo sem modificá-lo.",
+      "apiLink": "Documentação da API do Radio Browser"
+    },
+    "monetization": {
+      "title": "3. Sem monetização de streams de terceiros",
+      "text": "O recurso de rádio é gratuito para todos os usuários. Não está atrás de nenhuma assinatura, e não vendemos nem licenciamos acesso a nenhum stream de terceiros."
+    },
+    "takedown": {
+      "title": "4. Política de remoção",
+      "intro": "Qualquer emissora ou titular de direitos pode pedir a remoção de uma estação:",
+      "inApp": "Pelo controle “Reportar estação” dentro do app, disponível em cada linha de estação e no player, ou",
+      "email": "Escrevendo para",
+      "commitment": "Vamos remover a estação reportada do catálogo em até 48 horas após um pedido válido, sem exigir processo legal."
+    },
+    "contact": {
+      "title": "5. Contato",
+      "text": "Dúvidas sobre esta política:",
+      "seeAlso": "Veja também a nossa",
+      "privacyLink": "Política de Privacidade e Termos"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-const locales = ['en', 'es'] as const;
+const locales = ['en', 'es', 'pt'] as const;
 const defaultLocale = 'es';
 
 export default function proxy(request: NextRequest) {
@@ -28,6 +28,9 @@ export const config = {
   // Exclude metadata image routes (no file extension, so they'd otherwise be
   // locale-redirected into a 404) and API/static assets.
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|opengraph-image|twitter-image|icon|apple-icon|sitemap|robots|manifest|.*\\..*).*)',
+    // `go` is excluded on purpose: /go/<path> is the install funnel and it
+    // lives outside the locale tree. Locale-prefixing it sent every shared
+    // install link to /es/go/... , which is a 404.
+    '/((?!api|go|_next/static|_next/image|favicon.ico|opengraph-image|twitter-image|icon|apple-icon|sitemap|robots|manifest|.*\\..*).*)',
   ],
 };

@@ -1,7 +1,12 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL, LOCALES, DEFAULT_LOCALE } from '@/lib/site';
 import { TRACKED_LEAGUES, TRACKED_LEAGUE_IDS } from '@/lib/leagues';
-import { getFixturesByDate, getStandings, getLeagueInfo, currentSeason } from '@/lib/api-football';
+import {
+  getFixturesByDate,
+  getStandings,
+  getLeagueInfoCached,
+  currentSeason,
+} from '@/lib/api-football';
 
 export const revalidate = 3600;
 
@@ -68,7 +73,7 @@ async function fixtureEntries(): Promise<MetadataRoute.Sitemap> {
 async function teamEntries(): Promise<MetadataRoute.Sitemap> {
   const perLeague = await Promise.all(
     TEAM_PAGE_LEAGUES.map(async (id) => {
-      const info = await getLeagueInfo(id);
+      const info = await getLeagueInfoCached(id);
       const season = info ? currentSeason(info) : null;
       if (!season) return [];
       const groups = await getStandings(id, season);

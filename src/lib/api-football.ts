@@ -153,8 +153,21 @@ export async function getFixturesByDate(
     );
 }
 
+/** Cache-first, with one uncached retry when the answer comes back empty. Use
+ *  from request-time rendering, where a poisoned cache entry would otherwise
+ *  keep a league page broken. */
 export async function getLeagueInfo(id: number): Promise<LeagueInfo | null> {
   const rows = await apiGet<LeagueInfo>('/leagues', { id }, 86400, true);
+  return rows[0] ?? null;
+}
+
+/** Cache-only variant. The sitemap must stay statically generated: a
+ *  `no-store` fetch anywhere inside it would make the whole route dynamic and
+ *  re-query the API on every crawl. */
+export async function getLeagueInfoCached(
+  id: number,
+): Promise<LeagueInfo | null> {
+  const rows = await apiGet<LeagueInfo>('/leagues', { id }, 86400);
   return rows[0] ?? null;
 }
 

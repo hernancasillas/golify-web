@@ -10,6 +10,7 @@ import {
 } from '@/components/FixtureList';
 import { InstallCTA } from '@/components/InstallCTA';
 import { SiteNav } from '@/components/SiteNav';
+import { LocalTimeScript } from '@/components/LocalTime';
 import { SiteFooter } from '@/components/SiteFooter';
 import { DisplayHeading, Eyebrow } from '@/components/revamp/ui';
 import { SITE_URL, localeAlternates, ogImages, type Locale } from '@/lib/site';
@@ -63,6 +64,26 @@ const STR = {
     ios: 'Download for iOS',
     android: 'Download for Android',
     liveLink: 'Live scores',
+  },
+  pt: {
+    eyebrow: 'Hoje',
+    title: 'Jogos de hoje',
+    intro:
+      'Todos os jogos de hoje do Brasileirão, Libertadores, Sul-Americana, Campeonato Argentino, Liga MX, MLS, Champions e mais, com placar ao vivo e horário de início.',
+    liveNow: 'Ao vivo agora',
+    empty: 'Hoje não há jogos marcados nas ligas que acompanhamos.',
+    emptyCta: 'Ver os placares ao vivo',
+    live: 'AO VIVO',
+    finished: 'Encerrado',
+    tzNote:
+      'Horários no seu formato local; o dia é contado pelo horário do centro do México.',
+    leagueLink: 'Ver a liga',
+    followInApp:
+      'Receba alertas de gol, escalações e o minuto a minuto destes jogos no app Golify.',
+    openApp: 'Abrir no Golify',
+    ios: 'Baixar para iOS',
+    android: 'Baixar para Android',
+    liveLink: 'Placares ao vivo',
   },
 } as const;
 
@@ -134,6 +155,7 @@ export default async function TodayPage({
           }}
         />
       ) : null}
+      <LocalTimeScript locale={locale} />
       <SiteNav />
 
       <main className="mx-auto max-w-3xl px-5 pt-2 pb-16 sm:px-8">

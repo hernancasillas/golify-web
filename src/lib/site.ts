@@ -40,7 +40,10 @@ export function ogImages(url: string = DEFAULT_OG_IMAGE, alt: string = SITE_NAME
 export const SITE_TAGLINE_ES =
   'Golify — fútbol en vivo, retas, quinielas y álbum de stickers en México.';
 
-export const LOCALES = ['en', 'es'] as const;
+// Portuguese is here for Brazil: the largest football audience in the
+// region, and the one market that showed zero impressions while the site
+// only spoke Spanish and English.
+export const LOCALES = ['en', 'es', 'pt'] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = 'es';
 
@@ -92,6 +95,21 @@ export function worldCupEventNode(url: string) {
 export function installLink(path: string, src?: string): string {
   const qs = src ? `?src=${encodeURIComponent(src)}` : '';
   return `${SITE_URL}/go/${path}${qs}`;
+}
+
+/** Fills `{placeholders}` in a localized template and tidies the result, so a
+ *  missing value (a competition with no current season) leaves no double space
+ *  or dangling separator behind. */
+export function fill(
+  template: string,
+  values: Record<string, string>,
+): string {
+  return template
+    .replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([,|])/g, '$1')
+    .replace(/[—-]\s*\|/, '|')
+    .trim();
 }
 
 export function absoluteUrl(path: string): string {

@@ -62,6 +62,26 @@ const STR = {
     ios: 'Download for iOS',
     android: 'Download for Android',
   },
+  pt: {
+    eyebrow: 'Copa 2026',
+    title: 'Copa do Mundo 2026: resultados e chaves',
+    intro:
+      'Como terminou a Copa do Mundo de 2026 nos Estados Unidos, Canadá e México: o campeão, a final e todas as chaves do mata-mata, jogo por jogo.',
+    championLabel: 'Campeã',
+    beat: 'venceu',
+    inFinal: 'na final',
+    bracket: 'Ver o chaveamento completo',
+    today: 'Jogos de hoje',
+    live: 'Placares ao vivo',
+    nextUp: 'E agora',
+    nextBody:
+      'A Copa acabou, a temporada de clubes não. No Golify você acompanha o Brasileirão, a Libertadores, a Sul-Americana, o Campeonato Argentino, a Liga MX, a MLS e a Champions o ano todo.',
+    followInApp:
+      'Placar ao vivo, Retas com os amigos, bolões e álbum de figurinhas, em um só app.',
+    openApp: 'Abrir no Golify',
+    ios: 'Baixar para iOS',
+    android: 'Baixar para Android',
+  },
 } as const;
 
 function t(locale: string) {

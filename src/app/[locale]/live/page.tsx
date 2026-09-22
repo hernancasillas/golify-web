@@ -9,6 +9,7 @@ import {
 } from '@/components/FixtureList';
 import { InstallCTA } from '@/components/InstallCTA';
 import { SiteNav } from '@/components/SiteNav';
+import { LocalTimeScript } from '@/components/LocalTime';
 import { SiteFooter } from '@/components/SiteFooter';
 import { DisplayHeading, Eyebrow } from '@/components/revamp/ui';
 import { SITE_URL, localeAlternates, ogImages, type Locale } from '@/lib/site';
@@ -52,6 +53,23 @@ const STR = {
     android: 'Download for Android',
     todayLink: "Today's matches",
     leagueLink: 'View league',
+  },
+  pt: {
+    eyebrow: 'Ao vivo',
+    title: 'Placares de futebol ao vivo',
+    intro:
+      'Placar ao vivo do Brasileirão, Libertadores, Sul-Americana, Campeonato Argentino, Liga MX, MLS, Champions e das grandes ligas da Europa. Atualiza enquanto a bola rola.',
+    empty: 'Nenhum jogo em andamento agora nas ligas que acompanhamos.',
+    emptyCta: 'Ver os jogos de hoje',
+    live: 'AO VIVO',
+    finished: 'Encerrado',
+    followInApp:
+      'O app Golify te avisa em cada gol, com escalações e estatísticas ao vivo.',
+    openApp: 'Abrir no Golify',
+    ios: 'Baixar para iOS',
+    android: 'Baixar para Android',
+    todayLink: 'Jogos de hoje',
+    leagueLink: 'Ver a liga',
   },
 } as const;
 
@@ -106,6 +124,7 @@ export default async function LivePage({
           }}
         />
       ) : null}
+      <LocalTimeScript locale={locale} />
       <SiteNav />
 
       <main className="mx-auto max-w-3xl px-5 pt-2 pb-16 sm:px-8">

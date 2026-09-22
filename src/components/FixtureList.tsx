@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Fixture } from '@/lib/api-football';
+import { LocalTime } from '@/components/LocalTime';
 
 // Server-rendered fixture rows. Same visual language as LiveMatchesWidget, but
 // no client JS: these lists exist so Google and the answer engines can read
@@ -19,16 +20,6 @@ export function isFinished(f: Fixture): boolean {
 
 export function hasScore(f: Fixture): boolean {
   return f.goals.home != null && f.goals.away != null;
-}
-
-/** Kickoff in the locale's own format. Rendered on the server, so it is the
- *  venue-agnostic UTC instant formatted for the locale — the match page shows
- *  the full date, these lists only need the time. */
-function kickoffTime(f: Fixture, locale: string): string {
-  return new Date(f.fixture.date).toLocaleTimeString(locale, {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 }
 
 function statusChip(f: Fixture, locale: string, labels: FixtureLabels) {
@@ -52,7 +43,7 @@ function statusChip(f: Fixture, locale: string, labels: FixtureLabels) {
   }
   return (
     <span className="text-xs leading-tight font-extrabold tabular-nums text-muted-foreground">
-      {kickoffTime(f, locale)}
+      <LocalTime iso={f.fixture.date} locale={locale} style="time" />
     </span>
   );
 }

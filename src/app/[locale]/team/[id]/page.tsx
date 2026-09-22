@@ -6,9 +6,16 @@ import { getTeam, getTeamFixtures } from '@/lib/api-football';
 import { FixtureGrid } from '@/components/FixtureList';
 import { InstallCTA } from '@/components/InstallCTA';
 import { SiteNav } from '@/components/SiteNav';
+import { LocalTimeScript } from '@/components/LocalTime';
 import { SiteFooter } from '@/components/SiteFooter';
 import { DisplayHeading } from '@/components/revamp/ui';
-import { absoluteUrl, localeAlternates, ogImages, type Locale } from '@/lib/site';
+import {
+  absoluteUrl,
+  fill,
+  localeAlternates,
+  ogImages,
+  type Locale,
+} from '@/lib/site';
 
 // These were the 21 URLs Search Console flagged as "duplicate without
 // user-selected canonical": every /team/<id> rendered the same client-side
@@ -29,6 +36,9 @@ const STR = {
     live: 'EN VIVO',
     finished: 'Final',
     noFixtures: 'No hay partidos programados para este equipo por ahora.',
+    metaTitle: '{name} — próximos partidos, resultados y marcador en vivo | Golify',
+    metaDesc:
+      'Próximos partidos de {name} ({country}), últimos resultados y marcador en vivo. Sigue cada partido en la app Golify.',
     followInApp:
       'Sigue a este equipo en la app Golify: alertas de gol, alineaciones y estadísticas en vivo.',
     openApp: 'Abrir en Golify',
@@ -47,6 +57,9 @@ const STR = {
     live: 'LIVE',
     finished: 'Full time',
     noFixtures: 'No matches scheduled for this team right now.',
+    metaTitle: '{name} — fixtures, results and live scores | Golify',
+    metaDesc:
+      '{name} ({country}) next fixtures, latest results and live scores. Follow every match in the Golify app.',
     followInApp:
       'Follow this team in the Golify app: goal alerts, lineups and live stats.',
     openApp: 'Open in Golify',
@@ -54,6 +67,27 @@ const STR = {
     android: 'Download for Android',
     today: "Today's matches",
     liveScores: 'Live scores',
+  },
+  pt: {
+    upcoming: 'Próximos jogos',
+    recent: 'Últimos resultados',
+    founded: 'Fundado em',
+    stadium: 'Estádio',
+    country: 'País',
+    capacity: 'Capacidade',
+    live: 'AO VIVO',
+    finished: 'Encerrado',
+    noFixtures: 'Nenhum jogo marcado para este time no momento.',
+    metaTitle: '{name} — próximos jogos, resultados e placar ao vivo | Golify',
+    metaDesc:
+      'Próximos jogos do {name} ({country}), últimos resultados e placar ao vivo. Acompanhe cada jogo no app Golify.',
+    followInApp:
+      'Acompanhe este time no app Golify: alertas de gol, escalações e estatísticas ao vivo.',
+    openApp: 'Abrir no Golify',
+    ios: 'Baixar para iOS',
+    android: 'Baixar para Android',
+    today: 'Jogos de hoje',
+    liveScores: 'Placares ao vivo',
   },
 } as const;
 
@@ -70,15 +104,10 @@ export async function generateMetadata({
   const info = await getTeam(Number(id));
   if (!info) return { title: 'Golify' };
 
+  const L = t(locale);
   const name = info.team.name;
-  const title =
-    locale === 'en'
-      ? `${name} — fixtures, results and live scores | Golify`
-      : `${name} — próximos partidos, resultados y marcador en vivo | Golify`;
-  const desc =
-    locale === 'en'
-      ? `${name} (${info.team.country}) next fixtures, latest results and live scores. Follow every match in the Golify app.`
-      : `Próximos partidos de ${name} (${info.team.country}), últimos resultados y marcador en vivo. Sigue cada partido en la app Golify.`;
+  const title = fill(L.metaTitle, { name });
+  const desc = fill(L.metaDesc, { name, country: info.team.country });
   const path = `/${locale}/team/${id}`;
 
   return {
@@ -137,6 +166,7 @@ export default async function TeamPage({ params }: { params: Promise<Params> }) 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <LocalTimeScript locale={locale} />
       <SiteNav />
 
       <main className="mx-auto max-w-3xl px-5 pt-2 pb-16 sm:px-8">
