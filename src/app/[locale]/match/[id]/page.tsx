@@ -9,10 +9,10 @@ import { DisplayHeading } from '@/components/revamp/ui';
 import {
   SITE_NAME,
   IOS_APP_ID,
-  LOCALES,
   WORLD_CUP_LEAGUE_ID,
   worldCupEventNode,
   absoluteUrl,
+  localeAlternates,
   type Locale,
 } from '@/lib/site';
 
@@ -106,12 +106,7 @@ export async function generateMetadata({
   return {
     title: name,
     description: desc,
-    alternates: {
-      canonical: absoluteUrl(path),
-      languages: Object.fromEntries(
-        LOCALES.map((l) => [l, absoluteUrl(`/${l}/match/${id}`)]),
-      ),
-    },
+    alternates: localeAlternates(locale as Locale, `/match/${id}`),
     openGraph: {
       title: name,
       description: desc,

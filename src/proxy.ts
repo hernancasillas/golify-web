@@ -15,8 +15,12 @@ export default function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // 308, not the default 307: the locale prefix is where the content lives
+  // permanently, and a permanent redirect is what consolidates link equity on
+  // the canonical URL instead of leaving Google guessing every crawl.
   return NextResponse.redirect(
-    new URL(`/${defaultLocale}${pathname === '/' ? '' : pathname}`, request.url)
+    new URL(`/${defaultLocale}${pathname === '/' ? '' : pathname}`, request.url),
+    308
   );
 }
 

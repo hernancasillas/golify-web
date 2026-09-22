@@ -1,12 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useI18n } from '@/components/I18nProvider';
 import { OpeningScreen } from '@/components/OpeningScreen';
 
 export default function WorldCupPage() {
-  const { t } = useI18n();
-
   useEffect(() => {
     // Deeplink correcto sin /app/
     const deeplink = 'golify://world-cup';
