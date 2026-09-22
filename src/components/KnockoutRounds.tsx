@@ -15,19 +15,37 @@ export const KNOCKOUT_ROUNDS = [
   'Final',
 ] as const;
 
-export const ROUND_LABELS: Record<string, { es: string; en: string }> = {
-  'Round of 32': { es: 'Dieciseisavos de final', en: 'Round of 32' },
-  'Round of 16': { es: 'Octavos de final', en: 'Round of 16' },
-  'Quarter-finals': { es: 'Cuartos de final', en: 'Quarter-finals' },
-  'Semi-finals': { es: 'Semifinales', en: 'Semi-finals' },
-  '3rd Place Final': { es: 'Tercer lugar', en: 'Third place' },
-  Final: { es: 'Final', en: 'Final' },
+type RoundLabel = { es: string; en: string; pt: string };
+
+export const ROUND_LABELS: Record<string, RoundLabel> = {
+  'Round of 32': {
+    es: 'Dieciseisavos de final',
+    en: 'Round of 32',
+    pt: 'Fase de 32',
+  },
+  'Round of 16': {
+    es: 'Octavos de final',
+    en: 'Round of 16',
+    pt: 'Oitavas de final',
+  },
+  'Quarter-finals': {
+    es: 'Cuartos de final',
+    en: 'Quarter-finals',
+    pt: 'Quartas de final',
+  },
+  'Semi-finals': { es: 'Semifinales', en: 'Semi-finals', pt: 'Semifinais' },
+  '3rd Place Final': {
+    es: 'Tercer lugar',
+    en: 'Third place',
+    pt: 'Disputa do 3º lugar',
+  },
+  Final: { es: 'Final', en: 'Final', pt: 'Final' },
 };
 
 export function roundLabel(round: string, locale: string): string {
   const entry = ROUND_LABELS[round];
   if (!entry) return round;
-  return locale === 'en' ? entry.en : entry.es;
+  return entry[locale as keyof RoundLabel] ?? entry.es;
 }
 
 function winnerSide(f: Fixture): 'home' | 'away' | null {
@@ -39,14 +57,17 @@ function winnerSide(f: Fixture): 'home' | 'away' | null {
 function TieRow({ f, locale }: { f: Fixture; locale: string }) {
   const winner = winnerSide(f);
   const played = f.goals.home != null && f.goals.away != null;
-  const extra = ['AET', 'PEN'].includes(f.fixture.status.short)
-    ? f.fixture.status.short === 'PEN'
-      ? locale === 'en'
-        ? 'on penalties'
-        : 'en penales'
-      : locale === 'en'
-        ? 'after extra time'
-        : 'tras la prórroga'
+  const EXTRA: Record<string, Record<string, string>> = {
+    PEN: { es: 'en penales', en: 'on penalties', pt: 'nos pênaltis' },
+    AET: {
+      es: 'tras la prórroga',
+      en: 'after extra time',
+      pt: 'após a prorrogação',
+    },
+  };
+  const extraByStatus = EXTRA[f.fixture.status.short];
+  const extra = extraByStatus
+    ? (extraByStatus[locale] ?? extraByStatus.es)
     : null;
 
   return (

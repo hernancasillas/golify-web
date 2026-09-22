@@ -13,9 +13,16 @@ import { TRACKED_LEAGUE_IDS, leagueLabel } from '@/lib/leagues';
 import { FixtureGrid } from '@/components/FixtureList';
 import { InstallCTA } from '@/components/InstallCTA';
 import { SiteNav } from '@/components/SiteNav';
+import { LocalTimeScript } from '@/components/LocalTime';
 import { SiteFooter } from '@/components/SiteFooter';
 import { DisplayHeading } from '@/components/revamp/ui';
-import { absoluteUrl, localeAlternates, ogImages, type Locale } from '@/lib/site';
+import {
+  absoluteUrl,
+  fill,
+  localeAlternates,
+  ogImages,
+  type Locale,
+} from '@/lib/site';
 
 // Was a client-side deeplink funnel: every league rendered the same splash
 // screen, which is exactly why Search Console filed these under "duplicate
@@ -42,6 +49,9 @@ const STR = {
     points: 'PTS',
     season: 'Temporada',
     noStandings: 'Esta competición todavía no publica tabla de posiciones.',
+    metaTitle: '{name} — tabla, calendario y resultados {season} | Golify',
+    metaDesc:
+      'Tabla de posiciones de {name} ({country}), próximos partidos y últimos resultados, actualizados en vivo. Sigue cada partido en la app Golify.',
     live: 'EN VIVO',
     finished: 'Final',
     followInApp:
@@ -65,6 +75,9 @@ const STR = {
     points: 'PTS',
     season: 'Season',
     noStandings: 'This competition does not publish a table yet.',
+    metaTitle: '{name} — table, fixtures and results {season} | Golify',
+    metaDesc:
+      '{name} ({country}) standings, upcoming fixtures and latest results, updated live. Follow every match in the Golify app.',
     live: 'LIVE',
     finished: 'Full time',
     followInApp:
@@ -74,6 +87,32 @@ const STR = {
     android: 'Download for Android',
     today: "Today's matches",
     liveScores: 'Live scores',
+  },
+  pt: {
+    standings: 'Tabela de classificação',
+    upcoming: 'Próximos jogos',
+    recent: 'Últimos resultados',
+    team: 'Time',
+    played: 'J',
+    won: 'V',
+    drawn: 'E',
+    lost: 'D',
+    goalDiff: 'SG',
+    points: 'PTS',
+    season: 'Temporada',
+    noStandings: 'Esta competição ainda não publica tabela de classificação.',
+    metaTitle: '{name} — tabela, jogos e resultados {season} | Golify',
+    metaDesc:
+      'Tabela de classificação do {name} ({country}), próximos jogos e últimos resultados, atualizados ao vivo. Acompanhe cada jogo no app Golify.',
+    live: 'AO VIVO',
+    finished: 'Encerrado',
+    followInApp:
+      'Acompanhe esta competição no app Golify: placar ao vivo, alertas de gol e a tabela sempre atualizada.',
+    openApp: 'Abrir no Golify',
+    ios: 'Baixar para iOS',
+    android: 'Baixar para Android',
+    today: 'Jogos de hoje',
+    liveScores: 'Placares ao vivo',
   },
 } as const;
 
@@ -90,16 +129,14 @@ export async function generateMetadata({
   const info = await getLeagueInfo(Number(id));
   if (!info) return { title: 'Golify' };
 
+  const L = t(locale);
   const name = leagueLabel(info.league.id) ?? info.league.name;
   const season = currentSeason(info);
-  const title =
-    locale === 'en'
-      ? `${name} — table, fixtures and results${season ? ` ${season}` : ''} | Golify`
-      : `${name} — tabla, calendario y resultados${season ? ` ${season}` : ''} | Golify`;
-  const desc =
-    locale === 'en'
-      ? `${name} (${info.country.name}) standings, upcoming fixtures and latest results, updated live. Follow every match in the Golify app.`
-      : `Tabla de posiciones de ${name} (${info.country.name}), próximos partidos y últimos resultados, actualizados en vivo. Sigue cada partido en la app Golify.`;
+  const title = fill(L.metaTitle, {
+    name,
+    season: season ? String(season) : '',
+  });
+  const desc = fill(L.metaDesc, { name, country: info.country.name });
   const path = `/${locale}/league/${id}`;
 
   return {
@@ -240,6 +277,7 @@ export default async function LeaguePage({ params }: { params: Promise<Params> }
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <LocalTimeScript locale={locale} />
       <SiteNav />
 
       <main className="mx-auto max-w-3xl px-5 pt-2 pb-16 sm:px-8">

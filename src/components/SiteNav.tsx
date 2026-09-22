@@ -14,18 +14,37 @@ import { SmartDownload } from '@/components/SmartDownload';
 export function SiteNav() {
   const pathname = usePathname();
   const seg = pathname.split('/');
-  const locale = seg[1] === 'en' ? 'en' : 'es';
-  const en = locale === 'en';
-  const [menuOpen, setMenuOpen] = useState(false);
+  const locale = seg[1] === 'en' || seg[1] === 'pt' ? seg[1] : 'es';
 
-  const label = {
-    today: en ? 'Today' : 'Hoy',
-    live: en ? 'Live' : 'En vivo',
-    features: en ? 'Features' : 'Funciones',
-    about: en ? 'About' : 'Nosotros',
-    download: en ? 'Download app' : 'Descargar app',
-    menu: en ? 'Menu' : 'Menú',
-  };
+  const LABELS = {
+    es: {
+      today: 'Hoy',
+      live: 'En vivo',
+      features: 'Funciones',
+      about: 'Nosotros',
+      download: 'Descargar app',
+      menu: 'Menú',
+    },
+    en: {
+      today: 'Today',
+      live: 'Live',
+      features: 'Features',
+      about: 'About',
+      download: 'Download app',
+      menu: 'Menu',
+    },
+    pt: {
+      today: 'Hoje',
+      live: 'Ao vivo',
+      features: 'Recursos',
+      about: 'Sobre nós',
+      download: 'Baixar app',
+      menu: 'Menu',
+    },
+  } as const;
+
+  const label = LABELS[locale as keyof typeof LABELS];
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header className="relative w-full">
