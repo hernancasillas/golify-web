@@ -1,3 +1,4 @@
+import { idFromSlug } from '@/lib/slug';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -23,7 +24,7 @@ import {
 // fixtures, last results, canonical, hreflang and a SportsTeam entity.
 export const revalidate = 300;
 
-type Params = { locale: string; id: string };
+type Params = { locale: string; slug: string };
 
 const STR = {
   es: {
@@ -100,7 +101,8 @@ export async function generateMetadata({
 }: {
   params: Promise<Params>;
 }): Promise<Metadata> {
-  const { locale, id } = await params;
+  const { locale, slug } = await params;
+  const id = String(idFromSlug(slug) ?? slug);
   const info = await getTeam(Number(id));
   if (!info) return { title: 'Golify' };
 
@@ -127,7 +129,8 @@ export async function generateMetadata({
 }
 
 export default async function TeamPage({ params }: { params: Promise<Params> }) {
-  const { locale, id } = await params;
+  const { locale, slug } = await params;
+  const id = String(idFromSlug(slug) ?? slug);
   const teamId = Number(id);
   if (!Number.isFinite(teamId)) notFound();
 

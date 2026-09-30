@@ -6,7 +6,7 @@ import { OpeningScreen } from '@/components/OpeningScreen';
 
 export default function PlayerPage() {
   const params = useParams();
-  const id = params.id as string;
+  const id = String(params.slug);
 
   useEffect(() => {
     const deeplink = `golify://player/${id}`;

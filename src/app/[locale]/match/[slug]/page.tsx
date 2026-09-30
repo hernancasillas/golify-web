@@ -1,3 +1,4 @@
+import { idFromSlug } from '@/lib/slug';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -22,7 +23,7 @@ import {
 // Google AND AI answer-engines can index/cite it, with an install CTA below.
 export const revalidate = 30;
 
-type Params = { locale: string; id: string };
+type Params = { locale: string; slug: string };
 
 // ---- tiny i18n (page-local; chrome only, facts come from data) ----
 const STR = {
@@ -199,7 +200,8 @@ export async function generateMetadata({
 }: {
   params: Promise<Params>;
 }): Promise<Metadata> {
-  const { locale, id } = await params;
+  const { locale, slug } = await params;
+  const id = String(idFromSlug(slug) ?? slug);
   const f = await getFixtureById(Number(id));
   if (!f) return { title: SITE_NAME };
 
@@ -245,7 +247,8 @@ export default async function MatchPage({
 }: {
   params: Promise<Params>;
 }) {
-  const { locale, id } = await params;
+  const { locale, slug } = await params;
+  const id = String(idFromSlug(slug) ?? slug);
   const f = await getFixtureById(Number(id));
   if (!f) notFound();
 

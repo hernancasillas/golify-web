@@ -1,27 +1,25 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { resolvePath } from '@/lib/routing';
 
-const locales = ['en', 'es', 'pt'] as const;
-const defaultLocale = 'es';
-
+// Localized URL scheme (see src/lib/routes.ts for the table and
+// src/lib/routing.ts for the rules). Canonical public paths are rewritten to
+// their internal route folder; every other spelling gets one permanent
+// redirect to the canonical URL.
 export default function proxy(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
+  const res = resolvePath(request.nextUrl.pathname);
 
-  const hasLocale = locales.some(
-    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)
-  );
+  if (res.action === 'next') return NextResponse.next();
 
-  if (hasLocale) {
-    return NextResponse.next();
-  }
+  const url = request.nextUrl.clone();
+  url.pathname = res.path;
 
-  // 308, not the default 307: the locale prefix is where the content lives
-  // permanently, and a permanent redirect is what consolidates link equity on
-  // the canonical URL instead of leaving Google guessing every crawl.
-  return NextResponse.redirect(
-    new URL(`/${defaultLocale}${pathname === '/' ? '' : pathname}`, request.url),
-    308
-  );
+  // 308, not 307: the canonical URL is where the content lives permanently,
+  // and a permanent redirect is what consolidates link equity on it. Search
+  // engines treat 308 exactly like 301.
+  return res.action === 'rewrite'
+    ? NextResponse.rewrite(url)
+    : NextResponse.redirect(url, 308);
 }
 
 export const config = {
@@ -30,7 +28,8 @@ export const config = {
   matcher: [
     // `go` is excluded on purpose: /go/<path> is the install funnel and it
     // lives outside the locale tree. Locale-prefixing it sent every shared
-    // install link to /es/go/... , which is a 404.
-    '/((?!api|go|_next/static|_next/image|favicon.ico|opengraph-image|twitter-image|icon|apple-icon|sitemap|robots|manifest|.*\\..*).*)',
+    // install link to /es/go/... , which is a 404. `sitemap` also covers the
+    // /sitemaps/… children and /sitemap-index.xml.
+    '/((?!api|go|files|_next/static|_next/image|favicon.ico|opengraph-image|twitter-image|icon|apple-icon|sitemap|robots|manifest|\\.well-known|.*\\..*).*)',
   ],
 };

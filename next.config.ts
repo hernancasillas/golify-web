@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // PDF generation for the printable downloads runs in route handlers; the
+  // renderer ships its own font/layout engines and must not be bundled.
+  serverExternalPackages: ["@react-pdf/renderer"],
   images: {
     // API-Football CDN — league and team logos.
     remotePatterns: [
@@ -30,23 +33,17 @@ const nextConfig: NextConfig = {
       ],
       "/es/world-cup": ["/mundial-2026", "/es/mundial-2026", "/es/mundial"],
       "/en/world-cup": ["/world-cup-2026", "/en/world-cup-2026"],
-      // The two evergreen boards. "partidos de hoy" and "resultados en vivo"
-      // are typed straight into the address bar often enough to be worth
-      // catching.
-      "/es/today": [
-        "/partidos-de-hoy",
-        "/es/partidos-de-hoy",
-        "/es/hoy",
-        "/hoy",
-      ],
+      // The two evergreen boards. Their canonical URLs are localized now
+      // (/es/partidos-de-hoy, /es/en-vivo — see src/lib/routes.ts); these
+      // catch the other spellings people type. A destination here must be the
+      // FINAL canonical URL: these run before the proxy, so pointing one at a
+      // path the proxy redirects again would be a chain (or a loop).
+      "/es/partidos-de-hoy": ["/es/hoy", "/hoy"],
       "/en/today": ["/todays-matches", "/en/todays-matches", "/en/hoy"],
-      "/es/live": [
-        "/resultados-en-vivo",
-        "/es/resultados-en-vivo",
-        "/es/en-vivo",
-        "/en-vivo",
-      ],
+      "/pt/jogos-de-hoje": ["/pt/hoje", "/pt/jogos-hoje"],
+      "/es/en-vivo": ["/resultados-en-vivo", "/es/resultados-en-vivo"],
       "/en/live": ["/live-scores", "/en/live-scores", "/en/en-vivo"],
+      "/pt/ao-vivo": ["/pt/placar-ao-vivo", "/pt/resultados-ao-vivo"],
     };
 
     return Object.entries(aliases).flatMap(([destination, sources]) =>
@@ -55,6 +52,12 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        // Printable downloads (PDF, CSV, XLSX, ICS) must not compete in search
+        // with the HTML page that hosts them — the page is what ranks.
+        source: "/files/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      },
       {
         source: "/.well-known/apple-app-site-association",
         headers: [

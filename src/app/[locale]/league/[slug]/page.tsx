@@ -1,3 +1,4 @@
+import { idFromSlug } from '@/lib/slug';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -33,7 +34,7 @@ import {
 // burst past the API's per-minute limit and baked 404s into the cache.
 export const revalidate = 300;
 
-type Params = { locale: string; id: string };
+type Params = { locale: string; slug: string };
 
 const STR = {
   es: {
@@ -125,7 +126,8 @@ export async function generateMetadata({
 }: {
   params: Promise<Params>;
 }): Promise<Metadata> {
-  const { locale, id } = await params;
+  const { locale, slug } = await params;
+  const id = String(idFromSlug(slug) ?? slug);
   const info = await getLeagueInfo(Number(id));
   if (!info) return { title: 'Golify' };
 
@@ -232,7 +234,8 @@ function StandingsTable({
 }
 
 export default async function LeaguePage({ params }: { params: Promise<Params> }) {
-  const { locale, id } = await params;
+  const { locale, slug } = await params;
+  const id = String(idFromSlug(slug) ?? slug);
   const leagueId = Number(id);
   if (!Number.isFinite(leagueId)) notFound();
 

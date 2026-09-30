@@ -104,11 +104,15 @@ export function fill(
   template: string,
   values: Record<string, string>,
 ): string {
+  // The old version also stripped the space before "|", which is what printed
+  // "…resultados 2026| Golify" in every league and team title.
   return template
     .replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? '')
     .replace(/\s+/g, ' ')
-    .replace(/\s+([,|])/g, '$1')
-    .replace(/[—-]\s*\|/, '|')
+    .replace(/\s+,/g, ',')
+    .replace(/\s*[—-]\s*\|/g, ' |')
+    .replace(/\(\s*\)/g, '')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
