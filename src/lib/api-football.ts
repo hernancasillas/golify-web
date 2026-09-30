@@ -115,6 +115,16 @@ async function request<T>(
   });
 }
 
+/** Generic cached GET for endpoints this module has no named fetcher for.
+ *  Same caching, retry, concurrency cap and `strict` semantics. */
+export async function apiFootballGet<T>(
+  endpoint: string,
+  params: Record<string, string | number> = {},
+  opts: GetOptions = {},
+): Promise<T[]> {
+  return apiGet<T>(endpoint, params, opts);
+}
+
 async function apiGet<T>(
   endpoint: string,
   params: Record<string, string | number> = {},
