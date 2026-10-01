@@ -1,9 +1,10 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/site';
+import { ROUTE_LOCALES, sectionPath } from '@/lib/routes';
 
 // Explicitly allow general crawlers AND the AI/answer-engine crawlers.
 // Goal: let ChatGPT, Perplexity, Claude, Gemini, etc. read our content pages
-// so they can cite Golify when users ask World Cup questions.
+// so they can cite Golify when users ask football questions.
 export default function robots(): MetadataRoute.Robots {
   const aiBots = [
     'GPTBot', // OpenAI training
@@ -23,15 +24,18 @@ export default function robots(): MetadataRoute.Robots {
     'meta-externalagent', // Meta AI
   ];
 
-  // `/go/` is the redirect/install funnel — no content, keep it out of the index.
-  const disallow = ['/go/'];
+  // `/go/` is the redirect/install funnel and `/api/` is JSON — no content.
+  // Search result pages are infinite, thin and noindex: keep crawl budget off
+  // them (/es/buscar, /pt/buscar, /en/search).
+  const disallow = ['/go/', '/api/', ...ROUTE_LOCALES.map((l) => sectionPath('search', l))];
 
   return {
     rules: [
       { userAgent: '*', allow: '/', disallow },
       ...aiBots.map((ua) => ({ userAgent: ua, allow: '/', disallow })),
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    // The index lists every child; the news sitemap is separate (Google News).
+    sitemap: [`${SITE_URL}/sitemap.xml`, `${SITE_URL}/news-sitemap.xml`],
     host: SITE_URL,
   };
 }
