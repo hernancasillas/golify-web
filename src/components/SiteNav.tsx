@@ -52,21 +52,21 @@ export function SiteNav() {
 
   return (
     <header className="relative w-full">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-6 sm:px-8">
-        <Link href={homePath(l)} className="flex items-center gap-3">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-5 sm:gap-4 sm:px-8 sm:py-6">
+        <Link href={homePath(l)} className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Image
             src="/icon.svg"
             alt="Golify"
             width={40}
             height={40}
-            className="rounded-xl"
+            className="h-8 w-8 rounded-xl sm:h-10 sm:w-10"
           />
-          <span className="font-display font-bold text-2xl tracking-wide text-foreground">
+          <span className="font-display text-xl font-bold tracking-wide text-foreground sm:text-2xl">
             GOLIFY
           </span>
         </Link>
 
-        <div className="flex items-center gap-4 sm:gap-8">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-8">
           <div className="hidden items-center gap-5 text-sm font-bold lg:flex">
             {links.map((x) => (
               <Link
@@ -81,7 +81,7 @@ export function SiteNav() {
           </div>
           {searchForm('hidden w-44 xl:w-56 md:block')}
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher />
             <ThemeToggle />
           </div>
