@@ -68,6 +68,12 @@ const ALL: Competition[] = [
   C({ id: 61, slug: 'ligue-1', name: 'Ligue 1', code: 'L1', market: 'europa', countries: [], kind: 'league', format: 'cross', tier: 'core' }),
   C({ id: 94, slug: 'primeira-liga', name: 'Primeira Liga', code: 'POR', market: 'europa', countries: [], kind: 'league', format: 'cross', tier: 'core' }),
   C({ id: 307, slug: 'saudi-pro-league', name: 'Saudi Pro League', code: 'SPL', market: 'mundo', countries: [], kind: 'league', format: 'cross', tier: 'core' }),
+  // Same set as the app's Home (fuchibol/constants/leagues.ts): national
+  // teams' international windows and UEFA's other club competitions.
+  C({ id: 5, slug: 'nations-league', name: 'UEFA Nations League', names: { es: 'Liga de Naciones UEFA', pt: 'Liga das Nações UEFA' }, code: 'UNL', market: 'europa', countries: ['es'], kind: 'cup', format: 'cross', tier: 'core' }),
+  C({ id: 10, slug: 'amistosos-internacionales', name: 'Amistosos internacionales', names: { pt: 'Amistosos internacionais', en: 'International friendlies' }, code: 'AMI', market: 'mundo', countries: ['mx', 'co', 'ar', 'cl', 'pe', 'ec', 'us', 'es', 'br'], kind: 'cup', format: 'single', tier: 'core' }),
+  C({ id: 3, slug: 'europa-league', name: 'Europa League', names: { en: 'UEFA Europa League' }, code: 'UEL', market: 'europa', countries: [], kind: 'cup', format: 'cross', tier: 'core' }),
+  C({ id: 531, slug: 'supercopa-uefa', name: 'Supercopa de Europa', names: { pt: 'Supercopa da UEFA', en: 'UEFA Super Cup' }, code: 'USC', market: 'europa', countries: [], kind: 'cup', format: 'single', tier: 'core' }),
 
   // ---- Expansion (plan A5) — off until the data licence is confirmed ----
   C({ id: 263, slug: 'liga-expansion-mx', name: 'Liga de Expansión MX', code: 'LEX', market: 'mx', countries: ['mx'], kind: 'league', format: 'split', clausuraOffset: 1, tier: 'expansion' }),
@@ -84,7 +90,6 @@ const ALL: Competition[] = [
   C({ id: 34, slug: 'eliminatorias-conmebol', name: 'Eliminatorias CONMEBOL', names: { pt: 'Eliminatórias CONMEBOL', en: 'CONMEBOL World Cup Qualifiers' }, code: 'ELI', market: 'sudamerica', countries: ['ar', 'br', 'co', 'cl', 'ec', 'pe'], kind: 'cup', format: 'single', roundWord: { es: 'Fecha' }, tier: 'expansion' }),
   C({ id: 40, slug: 'championship', name: 'Championship', code: 'EFL', market: 'europa', countries: [], kind: 'league', format: 'cross', tier: 'expansion' }),
   C({ id: 88, slug: 'eredivisie', name: 'Eredivisie', code: 'ERE', market: 'europa', countries: [], kind: 'league', format: 'cross', tier: 'expansion' }),
-  C({ id: 3, slug: 'europa-league', name: 'Europa League', names: { en: 'UEFA Europa League' }, code: 'UEL', market: 'europa', countries: [], kind: 'cup', format: 'cross', tier: 'expansion' }),
   C({ id: 848, slug: 'conference-league', name: 'Conference League', names: { en: 'UEFA Conference League' }, code: 'UECL', market: 'europa', countries: [], kind: 'cup', format: 'cross', tier: 'expansion' }),
 ];
 

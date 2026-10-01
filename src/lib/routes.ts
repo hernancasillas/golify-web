@@ -134,6 +134,10 @@ export const COMPETITION_SLUGS: Record<string, number> = {
   'ligue-1': 61,
   'primeira-liga': 94,
   'saudi-pro-league': 307,
+  // National teams + UEFA extras the app's Home already shows.
+  'nations-league': 5,
+  'amistosos-internacionales': 10,
+  'supercopa-uefa': 531,
   // Expansion (plan A5) — reachable only when the registry enables them.
   'liga-expansion-mx': 263,
   'liga-mx-femenil': 673,
