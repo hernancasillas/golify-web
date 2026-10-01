@@ -1,233 +1,282 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { getFixturesByDate } from '@/lib/api-football';
-import { TRACKED_LEAGUE_IDS } from '@/lib/leagues';
-import {
-  FixtureGrid,
-  fixtureListJsonLd,
-  groupByLeague,
-  isLive,
-} from '@/components/FixtureList';
-import { InstallCTA } from '@/components/InstallCTA';
+import { competitionById, competitionName } from '@/lib/competitions';
+import { getPickSplit } from '@/lib/community';
+import { homePath, sectionPath, HUB_COUNTRIES, ROUTE_LOCALES, type HubCountry, type RouteLocale } from '@/lib/routes';
+import { pageMetadata } from '@/lib/seo';
+import { isoDateIn } from '@/lib/timezones';
 import { SiteNav } from '@/components/SiteNav';
-import { LocalTimeScript } from '@/components/LocalTime';
 import { SiteFooter } from '@/components/SiteFooter';
-import { DisplayHeading, Eyebrow } from '@/components/revamp/ui';
-import { SITE_URL, localeAlternates, ogImages, type Locale } from '@/lib/site';
+import { LocalTimeScript } from '@/components/LocalTime';
+import { JsonLd } from '@/components/JsonLd';
+import { Breadcrumbs } from '@/components/blocks/Breadcrumbs';
+import { FaqSection } from '@/components/blocks/FaqSection';
+import { DisplayHeading } from '@/components/revamp/ui';
+import { Board, type TimeMode } from '@/components/hubs/Board';
+import { AppPromo, CountryLinks, DayTabs, FeaturedMatch, matchesItemList, pickFeatured } from '@/components/hubs/blocks';
+import { COUNTRY_CLOCK, countryName } from '@/components/hubs/countries';
+import { HubSuggest } from '@/components/hubs/HubSuggest';
+import { competitionsSentence, dayFacts, kickoffText, listJoin, matchName, plural, topCompetitions } from '@/components/hubs/copy';
+import {
+  addDays,
+  competitionOrder,
+  countPhases,
+  dayLabel,
+  groupByCompetition,
+  LOCALE_ZONE,
+  strictAtRuntime,
+} from '@/components/hubs/data';
 
-// The recurring-demand page: "partidos de hoy" / "today's football matches" is
-// searched every single day, unlike a tournament page that dies with the
-// tournament. Server-rendered so the scores are in the HTML, revalidated every
-// five minutes so a crawl never lands on a stale board.
-export const revalidate = 300;
-
-// The board is built around one calendar day. Mexico City is our largest
-// market, so that timezone decides which day "today" is; the copy says so and
-// every kickoff renders in the visitor's locale format.
-const BOARD_TIMEZONE = 'America/Mexico_City';
+// The recurring-demand page: "partidos de hoy" is searched every single day,
+// unlike a tournament page that dies with the tournament.
+//
+// The HTML is one cached copy for every visitor, so it cannot be cut to the
+// visitor's zone on the server. Instead (plan A1.4): kickoffs are converted
+// to the visitor's own clock in the browser (LocalTime), the browser's zone
+// suggests the matching country hub, and the country chips are the "change
+// zone" option — each hub prints its kickoffs server-side in that country's
+// clock. The calendar day itself is the language's main market (Mexico City
+// for es, Brasília for pt, US Eastern for en), stated on the page and shared
+// with the date archive the day tabs link to.
+export const revalidate = 120;
 
 const STR = {
   es: {
+    home: 'Inicio',
     eyebrow: 'Hoy',
-    title: 'Partidos de hoy',
-    intro:
-      'Todos los partidos de hoy de Liga MX, Brasileirão, Liga Argentina, Libertadores, MLS, Champions y más, con marcador en vivo y horario de inicio.',
-    liveNow: 'En vivo ahora',
-    empty: 'Hoy no hay partidos programados en las ligas que seguimos.',
-    emptyCta: 'Mira los resultados en vivo',
-    live: 'EN VIVO',
-    finished: 'Final',
-    tzNote: `Horarios en tu zona; el día se cuenta con el horario del centro de México.`,
-    leagueLink: 'Ver la liga',
-    followInApp:
-      'Recibe alertas de gol, alineaciones y el minuto a minuto de estos partidos en la app Golify.',
-    openApp: 'Abrir en Golify',
-    ios: 'Descargar para iOS',
-    android: 'Descargar para Android',
+    h1: 'Partidos de hoy',
+    title: 'Partidos de hoy: horarios y resultados en vivo',
+    desc: '{n} hoy: {comps}. Horarios en tu zona, marcador en vivo y resultados, con calendario por país.',
+    descEmpty: 'Los partidos de hoy de Liga MX, Brasileirão, Libertadores, Champions y más, con horarios en tu zona y marcador en vivo.',
+    intro: 'Hoy hay {n} de {k}.',
+    introLive: ' {n} en juego ahora mismo.',
+    introSpan: ' Los horarios van de las {first} a las {last} ({clock}).',
+    introOne: ' Se juega a las {first} ({clock}).',
+    introEmpty: 'Hoy no hay partidos de las competiciones que seguimos. Revisa los próximos días en el calendario.',
+    tzNote: 'Los horarios de la lista se muestran en la hora de tu dispositivo. El día se cuenta en {clock}.',
+    pickCountry: 'Elige tu país para ver los horarios en su hora',
+    suggest: 'Ver los horarios en {clock}',
+    match: ['partido', 'partidos'],
+    comp: ['competición', 'competiciones'],
+    empty: 'Hoy no hay partidos programados en las competiciones que cubrimos.',
     liveLink: 'Resultados en vivo',
-  },
-  en: {
-    eyebrow: 'Today',
-    title: "Today's football matches",
-    intro:
-      "Every match being played today across Liga MX, Brasileirão, Liga Argentina, Copa Libertadores, MLS, the Champions League and more — with live scores and kickoff times.",
-    liveNow: 'Live now',
-    empty: 'No matches scheduled today in the leagues we track.',
-    emptyCta: 'See live scores',
-    live: 'LIVE',
-    finished: 'Full time',
-    tzNote: 'Kickoffs in your own locale; the day is counted in Mexico City time.',
-    leagueLink: 'View league',
-    followInApp:
-      'Get goal alerts, lineups and minute-by-minute updates for these matches in the Golify app.',
-    openApp: 'Open in Golify',
-    ios: 'Download for iOS',
-    android: 'Download for Android',
-    liveLink: 'Live scores',
+    faqTitle: 'Preguntas frecuentes',
+    faqWhat: '¿Qué partidos hay hoy?',
+    faqWhatA: 'Hoy, {date}, hay {n}: {comps}.',
+    faqWhatNone: 'Hoy, {date}, no hay partidos de las competiciones que cubrimos. El calendario por fecha muestra los próximos días.',
+    faqFirst: '¿A qué hora es el primer partido de hoy?',
+    faqFirstA: 'El primero es {match} ({comp}), a las {time} ({clock}).',
+    faqTz: '¿En qué hora aparecen los horarios?',
+    faqTzA: 'En la lista, en la hora de tu dispositivo. El día se cuenta en {clock}. Cada país tiene su página con los horarios fijos en su hora: {countries}.',
   },
   pt: {
+    home: 'Início',
     eyebrow: 'Hoje',
-    title: 'Jogos de hoje',
-    intro:
-      'Todos os jogos de hoje do Brasileirão, Libertadores, Sul-Americana, Campeonato Argentino, Liga MX, MLS, Champions e mais, com placar ao vivo e horário de início.',
-    liveNow: 'Ao vivo agora',
-    empty: 'Hoje não há jogos marcados nas ligas que acompanhamos.',
-    emptyCta: 'Ver os placares ao vivo',
-    live: 'AO VIVO',
-    finished: 'Encerrado',
-    tzNote:
-      'Horários no seu formato local; o dia é contado pelo horário do centro do México.',
-    leagueLink: 'Ver a liga',
-    followInApp:
-      'Receba alertas de gol, escalações e o minuto a minuto destes jogos no app Golify.',
-    openApp: 'Abrir no Golify',
-    ios: 'Baixar para iOS',
-    android: 'Baixar para Android',
+    h1: 'Jogos de hoje',
+    title: 'Jogos de hoje: horários e resultados ao vivo',
+    desc: '{n} hoje: {comps}. Horários no seu fuso, placar ao vivo e resultados, com calendário por país.',
+    descEmpty: 'Os jogos de hoje do Brasileirão, Libertadores, Sul-Americana, Champions e mais, com horários no seu fuso e placar ao vivo.',
+    intro: 'Hoje tem {n} de {k}.',
+    introLive: ' {n} rolando agora.',
+    introSpan: ' Os horários vão das {first} às {last} ({clock}).',
+    introOne: ' Começa às {first} ({clock}).',
+    introEmpty: 'Hoje não há jogos das competições que acompanhamos. Confira os próximos dias no calendário.',
+    tzNote: 'Os horários da lista aparecem no fuso do seu aparelho. O dia é contado pelo {clock}.',
+    pickCountry: 'Escolha o seu país para ver os horários no fuso dele',
+    suggest: 'Ver os horários no {clock}',
+    match: ['jogo', 'jogos'],
+    comp: ['competição', 'competições'],
+    empty: 'Hoje não há jogos marcados nas competições que cobrimos.',
     liveLink: 'Placares ao vivo',
+    faqTitle: 'Perguntas frequentes',
+    faqWhat: 'Quais jogos tem hoje?',
+    faqWhatA: 'Hoje, {date}, tem {n}: {comps}.',
+    faqWhatNone: 'Hoje, {date}, não há jogos das competições que cobrimos. O calendário por data mostra os próximos dias.',
+    faqFirst: 'Que horas é o primeiro jogo de hoje?',
+    faqFirstA: 'O primeiro é {match} ({comp}), às {time} ({clock}).',
+    faqTz: 'Em que fuso aparecem os horários?',
+    faqTzA: 'Na lista, no fuso do seu aparelho. O dia é contado pelo {clock}. Cada país tem a sua página com os horários fixos no fuso local: {countries}.',
+  },
+  en: {
+    home: 'Home',
+    eyebrow: 'Today',
+    h1: "Today's football matches",
+    title: "Today's football matches: times and live scores",
+    desc: '{n} today: {comps}. Kickoffs in your time zone, live scores and results, with a board per country.',
+    descEmpty: "Today's matches from Liga MX, MLS, Brasileirão, the Champions League and more, with kickoffs in your time zone and live scores.",
+    intro: 'There are {n} from {k} today.',
+    introLive: ' {n} being played right now.',
+    introSpan: ' Kickoffs run from {first} to {last} ({clock}).',
+    introOne: ' Kickoff at {first} ({clock}).',
+    introEmpty: 'There are no matches today in the competitions we follow. Check the coming days in the calendar.',
+    tzNote: "Kickoffs in the list are shown in your device's time zone. The day is counted in {clock}.",
+    pickCountry: 'Pick your country to see kickoffs in its local time',
+    suggest: 'See kickoffs in {clock}',
+    match: ['match', 'matches'],
+    comp: ['competition', 'competitions'],
+    empty: 'No matches scheduled today in the competitions we cover.',
+    liveLink: 'Live scores',
+    faqTitle: 'Frequently asked questions',
+    faqWhat: 'Which matches are on today?',
+    faqWhatA: 'Today, {date}, there are {n}: {comps}.',
+    faqWhatNone: 'Today, {date}, there are no matches in the competitions we cover. The date calendar shows the coming days.',
+    faqFirst: "What time is today's first match?",
+    faqFirstA: 'The first is {match} ({comp}), at {time} ({clock}).',
+    faqTz: 'Which time zone are the kickoffs in?',
+    faqTzA: "In the list, your device's time zone. The day is counted in {clock}. Each country has its own page with kickoffs fixed in local time: {countries}.",
   },
 } as const;
 
-function t(locale: string) {
-  return STR[locale as keyof typeof STR] ?? STR.es;
+function fill(s: string, vars: Record<string, string | number>): string {
+  return s.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''));
 }
 
-function boardDate(): string {
-  // en-CA formats as YYYY-MM-DD, which is what the API expects.
-  return new Date().toLocaleDateString('en-CA', { timeZone: BOARD_TIMEZONE });
+function resolveLocale(v: string): RouteLocale {
+  if (!(ROUTE_LOCALES as readonly string[]).includes(v)) notFound();
+  return v as RouteLocale;
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-  const { locale } = await params;
-  const L = t(locale);
-  const pretty = new Date(`${boardDate()}T12:00:00Z`).toLocaleDateString(locale, {
-    day: 'numeric',
-    month: 'long',
+async function load(locale: RouteLocale) {
+  const { zone } = LOCALE_ZONE[locale];
+  const today = isoDateIn(new Date(), zone);
+  const fixtures = await getFixturesByDate(today, competitionOrder(), zone, { strict: strictAtRuntime() });
+  return { zone, today, fixtures, groups: groupByCompetition(fixtures) };
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const locale = resolveLocale((await params).locale);
+  const L = STR[locale];
+  const { groups } = await load(locale);
+  const facts = dayFacts(groups, locale);
+  return pageMetadata({
+    locale,
+    path: (l) => sectionPath('today', l),
+    title: L.title,
+    description: facts.total
+      ? fill(L.desc, {
+          n: plural(facts.total, L.match[0], L.match[1]),
+          comps: topCompetitions(facts.competitions.map(([n]) => n), locale),
+        })
+      : L.descEmpty,
   });
-  const title = `${L.title} — ${pretty} | Golify`;
+}
 
-  return {
-    title,
-    description: L.intro,
-    alternates: localeAlternates(locale as Locale, '/today'),
-    openGraph: {
-      title,
-      description: L.intro,
-      url: `${SITE_URL}/${locale}/today`,
-      siteName: 'Golify',
-      type: 'website',
-      images: ogImages(),
-    },
-    twitter: { card: 'summary_large_image', title, description: L.intro },
+export default async function TodayPage({ params }: { params: Promise<{ locale: string }> }) {
+  const locale = resolveLocale((await params).locale);
+  const L = STR[locale];
+  const { zone, today, fixtures, groups } = await load(locale);
+  const clock = LOCALE_ZONE[locale].label[locale];
+  const zones = [{ zone }];
+  const time: TimeMode = { kind: 'local' };
+  const facts = dayFacts(groups, locale);
+  const pagePath = sectionPath('today', locale);
+  const longDate = dayLabel(today, locale, 'long');
+  const featured = pickFeatured(fixtures, []);
+  const split = featured ? await getPickSplit(featured.fixture.id) : null;
+  const ko = (iso: string) => kickoffText(iso, zones, locale);
+  const comp = (id: number) => {
+    const c = competitionById(id);
+    return c ? competitionName(c, locale) : '';
   };
-}
 
-export default async function TodayPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  const L = t(locale);
-  const date = boardDate();
-  const fixtures = await getFixturesByDate(date, TRACKED_LEAGUE_IDS);
+  let intro: string;
+  if (facts.total === 0) {
+    intro = L.introEmpty;
+  } else {
+    intro = fill(L.intro, {
+      n: plural(facts.total, L.match[0], L.match[1]),
+      k: plural(facts.competitions.length, L.comp[0], L.comp[1]),
+    });
+    if (facts.live > 0) intro += fill(L.introLive, { n: plural(facts.live, L.match[0], L.match[1]) });
+    if (facts.first && facts.last) {
+      intro += fill(L.introSpan, { first: ko(facts.first.fixture.date), last: ko(facts.last.fixture.date), clock });
+    } else if (facts.first) {
+      intro += fill(L.introOne, { first: ko(facts.first.fixture.date), clock });
+    }
+  }
 
-  const liveFixtures = fixtures.filter(isLive);
-  const groups = groupByLeague(fixtures);
-  const prettyDate = new Date(`${date}T12:00:00Z`).toLocaleDateString(locale, {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  });
+  const countries = listJoin(HUB_COUNTRIES.map((cc) => countryName(cc, locale)), locale);
+  const faq: [string, string][] = [
+    [
+      L.faqWhat,
+      facts.total
+        ? fill(L.faqWhatA, {
+            date: longDate,
+            n: plural(facts.total, L.match[0], L.match[1]),
+            comps: competitionsSentence(facts, locale),
+          })
+        : fill(L.faqWhatNone, { date: longDate }),
+    ],
+  ];
+  if (facts.first) {
+    faq.push([
+      L.faqFirst,
+      fill(L.faqFirstA, {
+        match: matchName(facts.first, locale),
+        comp: comp(facts.first.league.id),
+        time: ko(facts.first.fixture.date),
+        clock,
+      }),
+    ]);
+  }
+  faq.push([L.faqTz, fill(L.faqTzA, { clock, countries })]);
+
+  const suggestLabels = Object.fromEntries(
+    HUB_COUNTRIES.map((cc) => [cc, fill(L.suggest, { clock: COUNTRY_CLOCK[cc][locale] })]),
+  ) as Record<HubCountry, string>;
+  const tabs = [-1, 0, 1, 2, 3, 4, 5].map((n) => addDays(today, n));
+  const crumbs = [{ name: L.home, path: homePath(locale) }, { name: L.h1 }];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {fixtures.length > 0 ? (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(
-              fixtureListJsonLd(fixtures, SITE_URL, locale, `${L.title} — ${prettyDate}`),
-            ),
-          }}
-        />
-      ) : null}
+      <JsonLd data={matchesItemList(fixtures, locale, `${L.h1} · ${longDate}`, pagePath)} />
       <LocalTimeScript locale={locale} />
       <SiteNav />
 
-      <main className="mx-auto max-w-3xl px-5 pt-2 pb-16 sm:px-8">
-        <Eyebrow tone="mint">{L.eyebrow}</Eyebrow>
-        <DisplayHeading as="h1" className="mt-4 text-3xl sm:text-4xl">
-          {L.title}
-        </DisplayHeading>
-        <p className="mt-2 text-sm font-bold text-muted-foreground capitalize">{prettyDate}</p>
-        <p className="mt-4 leading-relaxed font-semibold text-muted-foreground">{L.intro}</p>
+      <main className="mx-auto max-w-6xl px-4 pt-2 pb-16 sm:px-8">
+        <Breadcrumbs crumbs={crumbs} currentPath={pagePath} />
 
-        {liveFixtures.length > 0 ? (
-          <section className="mt-10">
-            <h2 className="mb-4 font-display text-xl font-bold tracking-wide uppercase">
-              {L.liveNow}
-            </h2>
-            <FixtureGrid fixtures={liveFixtures} locale={locale} labels={L} />
-          </section>
-        ) : null}
+        <header className="mt-5">
+          <p className="text-xs font-extrabold tracking-wider text-primary uppercase">{longDate}</p>
+          <DisplayHeading as="h1" className="mt-2 text-3xl sm:text-5xl">
+            {L.h1}
+          </DisplayHeading>
+          <p className="mt-3 max-w-3xl leading-relaxed font-semibold text-muted-foreground">{intro}</p>
+          <HubSuggest locale={locale} labels={suggestLabels} />
+          <CountryLinks locale={locale} title={L.pickCountry} className="mt-6" />
+          <DayTabs locale={locale} dates={tabs} current={today} today={today} todayHref={pagePath} />
+        </header>
 
-        {groups.length === 0 ? (
-          <div className="mt-10 rounded-2xl border border-border bg-surface p-8 text-center">
-            <p className="font-bold">{L.empty}</p>
-            <Link
-              href={`/${locale}/live`}
-              className="mt-2 inline-block text-sm font-bold text-primary underline"
-            >
-              {L.emptyCta}
-            </Link>
-          </div>
-        ) : (
-          groups.map(({ league, fixtures: rows }) => (
-            <section key={league.id} className="mt-10">
-              <div className="mb-4 flex items-baseline justify-between gap-3">
-                <h2 className="font-display text-xl font-bold tracking-wide uppercase">
-                  {league.name}
-                </h2>
-                <Link
-                  href={`/${locale}/league/${league.id}`}
-                  className="shrink-0 text-xs font-bold text-primary underline"
-                >
-                  {L.leagueLink}
-                </Link>
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8">
+          <div className="min-w-0">
+            {groups.length === 0 ? (
+              <div className="mt-6 rounded-2xl border border-border bg-surface p-8 text-center">
+                <p className="font-bold">{L.empty}</p>
               </div>
-              <FixtureGrid
-                fixtures={rows}
-                locale={locale}
-                labels={L}
-                showLeague={false}
-              />
-            </section>
-          ))
-        )}
+            ) : (
+              <Board groups={groups} locale={locale} time={time} adPrefix="today" indexable counts={countPhases(fixtures)} />
+            )}
 
-        <p className="mt-8 text-xs font-semibold text-muted-foreground">{L.tzNote}</p>
+            <p className="mt-6 text-xs font-semibold text-muted-foreground">{fill(L.tzNote, { clock })}</p>
+            <p className="mt-4">
+              <Link href={sectionPath('live', locale)} className="text-sm font-extrabold text-primary hover:underline">
+                {L.liveLink} ›
+              </Link>
+            </p>
 
-        <p className="mt-9 leading-relaxed font-semibold text-muted-foreground">
-          {L.followInApp}
-        </p>
+            <FaqSection title={L.faqTitle} entries={faq} pagePath={pagePath} />
+          </div>
 
-        <InstallCTA
-          deeplink="golify://"
-          labels={{ open: L.openApp, ios: L.ios, android: L.android }}
-        />
-
-        <p className="mt-8">
-          <Link href={`/${locale}/live`} className="text-sm font-bold text-primary underline">
-            {L.liveLink}
-          </Link>
-        </p>
+          <aside className="mt-10 space-y-6 lg:mt-5">
+            {featured ? <FeaturedMatch f={featured} locale={locale} time={time} split={split} /> : null}
+            <AppPromo locale={locale} />
+          </aside>
+        </div>
       </main>
 
-      <SiteFooter locale={locale as Locale} />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

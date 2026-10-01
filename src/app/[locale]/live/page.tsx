@@ -1,185 +1,147 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getLiveFixtures } from '@/lib/api-football';
-import { TRACKED_LEAGUE_IDS } from '@/lib/leagues';
-import {
-  FixtureGrid,
-  fixtureListJsonLd,
-  groupByLeague,
-} from '@/components/FixtureList';
-import { InstallCTA } from '@/components/InstallCTA';
+import { notFound } from 'next/navigation';
+import { homePath, sectionPath, ROUTE_LOCALES, type RouteLocale } from '@/lib/routes';
+import { pageMetadata } from '@/lib/seo';
 import { SiteNav } from '@/components/SiteNav';
-import { LocalTimeScript } from '@/components/LocalTime';
 import { SiteFooter } from '@/components/SiteFooter';
+import { LocalTimeScript } from '@/components/LocalTime';
+import { JsonLd } from '@/components/JsonLd';
+import { Breadcrumbs } from '@/components/blocks/Breadcrumbs';
 import { DisplayHeading, Eyebrow } from '@/components/revamp/ui';
-import { SITE_URL, localeAlternates, ogImages, type Locale } from '@/lib/site';
+import { Board } from '@/components/hubs/Board';
+import { AppPromo, CountryLinks, matchesItemList } from '@/components/hubs/blocks';
+import { competitionsSentence, dayFacts, plural } from '@/components/hubs/copy';
+import { competitionOrder, groupByCompetition, liveFixtures, strictAtRuntime } from '@/components/hubs/data';
 
 // "Resultados en vivo" is the other query typed every day. Fifteen-second
 // revalidation keeps the served HTML close to the real score without hammering
-// the shared API quota — the underlying fetch is deduped across requests.
+// the shared API quota: the single `live=all` call is shared with every other
+// caller through the fetch cache. Strict at runtime, so an API failure keeps
+// the last good board instead of announcing "nothing live".
 export const revalidate = 15;
 
 const STR = {
   es: {
+    home: 'Inicio',
     eyebrow: 'En vivo',
-    title: 'Resultados de fútbol en vivo',
-    intro:
-      'Marcadores en vivo de Liga MX, Brasileirão, Liga Argentina, Libertadores, Sudamericana, MLS, Champions y las grandes ligas de Europa. Se actualiza mientras se juega.',
-    empty: 'Ahora mismo no hay partidos en juego en las ligas que seguimos.',
+    h1: 'Resultados de fútbol en vivo',
+    title: 'Resultados de fútbol en vivo: marcadores al minuto',
+    desc: 'Marcadores en vivo de Liga MX, Brasileirão, Liga Profesional, Libertadores, MLS, Champions y las grandes ligas de Europa. Se actualiza mientras se juega.',
+    intro: 'Ahora mismo se juegan {n}: {comps}.',
+    empty: 'Ahora mismo no hay partidos en juego en las competiciones que seguimos.',
     emptyCta: 'Ver los partidos de hoy',
-    live: 'EN VIVO',
-    finished: 'Final',
-    followInApp:
-      'La app Golify te avisa de cada gol, con alineaciones y estadísticas en vivo.',
-    openApp: 'Abrir en Golify',
-    ios: 'Descargar para iOS',
-    android: 'Descargar para Android',
+    note: 'Esta página se actualiza cada 15 segundos: recárgala para ver el último marcador. Golify no transmite partidos.',
     todayLink: 'Partidos de hoy',
-    leagueLink: 'Ver la liga',
-  },
-  en: {
-    eyebrow: 'Live',
-    title: 'Live football scores',
-    intro:
-      'Live scores from Liga MX, Brasileirão, Liga Argentina, Copa Libertadores, Copa Sudamericana, MLS, the Champions League and the big European leagues. Updated while the matches are played.',
-    empty: 'No matches are being played right now in the leagues we track.',
-    emptyCta: "See today's matches",
-    live: 'LIVE',
-    finished: 'Full time',
-    followInApp:
-      'The Golify app pings you on every goal, with live lineups and stats.',
-    openApp: 'Open in Golify',
-    ios: 'Download for iOS',
-    android: 'Download for Android',
-    todayLink: "Today's matches",
-    leagueLink: 'View league',
+    countries: 'Partidos de hoy por país',
+    match: ['partido', 'partidos'],
   },
   pt: {
+    home: 'Início',
     eyebrow: 'Ao vivo',
-    title: 'Placares de futebol ao vivo',
-    intro:
-      'Placar ao vivo do Brasileirão, Libertadores, Sul-Americana, Campeonato Argentino, Liga MX, MLS, Champions e das grandes ligas da Europa. Atualiza enquanto a bola rola.',
-    empty: 'Nenhum jogo em andamento agora nas ligas que acompanhamos.',
+    h1: 'Placares de futebol ao vivo',
+    title: 'Placar de futebol ao vivo: jogos minuto a minuto',
+    desc: 'Placar ao vivo do Brasileirão, Libertadores, Sul-Americana, Campeonato Argentino, Liga MX, MLS, Champions e das grandes ligas da Europa. Atualiza enquanto a bola rola.',
+    intro: 'Agora estão rolando {n}: {comps}.',
+    empty: 'Nenhum jogo em andamento agora nas competições que acompanhamos.',
     emptyCta: 'Ver os jogos de hoje',
-    live: 'AO VIVO',
-    finished: 'Encerrado',
-    followInApp:
-      'O app Golify te avisa em cada gol, com escalações e estatísticas ao vivo.',
-    openApp: 'Abrir no Golify',
-    ios: 'Baixar para iOS',
-    android: 'Baixar para Android',
+    note: 'Esta página é atualizada a cada 15 segundos: recarregue para ver o placar mais recente. O Golify não transmite jogos.',
     todayLink: 'Jogos de hoje',
-    leagueLink: 'Ver a liga',
+    countries: 'Jogos de hoje por país',
+    match: ['jogo', 'jogos'],
+  },
+  en: {
+    home: 'Home',
+    eyebrow: 'Live',
+    h1: 'Live football scores',
+    title: 'Live football scores: minute-by-minute results',
+    desc: 'Live scores from Liga MX, MLS, Brasileirão, Copa Libertadores, the Champions League and the big European leagues. Updated while the matches are played.',
+    intro: '{n} being played right now: {comps}.',
+    empty: 'No matches are being played right now in the competitions we follow.',
+    emptyCta: "See today's matches",
+    note: 'This page refreshes every 15 seconds: reload it for the latest score. Golify does not stream matches.',
+    todayLink: "Today's matches",
+    countries: "Today's matches by country",
+    match: ['match', 'matches'],
   },
 } as const;
 
-function t(locale: string) {
-  return STR[locale as keyof typeof STR] ?? STR.es;
+function resolveLocale(v: string): RouteLocale {
+  if (!(ROUTE_LOCALES as readonly string[]).includes(v)) notFound();
+  return v as RouteLocale;
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-  const { locale } = await params;
-  const L = t(locale);
-  const title = `${L.title} | Golify`;
-
-  return {
-    title,
-    description: L.intro,
-    alternates: localeAlternates(locale as Locale, '/live'),
-    openGraph: {
-      title,
-      description: L.intro,
-      url: `${SITE_URL}/${locale}/live`,
-      siteName: 'Golify',
-      type: 'website',
-      images: ogImages(),
-    },
-    twitter: { card: 'summary_large_image', title, description: L.intro },
-  };
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const locale = resolveLocale((await params).locale);
+  const L = STR[locale];
+  return pageMetadata({
+    locale,
+    path: (l) => sectionPath('live', l),
+    title: L.title,
+    description: L.desc,
+  });
 }
 
-export default async function LivePage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  const L = t(locale);
-  const fixtures = await getLiveFixtures(TRACKED_LEAGUE_IDS);
-  const groups = groupByLeague(fixtures);
+export default async function LivePage({ params }: { params: Promise<{ locale: string }> }) {
+  const locale = resolveLocale((await params).locale);
+  const L = STR[locale];
+  const fixtures = await liveFixtures(competitionOrder(), strictAtRuntime());
+  const groups = groupByCompetition(fixtures);
+  const facts = dayFacts(groups, locale);
+  const pagePath = sectionPath('live', locale);
+  const crumbs = [{ name: L.home, path: homePath(locale) }, { name: L.eyebrow }];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {fixtures.length > 0 ? (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(
-              fixtureListJsonLd(fixtures, SITE_URL, locale, L.title),
-            ),
-          }}
-        />
-      ) : null}
+      <JsonLd data={matchesItemList(fixtures, locale, L.h1, pagePath)} />
       <LocalTimeScript locale={locale} />
       <SiteNav />
 
-      <main className="mx-auto max-w-3xl px-5 pt-2 pb-16 sm:px-8">
-        <Eyebrow tone="mint">{L.eyebrow}</Eyebrow>
-        <DisplayHeading as="h1" className="mt-4 text-3xl sm:text-4xl">
-          {L.title}
-        </DisplayHeading>
-        <p className="mt-4 leading-relaxed font-semibold text-muted-foreground">{L.intro}</p>
+      <main className="mx-auto max-w-6xl px-4 pt-2 pb-16 sm:px-8">
+        <Breadcrumbs crumbs={crumbs} currentPath={pagePath} />
 
-        {groups.length === 0 ? (
-          <div className="mt-10 rounded-2xl border border-border bg-surface p-8 text-center">
-            <p className="font-bold">{L.empty}</p>
-            <Link
-              href={`/${locale}/today`}
-              className="mt-2 inline-block text-sm font-bold text-primary underline"
-            >
-              {L.emptyCta}
-            </Link>
-          </div>
-        ) : (
-          groups.map(({ league, fixtures: rows }) => (
-            <section key={league.id} className="mt-10">
-              <div className="mb-4 flex items-baseline justify-between gap-3">
-                <h2 className="font-display text-xl font-bold tracking-wide uppercase">
-                  {league.name}
-                </h2>
-                <Link
-                  href={`/${locale}/league/${league.id}`}
-                  className="shrink-0 text-xs font-bold text-primary underline"
-                >
-                  {L.leagueLink}
+        <header className="mt-5">
+          <Eyebrow tone="mint">{L.eyebrow}</Eyebrow>
+          <DisplayHeading as="h1" className="mt-4 text-3xl sm:text-5xl">
+            {L.h1}
+          </DisplayHeading>
+          <p className="mt-3 max-w-3xl leading-relaxed font-semibold text-muted-foreground">
+            {facts.total > 0
+              ? L.intro
+                  .replace('{n}', plural(facts.total, L.match[0], L.match[1]))
+                  .replace('{comps}', competitionsSentence(facts, locale))
+              : L.desc}
+          </p>
+        </header>
+
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8">
+          <div className="min-w-0">
+            {groups.length === 0 ? (
+              <div className="mt-6 rounded-2xl border border-border bg-surface p-8 text-center">
+                <p className="font-bold">{L.empty}</p>
+                <Link href={sectionPath('today', locale)} className="mt-2 inline-block text-sm font-extrabold text-primary hover:underline">
+                  {L.emptyCta}
                 </Link>
               </div>
-              <FixtureGrid fixtures={rows} locale={locale} labels={L} showLeague={false} />
-            </section>
-          ))
-        )}
+            ) : (
+              <Board groups={groups} locale={locale} time={{ kind: 'local' }} adPrefix="live" indexable />
+            )}
+            <p className="mt-6 text-xs font-semibold text-muted-foreground">{L.note}</p>
+            <p className="mt-4">
+              <Link href={sectionPath('today', locale)} className="text-sm font-extrabold text-primary hover:underline">
+                {L.todayLink} ›
+              </Link>
+            </p>
+          </div>
 
-        <p className="mt-9 leading-relaxed font-semibold text-muted-foreground">
-          {L.followInApp}
-        </p>
-
-        <InstallCTA
-          deeplink="golify://"
-          labels={{ open: L.openApp, ios: L.ios, android: L.android }}
-        />
-
-        <p className="mt-8">
-          <Link href={`/${locale}/today`} className="text-sm font-bold text-primary underline">
-            {L.todayLink}
-          </Link>
-        </p>
+          <aside className="mt-10 space-y-6 lg:mt-5">
+            <CountryLinks locale={locale} title={L.countries} className="rounded-2xl border border-border bg-surface p-5" />
+            <AppPromo locale={locale} />
+          </aside>
+        </div>
       </main>
 
-      <SiteFooter locale={locale as Locale} />
+      <SiteFooter locale={locale} />
     </div>
   );
 }
