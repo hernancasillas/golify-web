@@ -1,368 +1,461 @@
-import { idFromSlug } from '@/lib/slug';
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
+import { competitionName, seasonLabel, seasonSlug } from '@/lib/competitions';
+import { competitionPath, poolPath, sectionPath, transfersPath, whereToWatchPath } from '@/lib/routes';
+import { pageMetadata, absolute } from '@/lib/seo';
+import { factsFor } from '@/data/competition-facts';
+import { JsonLd } from '@/components/JsonLd';
+import { Breadcrumbs } from '@/components/blocks/Breadcrumbs';
+import { AdSlot } from '@/components/ads/AdSlot';
 import {
-  currentSeason,
-  getLeagueFixtures,
-  getLeagueInfo,
-  getStandings,
-  type StandingsGroup,
-} from '@/lib/api-football';
-import { TRACKED_LEAGUE_IDS, leagueLabel } from '@/lib/leagues';
-import { FixtureGrid } from '@/components/FixtureList';
-import { InstallCTA } from '@/components/InstallCTA';
-import { SiteNav } from '@/components/SiteNav';
-import { LocalTimeScript } from '@/components/LocalTime';
-import { SiteFooter } from '@/components/SiteFooter';
-import { DisplayHeading } from '@/components/revamp/ui';
+  currentRound,
+  cleanGroupName,
+  loadCurrentSeason,
+  loadLeague,
+  referenceZone,
+  recentSeasons,
+  resolveCompetitionParam,
+  roundName,
+  seasonName,
+  seasonStandings,
+  seasonTopList,
+  type SeasonCtx,
+} from '@/components/competition/data';
+import { asLocale, fmt, groupLabel, joinList, ui } from '@/components/competition/i18n';
+import { countryLabel, hiddenTabs, hubCrumbs, kindLabel } from '@/components/competition/page-helpers';
+import { groupLeadersSentence, leaderSentence, streakSentences } from '@/components/competition/rules';
 import {
-  absoluteUrl,
-  fill,
-  localeAlternates,
-  ogImages,
-  type Locale,
-} from '@/lib/site';
+  AnswerBlock,
+  AppPromo,
+  Card,
+  CompetitionHeader,
+  FixtureCard,
+  FixtureLine,
+  LinkList,
+  PageShell,
+  SeasonTabs,
+  SectionTitle,
+  Standings,
+  TopFive,
+  TwoColumn,
+} from '@/components/competition/ui';
 
-// Was a client-side deeplink funnel: every league rendered the same splash
-// screen, which is exactly why Search Console filed these under "duplicate
-// without user-selected canonical". Now each league is a real page with its
-// own standings and fixtures, a self-referencing canonical and hreflang.
+// Competition hub: /es/liga-mx, /pt/brasileirao, /en/premier-league.
 //
-// Rendered on demand rather than prerendered: building 40+ of these at once
-// burst past the API's per-minute limit and baked 404s into the cache.
-export const revalidate = 300;
+// The evergreen page for a competition — what it is, how it is played, who
+// won it — plus a snapshot of the season being played right now (leader,
+// the round in progress with kickoff times, top scorers) that links down
+// into the season pages. The legacy /es/league/262 reaches this file too and
+// leaves with one permanent redirect.
+//
+// ISR: rendered on first request, then cached. A failed provider call throws
+// so Next keeps serving the last good copy instead of caching an empty page.
+export const revalidate = 600;
+
+export async function generateStaticParams() {
+  return [];
+}
 
 type Params = { locale: string; slug: string };
 
 const STR = {
   es: {
-    standings: 'Tabla de posiciones',
-    upcoming: 'Próximos partidos',
-    recent: 'Últimos resultados',
-    team: 'Equipo',
-    played: 'PJ',
-    won: 'G',
-    drawn: 'E',
-    lost: 'P',
-    goalDiff: 'DIF',
-    points: 'PTS',
-    season: 'Temporada',
-    noStandings: 'Esta competición todavía no publica tabla de posiciones.',
-    metaTitle: '{name} — tabla, calendario y resultados {season} | Golify',
-    metaDesc:
-      'Tabla de posiciones de {name} ({country}), próximos partidos y últimos resultados, actualizados en vivo. Sigue cada partido en la app Golify.',
-    live: 'EN VIVO',
-    finished: 'Final',
-    followInApp:
-      'Sigue esta competición en la app Golify: marcadores en vivo, alertas de gol y la tabla siempre actualizada.',
-    openApp: 'Abrir en Golify',
-    ios: 'Descargar para iOS',
-    android: 'Descargar para Android',
-    today: 'Partidos de hoy',
-    liveScores: 'Resultados en vivo',
-  },
-  en: {
-    standings: 'Standings',
-    upcoming: 'Upcoming matches',
-    recent: 'Latest results',
-    team: 'Team',
-    played: 'P',
-    won: 'W',
-    drawn: 'D',
-    lost: 'L',
-    goalDiff: 'GD',
-    points: 'PTS',
-    season: 'Season',
-    noStandings: 'This competition does not publish a table yet.',
-    metaTitle: '{name} — table, fixtures and results {season} | Golify',
-    metaDesc:
-      '{name} ({country}) standings, upcoming fixtures and latest results, updated live. Follow every match in the Golify app.',
-    live: 'LIVE',
-    finished: 'Full time',
-    followInApp:
-      'Follow this competition in the Golify app: live scores, goal alerts and an always-current table.',
-    openApp: 'Open in Golify',
-    ios: 'Download for iOS',
-    android: 'Download for Android',
-    today: "Today's matches",
-    liveScores: 'Live scores',
+    title: '{name}: tabla, resultados y próximos partidos',
+    desc: '{name} {season}: {lead}{parts}. Todo en Golify.',
+    descNoSeason: '{name} en Golify: {parts}.',
+    parts: { table: 'tabla de posiciones', round: '{round} con horarios', scorers: 'goleadores', format: 'el formato explicado', champions: 'campeones', seasons: 'temporadas anteriores' },
+    leadDesc: '{team} es líder; ',
+    currentSeason: 'Temporada actual',
+    snapshot: '{season}: así va',
+    fullTable: 'Tabla completa',
+    round: '{round}',
+    allFixtures: 'Calendario completo',
+    roundPage: 'Partidos y quiniela de la {round}',
+    howItWorks: '¿Cómo se juega {name}?',
+    format: 'Formato',
+    champions: 'Campeones',
+    championsSeason: 'Temporada',
+    champion: 'Campeón',
+    runnerUp: 'Subcampeón',
+    seasons: 'Temporadas',
+    more: 'Más de {name}',
+    watch: 'Dónde ver {name}',
+    watchHint: 'Canales y plataformas por país',
+    transfers: 'Fichajes de {name}',
+    transfersHint: 'Altas y bajas de la temporada',
+    pool: 'Quiniela de {name}',
+    poolHint: 'Pronostica la jornada con tus amigos',
+    downloads: 'Descargas',
+    downloadsHint: 'Quinielas y calendarios para imprimir',
+    scorers: 'Goleadores',
+    scorersMixed: 'Temporada {year} completa (Apertura y Clausura juntos).',
+    sources: 'Fuentes',
   },
   pt: {
-    standings: 'Tabela de classificação',
-    upcoming: 'Próximos jogos',
-    recent: 'Últimos resultados',
-    team: 'Time',
-    played: 'J',
-    won: 'V',
-    drawn: 'E',
-    lost: 'D',
-    goalDiff: 'SG',
-    points: 'PTS',
-    season: 'Temporada',
-    noStandings: 'Esta competição ainda não publica tabela de classificação.',
-    metaTitle: '{name} — tabela, jogos e resultados {season} | Golify',
-    metaDesc:
-      'Tabela de classificação do {name} ({country}), próximos jogos e últimos resultados, atualizados ao vivo. Acompanhe cada jogo no app Golify.',
-    live: 'AO VIVO',
-    finished: 'Encerrado',
-    followInApp:
-      'Acompanhe esta competição no app Golify: placar ao vivo, alertas de gol e a tabela sempre atualizada.',
-    openApp: 'Abrir no Golify',
-    ios: 'Baixar para iOS',
-    android: 'Baixar para Android',
-    today: 'Jogos de hoje',
-    liveScores: 'Placares ao vivo',
+    title: '{name}: tabela, resultados e próximos jogos',
+    desc: '{name} {season}: {lead}{parts}. Tudo no Golify.',
+    descNoSeason: '{name} no Golify: {parts}.',
+    parts: { table: 'tabela de classificação', round: '{round} com horários', scorers: 'artilharia', format: 'o formato explicado', champions: 'campeões', seasons: 'temporadas anteriores' },
+    leadDesc: '{team} lidera; ',
+    currentSeason: 'Temporada atual',
+    snapshot: '{season}: como está',
+    fullTable: 'Tabela completa',
+    round: '{round}',
+    allFixtures: 'Calendário completo',
+    roundPage: 'Jogos e bolão da {round}',
+    howItWorks: 'Como funciona o {name}?',
+    format: 'Formato',
+    champions: 'Campeões',
+    championsSeason: 'Temporada',
+    champion: 'Campeão',
+    runnerUp: 'Vice',
+    seasons: 'Temporadas',
+    more: 'Mais do {name}',
+    watch: 'Onde assistir {name}',
+    watchHint: 'Canais e plataformas por país',
+    transfers: 'Transferências do {name}',
+    transfersHint: 'Chegadas e saídas da temporada',
+    pool: 'Bolão do {name}',
+    poolHint: 'Dê seu palpite na rodada com os amigos',
+    downloads: 'Downloads',
+    downloadsHint: 'Bolões e calendários para imprimir',
+    scorers: 'Artilheiros',
+    scorersMixed: 'Temporada {year} completa (Apertura e Clausura somados).',
+    sources: 'Fontes',
+  },
+  en: {
+    title: '{name}: table, results and upcoming fixtures',
+    desc: '{name} {season}: {lead}{parts}. All on Golify.',
+    descNoSeason: '{name} on Golify: {parts}.',
+    parts: { table: 'standings', round: '{round} with kickoff times', scorers: 'top scorers', format: 'the format explained', champions: 'past champions', seasons: 'past seasons' },
+    leadDesc: '{team} top the table; ',
+    currentSeason: 'Current season',
+    snapshot: '{season} so far',
+    fullTable: 'Full table',
+    round: '{round}',
+    allFixtures: 'All fixtures',
+    roundPage: '{round} fixtures and pool',
+    howItWorks: 'How does {name} work?',
+    format: 'Format',
+    champions: 'Champions',
+    championsSeason: 'Season',
+    champion: 'Champion',
+    runnerUp: 'Runner-up',
+    seasons: 'Seasons',
+    more: 'More {name}',
+    watch: 'Where to watch {name}',
+    watchHint: 'Channels and platforms by country',
+    transfers: '{name} transfers',
+    transfersHint: 'Ins and outs this season',
+    pool: '{name} pool',
+    poolHint: 'Call the matchday with your friends',
+    downloads: 'Downloads',
+    downloadsHint: 'Printable pools and calendars',
+    scorers: 'Top scorers',
+    scorersMixed: 'Whole {year} season (Apertura and Clausura combined).',
+    sources: 'Sources',
   },
 } as const;
 
-function t(locale: string) {
-  return STR[locale as keyof typeof STR] ?? STR.es;
+async function load(params: Params) {
+  const locale = asLocale(params.locale);
+  if (locale !== params.locale) notFound();
+  const res = resolveCompetitionParam(params.slug);
+  if (res.kind === 'none') notFound();
+  if (res.kind === 'legacy') permanentRedirect(competitionPath(locale, res.comp.id)!);
+  const comp = res.comp;
+  const info = await loadLeague(comp.id);
+  if (!info) notFound();
+  const ctx = await loadCurrentSeason(comp, info);
+  return { locale, comp, info, ctx };
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<Params>;
-}): Promise<Metadata> {
-  const { locale, slug } = await params;
-  const id = String(idFromSlug(slug) ?? slug);
-  const info = await getLeagueInfo(Number(id));
-  if (!info) return { title: 'Golify' };
-
-  const L = t(locale);
-  const name = leagueLabel(info.league.id) ?? info.league.name;
-  const season = currentSeason(info);
-  const title = fill(L.metaTitle, {
-    name,
-    season: season ? String(season) : '',
-  });
-  const desc = fill(L.metaDesc, { name, country: info.country.name });
-  const path = `/${locale}/league/${id}`;
-
-  return {
-    title,
-    description: desc,
-    // localeAlternates also emits x-default, which is what tells Google which
-    // version to serve a visitor whose language we do not publish.
-    alternates: localeAlternates(locale as Locale, `/league/${id}`),
-    openGraph: {
-      title,
-      description: desc,
-      url: absoluteUrl(path),
-      siteName: 'Golify',
-      type: 'website',
-      images: ogImages(),
-    },
-    twitter: { card: 'summary_large_image', title, description: desc },
-  };
+async function snapshot(ctx: SeasonCtx) {
+  const [standings, scorers] = await Promise.all([
+    seasonStandings(ctx, true),
+    seasonTopList(ctx, 'scorers', false),
+  ]);
+  return { standings, scorers };
 }
 
-function StandingsTable({
-  group,
-  locale,
-  labels,
-  showName,
-}: {
-  group: StandingsGroup;
-  locale: string;
-  labels: ReturnType<typeof t>;
-  /** A domestic league reports its own name as the group label, which would
-   *  repeat the heading right above the table. Only cups with real groups
-   *  ("Group A") need it. */
-  showName: boolean;
-}) {
-  return (
-    <div className="mt-6">
-      {showName && group.name ? (
-        <h3 className="mb-2 text-sm font-bold tracking-wide text-muted-foreground uppercase">
-          {group.name}
-        </h3>
-      ) : null}
-      <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
-        <table className="w-full min-w-[34rem] text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-xs font-bold tracking-wide text-muted-foreground uppercase">
-              <th className="px-3 py-2.5">#</th>
-              <th className="px-3 py-2.5">{labels.team}</th>
-              <th className="px-2 py-2.5 text-center">{labels.played}</th>
-              <th className="px-2 py-2.5 text-center">{labels.won}</th>
-              <th className="px-2 py-2.5 text-center">{labels.drawn}</th>
-              <th className="px-2 py-2.5 text-center">{labels.lost}</th>
-              <th className="px-2 py-2.5 text-center">{labels.goalDiff}</th>
-              <th className="px-3 py-2.5 text-center">{labels.points}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {group.rows.map((row) => (
-              <tr key={row.team.id} className="border-b border-border/60 last:border-0">
-                <td className="px-3 py-2.5 font-bold tabular-nums text-muted-foreground">
-                  {row.rank}
-                </td>
-                <td className="px-3 py-2.5">
-                  <Link
-                    href={`/${locale}/team/${row.team.id}`}
-                    className="flex items-center gap-2 font-bold hover:text-primary"
-                  >
-                    <Image
-                      src={row.team.logo}
-                      alt=""
-                      width={18}
-                      height={18}
-                      unoptimized
-                      className="h-[18px] w-[18px] shrink-0 object-contain"
-                    />
-                    <span className="truncate">{row.team.name}</span>
-                  </Link>
-                </td>
-                <td className="px-2 py-2.5 text-center tabular-nums">{row.all.played}</td>
-                <td className="px-2 py-2.5 text-center tabular-nums">{row.all.win}</td>
-                <td className="px-2 py-2.5 text-center tabular-nums">{row.all.draw}</td>
-                <td className="px-2 py-2.5 text-center tabular-nums">{row.all.lose}</td>
-                <td className="px-2 py-2.5 text-center tabular-nums">{row.goalsDiff}</td>
-                <td className="px-3 py-2.5 text-center font-display font-bold tabular-nums">
-                  {row.points}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-export default async function LeaguePage({ params }: { params: Promise<Params> }) {
-  const { locale, slug } = await params;
-  const id = String(idFromSlug(slug) ?? slug);
-  const leagueId = Number(id);
-  if (!Number.isFinite(leagueId)) notFound();
-
-  const info = await getLeagueInfo(leagueId);
-  if (!info) {
-    // A league we track has to exist, so an empty response means the API is
-    // unhappy, not that the page is gone. Throwing surfaces a 5xx, which tells
-    // a crawler to come back; a 404 here would drop the URL from the index and
-    // stay cached for the whole revalidate window.
-    if (TRACKED_LEAGUE_IDS.includes(leagueId)) {
-      throw new Error(`League ${leagueId} lookup failed upstream`);
-    }
-    notFound();
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const p = await params;
+  const res = resolveCompetitionParam(p.slug);
+  if (res.kind !== 'ok') return {};
+  const { locale, comp, ctx } = await load(p);
+  const S = STR[locale];
+  const name = competitionName(comp, locale);
+  // Only promise what the page actually shows: a cup without standings
+  // does not get "tabla", a competition without researched facts does not
+  // get "formato explicado".
+  const facts = factsFor(comp.id);
+  const P = S.parts;
+  const extras: string[] = [];
+  if (facts?.formatSummary[locale]) extras.push(P.format);
+  if (facts && facts.champions.length > 0) extras.push(P.champions);
+  let description: string = fmt(S.descNoSeason, { name, parts: joinList([...extras, P.seasons], locale) });
+  if (ctx) {
+    const { standings, scorers } = await snapshot(ctx);
+    const rows = standings.groups.length === 1 ? standings.groups[0].rows : null;
+    const cr = currentRound(ctx.rounds);
+    const parts: string[] = [];
+    if (standings.groups.length > 0) parts.push(P.table);
+    if (cr) parts.push(fmt(P.round, { round: roundName(cr, locale, comp) }));
+    if (scorers.rows.length > 0) parts.push(P.scorers);
+    parts.push(...extras);
+    description = fmt(S.desc, {
+      name,
+      season: seasonName(ctx, locale),
+      lead: rows?.[0] && rows[0].all.played > 0 ? fmt(S.leadDesc, { team: rows[0].team.name }) : '',
+      parts: joinList(parts.length > 0 ? parts : [P.seasons], locale),
+    });
   }
+  return pageMetadata({
+    locale,
+    path: (l) => competitionPath(l, comp.id)!,
+    title: fmt(S.title, { name }),
+    description,
+    appRoute: `league/${comp.id}`,
+  });
+}
 
-  const L = t(locale);
-  const season = currentSeason(info);
-  const name = leagueLabel(info.league.id) ?? info.league.name;
+export default async function CompetitionHub({ params }: { params: Promise<Params> }) {
+  const { locale, comp, info, ctx } = await load(await params);
+  const S = STR[locale];
+  const t = ui(locale);
+  const name = competitionName(comp, locale);
+  const facts = factsFor(comp.id);
+  const path = competitionPath(locale, comp.id)!;
+  const snap = ctx ? await snapshot(ctx) : null;
+  const zone = referenceZone(comp, locale);
+  const seasonText = ctx ? seasonName(ctx, locale) : null;
+  const cr = ctx ? currentRound(ctx.rounds) : null;
+  const groups = snap?.standings.groups ?? [];
+  const single = groups.length === 1 ? groups[0].rows : null;
+  const finished = !!ctx && ctx.fixtures.length > 0 && ctx.fixtures.every((f) => ['FT', 'AET', 'PEN', 'CANC', 'AWD', 'WO', 'ABD'].includes(f.fixture.status.short));
+  const sentences: string[] = [];
+  if (single && seasonText) {
+    const s = leaderSentence(single, locale, `${name} ${seasonText}`, finished);
+    if (s) sentences.push(s);
+    sentences.push(...streakSentences(single, locale));
+  } else if (groups.length > 1) {
+    const s = groupLeadersSentence(
+      groups.map((g) => ({ name: groupLabel(cleanGroupName(g.name, comp, info), locale), rows: g.rows })),
+      locale,
+    );
+    if (s) sentences.push(s);
+  }
+  const summary = facts?.formatSummary[locale];
+  const points = facts?.formatPoints[locale];
+  const indexable = true;
 
-  const [standings, upcoming, recent] = season
-    ? await Promise.all([
-        getStandings(leagueId, season),
-        getLeagueFixtures(leagueId, season, { next: 10 }),
-        getLeagueFixtures(leagueId, season, { last: 10 }),
-      ])
-    : [[], [], []];
+  const seasonsLinks = ctx
+    ? recentSeasons(ctx).map((ref) => ({
+        href: competitionPath(locale, comp.id, seasonSlug(comp, ref))!,
+        label: `${name} ${seasonLabel(comp, ref, locale)}`,
+        hint: ref.apiSeason === ctx.ref.apiSeason && ref.phase === ctx.ref.phase ? S.currentSeason : undefined,
+      }))
+    : [];
 
-  const jsonLd = {
+  const more: ({ href: string | null; label: string; hint: string } | null)[] = [
+    { href: whereToWatchPath(locale, comp.id), label: fmt(S.watch, { name }), hint: S.watchHint },
+    { href: transfersPath(locale, comp.id), label: fmt(S.transfers, { name }), hint: S.transfersHint },
+    ctx?.isCurrent ? { href: poolPath(locale, comp.id), label: fmt(S.pool, { name }), hint: S.poolHint } : null,
+    { href: sectionPath('downloads', locale), label: S.downloads, hint: S.downloadsHint },
+  ];
+  const moreLinks = more.filter((l): l is { href: string; label: string; hint: string } => !!l && !!l.href);
+
+  const roundNumber = ctx?.isCurrent && cr?.number != null ? cr.number : null;
+  const scorersMixed = snap?.scorers.mixed ?? false;
+
+  const orgNode = {
     '@context': 'https://schema.org',
     '@type': 'SportsOrganization',
+    '@id': `${absolute(path)}#competition`,
     name,
-    alternateName: info.league.name,
+    alternateName: info.league.name !== name ? info.league.name : undefined,
     sport: 'Soccer',
     logo: info.league.logo,
-    url: absoluteUrl(`/${locale}/league/${id}`),
-    location: { '@type': 'Country', name: info.country.name },
+    url: absolute(path),
+    location: info.country.name !== 'World' ? { '@type': 'Country', name: info.country.name } : undefined,
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    <PageShell locale={locale}>
+      <JsonLd data={orgNode} />
+      <Breadcrumbs crumbs={hubCrumbs(comp, locale)} currentPath={path} />
+      <CompetitionHeader
+        comp={comp}
+        eyebrow={`${countryLabel({ info }, locale)} · ${kindLabel(comp, locale)}`}
+        title={name}
+        sub={
+          ctx && seasonText ? (
+            <>
+              {S.currentSeason}:{' '}
+              <Link href={competitionPath(locale, comp.id, ctx.slug)!} className="font-bold text-primary hover:underline">
+                {seasonText}
+              </Link>
+            </>
+          ) : null
+        }
       />
-      <LocalTimeScript locale={locale} />
-      <SiteNav />
 
-      <main className="mx-auto max-w-3xl px-5 pt-2 pb-16 sm:px-8">
-        <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white">
-            <Image
-              src={info.league.logo}
-              alt=""
-              width={30}
-              height={30}
-              unoptimized
-              className="h-[30px] w-[30px] object-contain"
-            />
-          </span>
-          <div>
-            <DisplayHeading as="h1" className="text-2xl sm:text-3xl">
-              {name}
-            </DisplayHeading>
-            <p className="mt-0.5 text-sm font-bold text-muted-foreground">
-              {info.country.name}
-              {season ? ` · ${L.season} ${season}` : ''}
-            </p>
-          </div>
-        </div>
+      {summary ? <AnswerBlock title={fmt(S.howItWorks, { name })}>{summary}</AnswerBlock> : null}
 
-        <section className="mt-9">
-          <h2 className="font-display text-xl font-bold tracking-wide uppercase">
-            {L.standings}
-          </h2>
-          {standings.length === 0 ? (
-            <p className="mt-3 font-semibold text-muted-foreground">{L.noStandings}</p>
-          ) : (
-            standings.map((group, i) => (
-              <StandingsTable
-                key={group.name || i}
-                group={group}
+      {ctx ? <SeasonTabs locale={locale} comp={comp} seasonSlug={ctx.slug} active={null} hide={hiddenTabs(ctx)} /> : null}
+
+      <TwoColumn
+        main={
+          <>
+            {ctx && seasonText && (groups.length > 0 || sentences.length > 0) ? (
+              <section>
+                <SectionTitle
+                  action={
+                    groups.length > 0 ? (
+                      <Link href={competitionPath(locale, comp.id, ctx.slug, 'table')!} className="text-sm font-bold text-primary hover:underline">
+                        {S.fullTable}
+                      </Link>
+                    ) : undefined
+                  }
+                >
+                  {fmt(S.snapshot, { season: `${name} ${seasonText}` })}
+                </SectionTitle>
+                {sentences.length > 0 ? (
+                  <p className="mt-2 leading-relaxed font-semibold text-muted-foreground">{sentences.join(' ')}</p>
+                ) : null}
+                {single ? (
+                  <div className="mt-4">
+                    <Standings groups={groups} groupNames={['']} locale={locale} full={false} limit={6} />
+                    {snap?.standings.computed ? <p className="mt-2 text-xs font-semibold text-muted-foreground">{t.computed}</p> : null}
+                  </div>
+                ) : null}
+              </section>
+            ) : null}
+
+            <AdSlot id="competition-hub-1" format="in-article" indexable={indexable} label={t.ad} />
+
+            {ctx && cr ? (
+              <section className="mt-8">
+                <SectionTitle
+                  action={
+                    <Link href={competitionPath(locale, comp.id, ctx.slug, 'fixtures')!} className="text-sm font-bold text-primary hover:underline">
+                      {S.allFixtures}
+                    </Link>
+                  }
+                >
+                  {roundName(cr, locale, comp)}
+                </SectionTitle>
+                <p className="mt-1 text-xs font-semibold text-muted-foreground">{fmt(t.timesIn, { zone: zone.label[locale] })}</p>
+                <div className="mt-3">
+                  <FixtureCard>
+                    {cr.fixtures.map((f) => (
+                      <FixtureLine key={f.fixture.id} f={f} locale={locale} zone={zone} />
+                    ))}
+                  </FixtureCard>
+                </div>
+                {cr.number != null ? (
+                  <p className="mt-3">
+                    <Link
+                      href={competitionPath(locale, comp.id, ctx.slug, { round: cr.number })!}
+                      className="text-sm font-bold text-primary hover:underline"
+                    >
+                      {fmt(S.roundPage, { round: roundName(cr, locale, comp) })} ›
+                    </Link>
+                  </p>
+                ) : null}
+              </section>
+            ) : null}
+
+            {points && points.length > 0 ? (
+              <section className="mt-10">
+                <SectionTitle>{S.format}</SectionTitle>
+                <ul className="mt-3 list-disc space-y-2 pl-5 leading-relaxed font-semibold text-muted-foreground">
+                  {points.map((pt) => (
+                    <li key={pt}>{pt}</li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
+            {facts && facts.champions.length > 0 ? (
+              <section className="mt-10">
+                <SectionTitle>{S.champions}</SectionTitle>
+                <Card className="mt-3 overflow-x-auto">
+                  <table className="w-full min-w-[20rem] text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left text-[11px] font-extrabold tracking-wide text-muted-foreground uppercase">
+                        <th className="px-4 py-2.5">{S.championsSeason}</th>
+                        <th className="px-4 py-2.5">{S.champion}</th>
+                        <th className="px-4 py-2.5">{S.runnerUp}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {facts.champions.map((c) => (
+                        <tr key={c.season} className="border-b border-border/60 last:border-0">
+                          <td className="px-4 py-2.5 font-semibold text-muted-foreground">{c.season}</td>
+                          <td className="px-4 py-2.5 font-bold">{c.champion}</td>
+                          <td className="px-4 py-2.5 font-semibold">{c.runnerUp ?? '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </Card>
+                {facts.sources.length > 0 ? (
+                  <p className="mt-2 text-xs font-semibold text-muted-foreground">
+                    {S.sources}:{' '}
+                    {facts.sources.map((s, i) => (
+                      <span key={s.url}>
+                        {i > 0 ? ' · ' : ''}
+                        <a href={s.url} rel="noopener noreferrer" target="_blank" className="underline hover:text-foreground">
+                          {s.title}
+                        </a>
+                      </span>
+                    ))}
+                  </p>
+                ) : null}
+              </section>
+            ) : null}
+
+            <AdSlot id="competition-hub-2" format="in-article" indexable={indexable} label={t.ad} />
+
+            <p className="mt-8 text-sm font-semibold text-muted-foreground">{t.notStreaming}</p>
+          </>
+        }
+        side={
+          <>
+            {snap && !scorersMixed ? (
+              <TopFive
+                title={S.scorers}
+                rows={snap.scorers.rows}
+                kind="scorers"
                 locale={locale}
-                labels={L}
-                showName={standings.length > 1}
+                leagueId={comp.id}
+                href={ctx ? competitionPath(locale, comp.id, ctx.slug, 'scorers') : null}
               />
-            ))
-          )}
-        </section>
-
-        {upcoming.length > 0 ? (
-          <section className="mt-10">
-            <h2 className="mb-4 font-display text-xl font-bold tracking-wide uppercase">
-              {L.upcoming}
-            </h2>
-            <FixtureGrid fixtures={upcoming} locale={locale} labels={L} showLeague={false} />
-          </section>
-        ) : null}
-
-        {recent.length > 0 ? (
-          <section className="mt-10">
-            <h2 className="mb-4 font-display text-xl font-bold tracking-wide uppercase">
-              {L.recent}
-            </h2>
-            <FixtureGrid fixtures={recent} locale={locale} labels={L} showLeague={false} />
-          </section>
-        ) : null}
-
-        <p className="mt-9 leading-relaxed font-semibold text-muted-foreground">
-          {L.followInApp}
-        </p>
-
-        <InstallCTA
-          deeplink={`golify://league/${id}`}
-          labels={{ open: L.openApp, ios: L.ios, android: L.android }}
-        />
-
-        <p className="mt-8 flex gap-4">
-          <Link href={`/${locale}/today`} className="text-sm font-bold text-primary underline">
-            {L.today}
-          </Link>
-          <Link href={`/${locale}/live`} className="text-sm font-bold text-primary underline">
-            {L.liveScores}
-          </Link>
-        </p>
-      </main>
-
-      <SiteFooter locale={locale as Locale} />
-    </div>
+            ) : null}
+            {snap && scorersMixed ? (
+              <TopFive
+                title={S.scorers}
+                rows={snap.scorers.rows}
+                kind="scorers"
+                locale={locale}
+                leagueId={comp.id}
+                note={fmt(S.scorersMixed, { year: ctx!.ref.apiSeason })}
+              />
+            ) : null}
+            <AppPromo
+              locale={locale}
+              comp={comp}
+              round={roundNumber}
+              roundText={cr && roundNumber ? roundName(cr, locale, comp) : undefined}
+              campaign="competition-hub"
+            />
+            <LinkList title={S.seasons} links={seasonsLinks} />
+            <LinkList title={fmt(S.more, { name })} links={moreLinks} />
+          </>
+        }
+      />
+    </PageShell>
   );
 }
