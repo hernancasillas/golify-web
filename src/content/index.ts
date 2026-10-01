@@ -1,8 +1,9 @@
 // Latest editorial pieces for cross-site blocks (Home "Reportajes y previas").
-// Implemented by the editorial section (src/lib/editorial/*); until then it
-// returns nothing and the block does not render.
+// Backed by the editorial loader (src/lib/editorial); returns nothing when the
+// locale has no pieces and the block simply does not render.
 
 import type { RouteLocale } from '@/lib/routes';
+import { getAuthor, getPieces, piecePath, sectionLabel } from '@/lib/editorial/content';
 
 export interface PieceSummary {
   kind: 'guide' | 'news' | 'report';
@@ -15,6 +16,20 @@ export interface PieceSummary {
   updated: string;
 }
 
-export async function latestPieces(_locale: RouteLocale, _limit = 4): Promise<PieceSummary[]> {
-  return [];
+const GUIDE = { es: 'Guía', pt: 'Guia', en: 'Guide' } as const;
+
+export async function latestPieces(locale: RouteLocale, limit = 4): Promise<PieceSummary[]> {
+  const pieces: PieceSummary[] = getPieces()
+    .filter((p) => p.locale === locale)
+    .map((p) => ({
+      kind: p.kind,
+      title: p.title,
+      path: piecePath(p),
+      label: p.kind === 'guide' ? GUIDE[locale] : sectionLabel(p.section ?? 'noticia', locale),
+      byline: getAuthor(p.author)?.name ?? 'Redacción Golify',
+      updated: p.updated,
+    }));
+  // Monthly reports are not listed here: whether one passes its indexing
+  // threshold is only known after querying community data (see report page).
+  return pieces.sort((a, b) => b.updated.localeCompare(a.updated)).slice(0, limit);
 }
