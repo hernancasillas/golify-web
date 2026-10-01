@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { localizeFixtures } from '@/lib/nations';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { cache } from 'react';
@@ -113,7 +114,7 @@ const resolve = cache(async (localeParam: string, league: string, round: string)
   const ref = data.rounds[idx];
 
   const past = data.current ? n < data.current.n : false;
-  const fixtures = await loadRoundFixtures(comp.id, data.season, ref.raw, { past });
+  const fixtures = localizeFixtures(await loadRoundFixtures(comp.id, data.season, ref.raw, { past }), locale);
   if (fixtures.length === 0) notFound();
 
   const splits = await splitsFor(fixtures);

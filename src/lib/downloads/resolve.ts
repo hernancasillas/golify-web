@@ -2,6 +2,7 @@
 // (/es/descargas/{slug}) and the file route (/files/{locale}/{slug}.{ext}) both
 // call it, so a redirect, a 404 and the printed rows are decided in one place.
 
+import { localizeDeep } from '@/lib/nations';
 import type { StandingsGroup } from '@/lib/api-football';
 import type { RouteLocale } from '@/lib/routes';
 import {
@@ -46,6 +47,13 @@ function settle(raw: string, canonical: string | null, value: Download): Resolve
 
 /** null → 404. Throws when the provider fails (ISR keeps the last good copy). */
 export async function resolveDownload(raw: string, locale: RouteLocale): Promise<Resolved | null> {
+  const r = await resolveRaw(raw, locale);
+  // Slugs were built from the provider's English names above; only the
+  // printed rows (pages, PDFs, ICS) carry the reader's language.
+  return r && r.kind !== 'redirect' ? localizeDeep(r, locale) : r;
+}
+
+async function resolveRaw(raw: string, locale: RouteLocale): Promise<Resolved | null> {
   const ref = parseDownloadSlug(raw);
   if (!ref) return null;
   switch (ref.kind) {

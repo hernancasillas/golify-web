@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { localizeFixtures } from '@/lib/nations';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
@@ -60,7 +61,7 @@ const resolve = cache(async (localeParam: string, league: string) => {
   // Cups with knockout rounds only still get a hub for the stage in play.
   if (!data || (data.rounds.length === 0 && !data.currentRaw)) notFound();
 
-  const fixtures = data.currentRaw ? await loadRoundFixtures(comp.id, data.season, data.currentRaw) : [];
+  const fixtures = localizeFixtures(data.currentRaw ? await loadRoundFixtures(comp.id, data.season, data.currentRaw) : [], locale);
   const splits = await splitsFor(fixtures);
   const picks = totalPicks(splits, fixtures);
   return { locale, comp, data, fixtures, splits, picks, indexable: picks >= INDEX_THRESHOLD };

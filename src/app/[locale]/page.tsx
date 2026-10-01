@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { localizeFixture, nationName } from '@/lib/nations';
 import { notFound } from 'next/navigation';
 import {
   currentSeason,
@@ -231,13 +232,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const other = competitionById(l === 'pt' ? 262 : 71)!;
 
   // Non-critical blocks fail soft: a quota hiccup empties a block, not the page.
-  const [liveAll, todayAll, info] = await Promise.all([
+  const [liveRaw, todayRaw, info] = await Promise.all([
     getLiveFixtures(COVERED_IDS).catch(() => [] as Fixture[]),
     getFixturesByDate(todayIso, COVERED_IDS, zone).catch(() => [] as Fixture[]),
     getLeagueInfoCached(main.id).catch(() => null),
   ]);
+  const liveAll = liveRaw.map((f) => localizeFixture(f, l));
+  const todayAll = todayRaw.map((f) => localizeFixture(f, l));
   const season = info ? currentSeason(info) : null;
-  const [round, seasonFx, scorers, standings, otherStandings] = await Promise.all([
+  const [round, seasonFxRaw, scorers, standings, otherStandings] = await Promise.all([
     season ? getCurrentRound(main.id, season).catch(() => null) : null,
     season ? getSeasonFixtures(main.id, season).catch(() => [] as Fixture[]) : [],
     season ? getTopScorers(main.id, season).catch(() => []) : [],
@@ -245,6 +248,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     getStandings(other.id, year).catch(() => []),
   ]);
 
+  const seasonFx = seasonFxRaw.map((f) => localizeFixture(f, l));
   const roundFx = round ? seasonFx.filter((f) => f.league.round === round) : [];
   const picks = await getPickSplits([...roundFx.map((f) => f.fixture.id), ...todayAll.map((f) => f.fixture.id)]);
 
@@ -292,8 +296,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     (c): c is Competition => !!c,
   );
   const leaders = new Map<number, { team: string; points: number } | null>([
-    [main.id, leaderOf(standings) ? { team: leaderOf(standings)!.team.name, points: leaderOf(standings)!.points } : null],
-    [other.id, leaderOf(otherStandings) ? { team: leaderOf(otherStandings)!.team.name, points: leaderOf(otherStandings)!.points } : null],
+    [main.id, leaderOf(standings) ? { team: nationName(leaderOf(standings)!.team.name, l), points: leaderOf(standings)!.points } : null],
+    [other.id, leaderOf(otherStandings) ? { team: nationName(leaderOf(otherStandings)!.team.name, l), points: leaderOf(otherStandings)!.points } : null],
   ]);
 
   const top3 = scorers.slice(0, 3);

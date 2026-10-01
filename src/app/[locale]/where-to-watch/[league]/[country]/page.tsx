@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { localizeFixtures } from '@/lib/nations';
 import { notFound } from 'next/navigation';
 import { countryFromWatchSlug, type BroadcastEntry } from '@/data/broadcasters';
 import { competitionBySlug, competitionName, type Competition } from '@/lib/competitions';
@@ -305,7 +306,7 @@ export default async function WhereToWatchCountryPage({ params }: { params: Prom
 
   // Strict: a failed lookup throws (Next keeps the last good copy) instead of
   // publishing "no matches scheduled" when the API was simply down.
-  const { fixtures } = await upcomingLeagueFixtures(c);
+  const fixtures = localizeFixtures((await upcomingLeagueFixtures(c)).fixtures, locale);
   const zones = zonesFor(country);
   const timeWord = locale === 'en' ? 'Time' : locale === 'pt' ? 'Horário' : 'Hora';
 

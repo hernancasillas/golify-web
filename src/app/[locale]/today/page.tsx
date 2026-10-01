@@ -1,3 +1,4 @@
+import { localizeFixtures } from '@/lib/nations';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -141,7 +142,7 @@ function resolveLocale(v: string): RouteLocale {
 async function load(locale: RouteLocale) {
   const { zone } = LOCALE_ZONE[locale];
   const today = isoDateIn(new Date(), zone);
-  const fixtures = await getFixturesByDate(today, competitionOrder(), zone, { strict: strictAtRuntime() });
+  const fixtures = localizeFixtures(await getFixturesByDate(today, competitionOrder(), zone, { strict: strictAtRuntime() }), locale);
   return { zone, today, fixtures, groups: groupByCompetition(fixtures) };
 }
 

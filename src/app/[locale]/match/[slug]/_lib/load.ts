@@ -11,6 +11,8 @@
 // last five plus the injury list. Nothing fans out per player or per match.
 
 import { cache } from 'react';
+import { localizeDeep } from '@/lib/nations';
+import type { RouteLocale } from '@/lib/routes';
 import {
   TTL,
   apiFootballGet,
@@ -145,7 +147,7 @@ const finished = (x: Fixture) => FINISHED_STATUSES.includes(x.fixture.status.sho
 // `zone` is the locale's main time zone (CDMX / Brasília / ET): "other
 // matches of the day" means that reader's calendar day, so the list and its
 // heading agree (a 21:10 CDMX kickoff is already tomorrow in UTC).
-export const loadMatch = cache(async (id: number, zone: string): Promise<MatchModel | null> => {
+const loadMatchRaw = cache(async (id: number, zone: string): Promise<MatchModel | null> => {
   // Primary entity: strict. A failed call throws (Next keeps the last good
   // copy of the page); a genuinely unknown id comes back null → 404.
   const f = await getFixtureDetail(id, { strict: true });
@@ -234,3 +236,10 @@ export const loadMatch = cache(async (id: number, zone: string): Promise<MatchMo
     indexable,
   };
 });
+
+/** Match model with national-team names in the reader's language (display
+ *  only; slugs map back to the provider's English names). */
+export async function loadMatch(id: number, zone: string, locale: RouteLocale): Promise<MatchModel | null> {
+  const m = await loadMatchRaw(id, zone);
+  return m && locale !== 'en' ? localizeDeep(m, locale) : m;
+}

@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const locale = asLocale(raw);
   const sub = parseSub(section, locale);
   if (!sub) return {};
-  const core = await loadTeam(slug);
+  const core = await loadTeam(slug, locale);
   if (!core) return {};
   const L = teamStrings(locale);
   const t = core.info.team;

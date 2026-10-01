@@ -1,3 +1,4 @@
+import { localizeDeep, localizeFixtures } from '@/lib/nations';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
@@ -77,7 +78,7 @@ type Params = { locale: string; slug: string };
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
-  const core = await loadTeam(slug);
+  const core = await loadTeam(slug, locale);
   if (!core) return {};
   const L = teamStrings(locale);
   const t = core.info.team;
@@ -210,13 +211,17 @@ export default async function TeamPage({ params }: { params: Promise<Params> }) 
   const now = nowMs();
   const indexable = core.playsCovered;
 
-  const [seasonFixtures, players, squad, transferRows, leagueTeams] = await Promise.all([
+  const [seasonFixturesRaw, players, squad, transferRowsRaw, leagueTeamsRaw] = await Promise.all([
     season ? loadSeasonFixtures(id, season) : Promise.resolve([] as Fixture[]),
     season ? getTeamPlayers(id, season) : Promise.resolve([]),
     loadSquad(id),
     loadTransfers(id),
     main ? getLeagueTeams(main.id, main.year) : Promise.resolve([] as TeamInfo[]),
   ]);
+
+  const seasonFixtures = localizeFixtures(seasonFixturesRaw, locale);
+  const transferRows = localizeDeep(transferRowsRaw, locale);
+  const leagueTeams = localizeDeep(leagueTeamsRaw, locale);
 
   // The season list is the base (one call shared with the calendar). Between
   // seasons it may have nothing left to play or nothing played yet; only then
@@ -227,10 +232,12 @@ export default async function TeamPage({ params }: { params: Promise<Params> }) 
   const liveNow = seasonFixtures.find((f) => ['1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE', 'INT'].includes(f.fixture.status.short));
   let upcoming = seasonFixtures.filter((f) => isUpcoming(f) && Date.parse(f.fixture.date) > now - 3 * 3600_000);
   let finished = finishedSeason;
-  const [fallbackNext, fallbackLast] = await Promise.all([
+  const [fallbackNextRaw, fallbackLastRaw] = await Promise.all([
     upcoming.length === 0 ? getTeamFixtures(id, { next: 5 }) : Promise.resolve([] as Fixture[]),
     finished.length === 0 ? getTeamFixtures(id, { last: 5 }) : Promise.resolve([] as Fixture[]),
   ]);
+  const fallbackNext = localizeFixtures(fallbackNextRaw, locale);
+  const fallbackLast = localizeFixtures(fallbackLastRaw, locale);
   if (upcoming.length === 0) upcoming = fallbackNext.filter(isUpcoming);
   if (finished.length === 0) finished = [...fallbackLast].filter((f) => isFinished(f) && !isFriendly(f.league)).sort((a, b) => a.fixture.date.localeCompare(b.fixture.date));
 

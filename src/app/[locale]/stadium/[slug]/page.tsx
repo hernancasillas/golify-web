@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
+import { localizeDeep, localizeFixtures } from '@/lib/nations';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { cache } from 'react';
 import { apiFootballGet, getVenue, TTL, type Fixture, type TeamInfo, type TeamRef, type Venue } from '@/lib/api-football';
-import { competitionPath, homePath, matchPath, stadiumPath, teamPath } from '@/lib/routes';
+import { competitionPath, homePath, matchPath, stadiumPath, teamPath, type RouteLocale } from '@/lib/routes';
 import { absolute, pageMetadata, type Crumb } from '@/lib/seo';
 import { fill } from '@/lib/site';
 import { idFromSlug, slugify } from '@/lib/slug';
@@ -282,7 +283,7 @@ interface Loaded {
 // The venue and its recent matches are the page's primary data: both are
 // `strict`, so a failed call throws (ISR keeps the last good copy) instead of
 // rendering a stadium with "no matches". Shared by metadata and page.
-const load = cache(async (slug: string): Promise<Loaded | null> => {
+const load = cache(async (slug: string, locale: RouteLocale): Promise<Loaded | null> => {
   const id = idFromSlug(slug);
   if (!id) return null;
   const [venue, pastRaw] = await Promise.all([
@@ -290,7 +291,7 @@ const load = cache(async (slug: string): Promise<Loaded | null> => {
     apiFootballGet<Fixture>('/fixtures', { venue: id, last: PAST_SAMPLE }, { revalidate: TTL.daily, strict: true }),
   ]);
   if (!venue) return null;
-  const past = [...pastRaw].sort((a, b) => b.fixture.date.localeCompare(a.fixture.date));
+  const past = localizeFixtures([...pastRaw], locale).sort((a, b) => b.fixture.date.localeCompare(a.fixture.date));
   const newest = past.find((f) => f.fixture.venue.name);
   const alias = newest?.fixture.venue.name && slugify(newest.fixture.venue.name) !== slugify(venue.name) ? newest.fixture.venue.name : null;
   return { venue, past, alias, city: newest?.fixture.venue.city || venue.city };
@@ -341,10 +342,10 @@ function placeText(d: Loaded, locale: L): string {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
-  const d = await load(slug);
+  const d = await load(slug, locale);
   if (!d) return {};
   const t = STR[locale];
-  const teams = await apiFootballGet<TeamInfo>('/teams', { venue: d.venue.id }, { revalidate: TTL.weekly });
+  const teams = localizeDeep(await apiFootballGet<TeamInfo>('/teams', { venue: d.venue.id }, { revalidate: TTL.weekly }), locale);
   const tenants = homeTeams(teams, d.past).slice(0, 2).map((x) => x.name);
   const place = placeText(d, locale);
   const v = {
@@ -367,7 +368,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 export default async function StadiumPage({ params }: { params: Promise<Params> }) {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
-  const d = await load(slug);
+  const d = await load(slug, locale);
   if (!d) notFound();
   const { venue, past, alias } = d;
 
@@ -378,11 +379,12 @@ export default async function StadiumPage({ params }: { params: Promise<Params> 
   const t = STR[locale];
   const now = nowMs();
   // Secondary data: a failed call drops its block, never prints "none".
-  const [nextRaw, teams] = await Promise.all([
+  const [nextRaw, teamsRaw] = await Promise.all([
     apiFootballGet<Fixture>('/fixtures', { venue: venue.id, next: UPCOMING }, { revalidate: TTL.hours }),
     apiFootballGet<TeamInfo>('/teams', { venue: venue.id }, { revalidate: TTL.weekly }),
   ]);
-  const upcoming = nextRaw.filter((f) => isUpcoming(f, now)).sort((a, b) => a.fixture.date.localeCompare(b.fixture.date));
+  const upcoming = localizeFixtures(nextRaw, locale).filter((f) => isUpcoming(f, now)).sort((a, b) => a.fixture.date.localeCompare(b.fixture.date));
+  const teams = localizeDeep(teamsRaw, locale);
   const played = past.filter(isPlayed);
   // A venue record with nothing ever played or scheduled there is not a page.
   if (played.length === 0 && upcoming.length === 0) notFound();

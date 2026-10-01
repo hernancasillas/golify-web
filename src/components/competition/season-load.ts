@@ -58,7 +58,7 @@ export async function loadSeasonParams(p: { locale: string; slug: string; season
   const comp = res.comp;
   const info = await loadLeague(comp.id);
   if (!info) notFound();
-  const season = await resolveSeason(comp, info, p.season);
+  const season = await resolveSeason(comp, info, p.season, locale);
   if (season.kind === 'notfound') notFound();
   const slug = season.kind === 'redirect' ? season.slug : season.ctx.slug;
   if (res.kind === 'legacy' || season.kind === 'redirect' || !sectionCanonical) {

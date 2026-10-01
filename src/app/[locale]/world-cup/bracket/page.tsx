@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { localizeFixtures } from '@/lib/nations';
 import { pageMetadata } from '@/lib/seo';
 import { sectionPath, type RouteLocale } from '@/lib/routes';
 import Image from 'next/image';
@@ -107,7 +108,7 @@ export default async function BracketPage({
 }) {
   const { locale } = await params;
   const L = t(locale);
-  const fixtures = await getTournamentFixtures(WORLD_CUP_LEAGUE_ID, WORLD_CUP_SEASON);
+  const fixtures = localizeFixtures(await getTournamentFixtures(WORLD_CUP_LEAGUE_ID, WORLD_CUP_SEASON), locale as RouteLocale);
   const winner = champion(fixtures);
 
   return (

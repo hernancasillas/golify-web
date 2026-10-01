@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { localizeDeep } from '@/lib/nations';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { cache, type ReactNode } from 'react';
@@ -316,7 +317,7 @@ interface Loaded {
 // One provider call for the whole history. `strict`: a failed call throws
 // (ISR keeps the last good copy); an empty answer means the pair never met
 // on record → 404. Shared between generateMetadata and the page.
-const load = cache(async (slug: string): Promise<Loaded | null> => {
+const loadRaw = cache(async (slug: string): Promise<Loaded | null> => {
   // `2287-2278` (ids only, a hand-typed or shared short form) is accepted
   // too and redirected to the slugged URL below.
   const bare = /^(\d+)-(\d+)$/.exec(slug);
@@ -331,6 +332,11 @@ const load = cache(async (slug: string): Promise<Loaded | null> => {
   const [a, b] = teams;
   return { a, b, all, rec: computeH2H(all, a, b, nowMs()) };
 });
+
+async function load(slug: string, locale: L): Promise<Loaded | null> {
+  const d = await loadRaw(slug);
+  return d ? localizeDeep(d, locale) : d;
+}
 
 function plural(n: number, forms: readonly [string, string] | readonly string[]): string {
   return n === 1 ? forms[0] : forms[1];
@@ -369,7 +375,7 @@ function vars(d: Loaded, locale: L) {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
-  const d = await load(slug);
+  const d = await load(slug, locale);
   if (!d) return {};
   const t = STR[locale];
   const v = vars(d, locale);
@@ -386,7 +392,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 export default async function H2HPage({ params }: { params: Promise<Params> }) {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
-  const d = await load(slug);
+  const d = await load(slug, locale);
   if (!d) notFound();
 
   const { a, b, all, rec } = d;

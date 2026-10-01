@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { nationName } from '@/lib/nations';
 import { matchPath, type RouteLocale } from '@/lib/routes';
 import Link from 'next/link';
 import type { Fixture } from '@/lib/api-football';
@@ -129,13 +130,13 @@ export function FixtureRow({
         </div>
         <div className="min-w-0 flex-1 space-y-2">
           <TeamLine
-            name={f.teams.home.name}
+            name={nationName(f.teams.home.name, locale as RouteLocale)}
             logo={f.teams.home.logo}
             score={f.goals.home}
             showScore={score}
           />
           <TeamLine
-            name={f.teams.away.name}
+            name={nationName(f.teams.away.name, locale as RouteLocale)}
             logo={f.teams.away.logo}
             score={f.goals.away}
             showScore={score}
@@ -202,7 +203,7 @@ export function fixtureListJsonLd(
       position: i + 1,
       item: {
         '@type': 'SportsEvent',
-        name: `${f.teams.home.name} vs ${f.teams.away.name}`,
+        name: `${nationName(f.teams.home.name, locale as RouteLocale)} vs ${nationName(f.teams.away.name, locale as RouteLocale)}`,
         sport: 'Soccer',
         startDate: f.fixture.date,
         eventStatus: 'https://schema.org/EventScheduled',
@@ -210,8 +211,8 @@ export function fixtureListJsonLd(
           '@type': 'Place',
           name: f.fixture.venue.name ?? f.league.country ?? f.league.name,
         },
-        homeTeam: { '@type': 'SportsTeam', name: f.teams.home.name },
-        awayTeam: { '@type': 'SportsTeam', name: f.teams.away.name },
+        homeTeam: { '@type': 'SportsTeam', name: nationName(f.teams.home.name, locale as RouteLocale) },
+        awayTeam: { '@type': 'SportsTeam', name: nationName(f.teams.away.name, locale as RouteLocale) },
         url: `${siteUrl}${matchPath(locale as RouteLocale, f)}`,
       },
     })),

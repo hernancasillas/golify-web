@@ -13,6 +13,7 @@
 //      most a handful of lists. Everything else (rounds, current round, round
 //      dates, streaks) is derived from the fixture list already in hand.
 
+import { localizeFixtures, localizeGroups } from '@/lib/nations';
 import { cache } from 'react';
 import {
   apiFootballGet,
@@ -232,6 +233,8 @@ export function activePhase(fixtures: Fixture[]): Phase | null {
 }
 
 export interface SeasonCtx {
+  /** Reader's locale: national-team names are translated for display. */
+  locale: RouteLocale;
   comp: Competition;
   info: LeagueInfo;
   ref: SeasonRef;
@@ -259,7 +262,8 @@ export function currentApiSeason(info: LeagueInfo): LeagueSeason | null {
   return info.seasons.find((s) => s.current) ?? info.seasons.at(-1) ?? null;
 }
 
-function buildCtx(comp: Competition, info: LeagueInfo, meta: LeagueSeason, phase: Phase | null, apiFixtures: Fixture[]): SeasonCtx {
+function buildCtx(comp: Competition, info: LeagueInfo, meta: LeagueSeason, phase: Phase | null, rawFixtures: Fixture[], locale: RouteLocale): SeasonCtx {
+  const apiFixtures = localizeFixtures(rawFixtures, locale);
   const ref: SeasonRef = { apiSeason: meta.year, phase };
   const fixtures = phase ? apiFixtures.filter((f) => parseRound(f.league.round).phase === phase) : apiFixtures;
   const other = phase === 'apertura' ? 'clausura' : phase === 'clausura' ? 'apertura' : null;
@@ -269,6 +273,7 @@ function buildCtx(comp: Competition, info: LeagueInfo, meta: LeagueSeason, phase
   const isCurrentApi = !!current && current.year === meta.year && current.current;
   const isCurrent = isCurrentApi && (!phase || activePhase(apiFixtures) === phase);
   return {
+    locale,
     comp,
     info,
     ref,
@@ -285,13 +290,13 @@ function buildCtx(comp: Competition, info: LeagueInfo, meta: LeagueSeason, phase
 
 /** The season the hub shows: the provider's current API season, and for a
  *  split league the phase it is playing. */
-export async function loadCurrentSeason(comp: Competition, info: LeagueInfo): Promise<SeasonCtx | null> {
+export async function loadCurrentSeason(comp: Competition, info: LeagueInfo, locale: RouteLocale = 'en'): Promise<SeasonCtx | null> {
   const meta = currentApiSeason(info);
   if (!meta) return null;
   const apiFixtures = await loadSeasonFixtures(comp.id, meta.year, seasonTtl(meta.current));
   const phase = comp.format === 'split' ? activePhase(apiFixtures) : null;
   if (comp.format === 'split' && !phase) return null;
-  return buildCtx(comp, info, meta, phase, apiFixtures);
+  return buildCtx(comp, info, meta, phase, apiFixtures, locale);
 }
 
 export type SeasonResolution =
@@ -299,7 +304,7 @@ export type SeasonResolution =
   | { kind: 'redirect'; slug: string }
   | { kind: 'notfound' };
 
-export async function resolveSeason(comp: Competition, info: LeagueInfo, param: string): Promise<SeasonResolution> {
+export async function resolveSeason(comp: Competition, info: LeagueInfo, param: string, locale: RouteLocale = 'en'): Promise<SeasonResolution> {
   const ref = parseSeasonSlug(comp, param);
   if (!ref) return { kind: 'notfound' };
   const meta = info.seasons.find((s) => s.year === ref.apiSeason);
@@ -321,7 +326,7 @@ export async function resolveSeason(comp: Competition, info: LeagueInfo, param: 
     return { kind: 'notfound' };
   }
 
-  const ctx = buildCtx(comp, info, meta, ref.phase, apiFixtures);
+  const ctx = buildCtx(comp, info, meta, ref.phase, apiFixtures, locale);
   // Any other spelling of the same season (never expected, but cheap to
   // guarantee) goes to the one canonical slug.
   if (ctx.slug !== param) return { kind: 'redirect', slug: ctx.slug };
@@ -384,7 +389,7 @@ export function cleanGroupName(name: string, comp: Competition, info: LeagueInfo
 export async function seasonStandings(ctx: SeasonCtx, strict: boolean): Promise<StandingsResult> {
   const coverage = ctx.meta.coverage?.standings;
   if (coverage === false) return { groups: [], computed: false };
-  const api = await loadStandings(ctx.comp.id, ctx.ref.apiSeason, ctx.ttl, strict);
+  const api = localizeGroups(await loadStandings(ctx.comp.id, ctx.ref.apiSeason, ctx.ttl, strict), ctx.locale);
   const phase = ctx.ref.phase;
   if (!phase) return { groups: api, computed: false };
 

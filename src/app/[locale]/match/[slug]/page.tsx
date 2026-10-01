@@ -73,7 +73,7 @@ async function resolve(params: Promise<Params>) {
   const locale = asLocale(raw);
   const id = idFromSlug(slug);
   if (!locale || !id) notFound();
-  const m = await loadMatch(id, PRIMARY_ZONE[locale]);
+  const m = await loadMatch(id, PRIMARY_ZONE[locale], locale);
   if (!m) notFound();
   return { locale, slug, m };
 }

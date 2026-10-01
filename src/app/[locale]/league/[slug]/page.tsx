@@ -167,7 +167,7 @@ async function load(params: Params) {
   const comp = res.comp;
   const info = await loadLeague(comp.id);
   if (!info) notFound();
-  const ctx = await loadCurrentSeason(comp, info);
+  const ctx = await loadCurrentSeason(comp, info, locale);
   return { locale, comp, info, ctx };
 }
 

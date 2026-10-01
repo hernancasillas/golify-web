@@ -1,3 +1,4 @@
+import { localizeFixtures } from '@/lib/nations';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -85,7 +86,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function LivePage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = resolveLocale((await params).locale);
   const L = STR[locale];
-  const fixtures = await liveFixtures(competitionOrder(), strictAtRuntime());
+  const fixtures = localizeFixtures(await liveFixtures(competitionOrder(), strictAtRuntime()), locale);
   const groups = groupByCompetition(fixtures);
   const facts = dayFacts(groups, locale);
   const pagePath = sectionPath('live', locale);

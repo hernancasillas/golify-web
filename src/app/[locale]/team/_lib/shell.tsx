@@ -2,6 +2,7 @@
 // one canonical redirect), the hero data (coach, league position), the
 // breadcrumb trail, the SportsTeam node and the page frame.
 
+import { localizeGroups } from '@/lib/nations';
 import type { ReactNode } from 'react';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { getStandings, type Coach, type StandingRow, type StandingsGroup } from '@/lib/api-football';
@@ -45,7 +46,7 @@ export function parseSub(segment: string, locale: RouteLocale): { key: TeamSub; 
 /** Load the team for a page and enforce its canonical URL in one hop
  *  (bare legacy id, renamed club, wrong-locale sub-segment). */
 export async function resolveTeam(slug: string, locale: RouteLocale, sub?: { key: TeamSub; canonical: boolean }): Promise<TeamCore> {
-  const core = await loadTeam(slug);
+  const core = await loadTeam(slug, locale);
   if (!core) notFound();
   if (slug !== canonicalSlug(core) || (sub && !sub.canonical)) {
     permanentRedirect(teamPath(locale, teamRef(core), sub?.key));
@@ -79,10 +80,11 @@ export async function loadShell(core: TeamCore, locale: RouteLocale): Promise<Te
   const L = teamStrings(locale);
   const t = core.info.team;
   const main = core.main;
-  const [coach, groups] = await Promise.all([
+  const [coach, groupsRaw] = await Promise.all([
     loadCoach(t.id),
     main ? getStandings(main.id, main.year) : Promise.resolve([] as StandingsGroup[]),
   ]);
+  const groups = localizeGroups(groupsRaw, locale);
   const standing = findStanding(groups, t.id);
   const comp = main?.competition ?? null;
   const phaseMatch = /\b(apertura|clausura)\b/i.exec(standing?.group.name ?? '');

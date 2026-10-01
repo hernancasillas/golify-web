@@ -1,5 +1,6 @@
 'use client';
 
+import { nationName } from '@/lib/nations';
 import { matchPath, type RouteLocale } from '@/lib/routes';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -81,8 +82,8 @@ function MatchRow({ f, locale }: { f: Fixture; locale: string }) {
           </span>
         </div>
         <div className="min-w-0 flex-1 space-y-2">
-          <TeamRow name={f.teams.home.name} logo={f.teams.home.logo} score={f.goals.home} />
-          <TeamRow name={f.teams.away.name} logo={f.teams.away.logo} score={f.goals.away} />
+          <TeamRow name={nationName(f.teams.home.name, locale as RouteLocale)} logo={f.teams.home.logo} score={f.goals.home} />
+          <TeamRow name={nationName(f.teams.away.name, locale as RouteLocale)} logo={f.teams.away.logo} score={f.goals.away} />
         </div>
       </div>
     </Link>

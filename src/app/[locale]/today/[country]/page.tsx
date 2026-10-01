@@ -1,3 +1,4 @@
+import { localizeFixtures } from '@/lib/nations';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -173,19 +174,19 @@ function hasVerifiedWatch(cc: HubCountry): boolean {
   return COMPETITIONS.some((c) => broadcastsFor(c.id, cc).length > 0);
 }
 
-async function load(cc: HubCountry) {
+async function load(cc: HubCountry, locale: RouteLocale) {
   const zone = HUB_COUNTRY_INFO[cc].zone;
   const today = isoDateIn(new Date(), zone);
   // Primary entity of the page: strict, so a failed call throws (Next keeps
   // the last good board) instead of publishing an empty day.
-  const fixtures = await getFixturesByDate(today, competitionOrder(cc), zone, { strict: true });
+  const fixtures = localizeFixtures(await getFixturesByDate(today, competitionOrder(cc), zone, { strict: true }), locale);
   return { zone, today, fixtures, groups: groupByCompetition(fixtures) };
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale, cc } = resolve(await params);
   const L = STR[locale];
-  const { groups } = await load(cc);
+  const { groups } = await load(cc, locale);
   const facts = dayFacts(groups, locale);
   const vars = { in: IN_COUNTRY[cc][locale], clock: COUNTRY_CLOCK[cc][locale] };
   const home = competitionsForCountry(cc).map((c) => competitionName(c, locale));
@@ -207,7 +208,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 export default async function CountryHubPage({ params }: { params: Promise<Params> }) {
   const { locale, cc } = resolve(await params);
   const L = STR[locale];
-  const { today, fixtures, groups } = await load(cc);
+  const { today, fixtures, groups } = await load(cc, locale);
   const zones = hubZones(cc);
   const time: TimeMode = { kind: 'zones', zones };
   const counts = countPhases(fixtures);

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { nationName } from '@/lib/nations';
 import { Breadcrumbs } from '@/components/blocks/Breadcrumbs';
 import { FaqSection } from '@/components/blocks/FaqSection';
 import { JsonLd } from '@/components/JsonLd';
@@ -39,7 +40,7 @@ async function relatedLinks(p: Piece, locale: RouteLocale): Promise<Rel[]> {
   if (p.fixture) {
     try {
       const f: Fixture | null = await getFixtureById(p.fixture);
-      if (f) out.push({ label: `${t.match}: ${f.teams.home.name} - ${f.teams.away.name}`, href: matchPath(locale, f) });
+      if (f) out.push({ label: `${t.match}: ${nationName(f.teams.home.name, locale)} - ${nationName(f.teams.away.name, locale)}`, href: matchPath(locale, f) });
     } catch {
       /* skip */
     }
@@ -48,7 +49,7 @@ async function relatedLinks(p: Piece, locale: RouteLocale): Promise<Rel[]> {
     try {
       const rows = await apiFootballGet<{ team: { id: number; name: string } }>('/teams', { id }, { revalidate: 86400 * 7 });
       const team = rows[0]?.team;
-      if (team) out.push({ label: `${t.team}: ${team.name}`, href: teamPath(locale, team) });
+      if (team) out.push({ label: `${t.team}: ${nationName(team.name, locale)}`, href: teamPath(locale, team) });
     } catch {
       /* skip */
     }

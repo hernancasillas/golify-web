@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { localizeDeep, localizeFixtures } from '@/lib/nations';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { cache } from 'react';
@@ -295,9 +296,9 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const locale = asLocale(raw);
   const res = await load(slug);
   if (!res || res.kind !== 'found') return {};
-  const r = res.record;
+  const r = { ...res.record, fixtures: localizeFixtures(res.record.fixtures, locale) };
   const t = STR[locale];
-  const disc = disciplineStats(await loadDetails(detailIds(r)));
+  const disc = disciplineStats(localizeDeep(await loadDetails(detailIds(r)), locale));
   const v = {
     name: r.name,
     comps: listText(compNames(r, locale), t.and),
@@ -321,7 +322,7 @@ export default async function RefereePage({ params }: { params: Promise<Params> 
   const res = await load(slug);
   if (!res) notFound();
   if (res.kind === 'redirect') permanentRedirect(refereePath(locale, res.slug));
-  const r = res.record;
+  const r = { ...res.record, fixtures: localizeFixtures(res.record.fixtures, locale) };
   const path = refereePath(locale, r.name);
   // Uppercase, accents or other spellings of the same slug: one hop.
   if (decoded(slug) !== r.slug) permanentRedirect(path);
@@ -335,7 +336,7 @@ export default async function RefereePage({ params }: { params: Promise<Params> 
   const indexable = played.length >= INDEX_MIN_MATCHES;
   // Event feeds for the discipline numbers. Optional: on failure the block is
   // dropped, never shown as "0 cards".
-  const details = await loadDetails(detailIds(r));
+  const details = localizeDeep(await loadDetails(detailIds(r)), locale);
   const disc = disciplineStats(details);
   const stats = sampleStats(played);
   const comps = compNames(r, locale);

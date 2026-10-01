@@ -287,7 +287,7 @@ const BY_LOCALE: Record<RouteLocale, Record<string, string>> = { es: ES, pt: PT,
 
 /** English (provider) name → localized; club names pass through untouched. */
 export function nationName(name: string, locale: RouteLocale): string {
-  return BY_LOCALE[locale][name] ?? name;
+  return BY_LOCALE[locale]?.[name] ?? name;
 }
 
 /** Localized name → provider English name (for slugs). */
@@ -310,4 +310,54 @@ const CANON: Record<string, string> = {
 export function nationKey(name: string): string {
   const en = NATION_ENGLISH[name] ?? name;
   return CANON[en] ?? en;
+}
+
+type NamedTeams = { teams: { home: { name: string }; away: { name: string } } };
+
+/** Shallow copy of a fixture with national-team names translated (display only). */
+export function localizeFixture<T extends NamedTeams>(f: T, locale: RouteLocale): T {
+  if (locale === 'en' || !f?.teams) return f;
+  return {
+    ...f,
+    teams: {
+      ...f.teams,
+      home: { ...f.teams.home, name: nationName(f.teams.home.name, locale) },
+      away: { ...f.teams.away, name: nationName(f.teams.away.name, locale) },
+    },
+  };
+}
+
+export function localizeFixtures<T extends NamedTeams>(list: T[], locale: RouteLocale): T[] {
+  return locale === 'en' ? list : list.map((f) => localizeFixture(f, locale));
+}
+
+/** Shallow copy of any `{ name }` team-ish object with the name translated. */
+export function localizeTeam<T extends { name: string }>(t: T, locale: RouteLocale): T {
+  if (locale === 'en' || !t) return t;
+  return { ...t, name: nationName(t.name, locale) };
+}
+
+/** Standings groups with every row's team name translated. */
+export function localizeGroups<G extends { rows: { team: { name: string } }[] }>(groups: G[], locale: RouteLocale): G[] {
+  if (locale === 'en') return groups;
+  return groups.map((g) => ({ ...g, rows: g.rows.map((r) => ({ ...r, team: localizeTeam(r.team, locale) })) }));
+}
+
+/** Deep copy-on-write pass that translates the `name` of every team-shaped
+ *  object (`{ id, name, logo }`) in a payload. Leagues pass through because
+ *  only nations are in the map. Use at a page's data entry point. */
+export function localizeDeep<T>(value: T, locale: RouteLocale): T {
+  if (locale === 'en') return value;
+  const walk = (v: unknown): unknown => {
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === 'object') {
+      const o = v as Record<string, unknown>;
+      const out: Record<string, unknown> = {};
+      for (const k of Object.keys(o)) out[k] = walk(o[k]);
+      if (typeof o.name === 'string' && 'logo' in o) out.name = nationName(o.name, locale);
+      return out;
+    }
+    return v;
+  };
+  return walk(value) as T;
 }

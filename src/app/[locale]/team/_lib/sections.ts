@@ -6,6 +6,7 @@
 // (ISR keeps the previous copy) instead of publishing an empty squad or an
 // empty calendar under noindex.
 
+import { localizeFixtures } from '@/lib/nations';
 import { getTeamPlayers, type Fixture, type PlayerWithStats, type SquadPlayer } from '@/lib/api-football';
 import { loadSeasonFixtures, loadSquad, loadTeamStats, type TeamCore, type TeamSeasonStats } from './data';
 
@@ -36,7 +37,7 @@ export interface FixturesData {
 }
 
 export async function loadFixturesData(core: TeamCore): Promise<FixturesData> {
-  const fixtures = core.season ? await loadSeasonFixtures(core.info.team.id, core.season, true) : [];
+  const fixtures = localizeFixtures(core.season ? await loadSeasonFixtures(core.info.team.id, core.season, true) : [], core.locale);
   return { fixtures, indexable: core.playsCovered && fixtures.length > 0 };
 }
 

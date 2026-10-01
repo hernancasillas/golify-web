@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { localizeFixtures } from '@/lib/nations';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { competitionBySlug, competitionName, type Competition } from '@/lib/competitions';
@@ -180,7 +181,7 @@ export default async function WhereToWatchLeaguePage({ params }: { params: Promi
   const indexable = countries.length > 0;
   const vars = { league };
 
-  const { fixtures } = await upcomingLeagueFixtures(c);
+  const fixtures = localizeFixtures((await upcomingLeagueFixtures(c)).fixtures, locale);
   const zones = leagueZones(c);
 
   const faq: [string, string][] = countries.slice(0, 5).map((k) => {

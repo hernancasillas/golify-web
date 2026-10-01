@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { localizeDeep } from '@/lib/nations';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -243,7 +244,7 @@ function stats(w: LeagueWindow) {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { c, locale } = resolve(await params);
   const t = STR[locale];
-  const w = await getLeagueWindow(c);
+  const w = localizeDeep(await getLeagueWindow(c), locale);
   const s = stats(w);
   const league = competitionName(c, locale);
   const vars = { league, year: new Date().getUTCFullYear(), months: WINDOW_MONTHS, n: w.rows.length, a: s.ins, b: s.outs };
@@ -264,7 +265,7 @@ export default async function TransfersLeaguePage({ params }: { params: Promise<
 
   // Strict inside: one failed club list throws and Next keeps the last good
   // copy, rather than publishing a window with that club's moves missing.
-  const w = await getLeagueWindow(c);
+  const w = localizeDeep(await getLeagueWindow(c), locale);
   const s = stats(w);
   const indexable = w.rows.length >= INDEX_THRESHOLD;
   const since = longDate(w.since, locale);

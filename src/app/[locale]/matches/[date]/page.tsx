@@ -1,3 +1,4 @@
+import { localizeFixtures } from '@/lib/nations';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -179,11 +180,11 @@ function resolve(p: Params) {
   return { locale, date, zone, today, offset };
 }
 
-async function load(date: string, zone: string, offset: number) {
+async function load(date: string, zone: string, offset: number, locale: RouteLocale) {
   const ttl = offset >= 0 ? 600 : offset >= -3 ? 3600 : TTL.daily;
   // Primary entity: strict, so a failed call throws (Next keeps the last
   // good copy) instead of publishing the day as empty.
-  const fixtures = await fixturesOfDay(date, zone, competitionOrder(), { revalidate: ttl, strict: true });
+  const fixtures = localizeFixtures(await fixturesOfDay(date, zone, competitionOrder(), { revalidate: ttl, strict: true }), locale);
   return { fixtures, groups: groupByCompetition(fixtures) };
 }
 
@@ -194,7 +195,7 @@ function isIndexable(offset: number, fixtures: Fixture[]): boolean {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale, date, zone, offset } = resolve(await params);
   const L = STR[locale];
-  const { fixtures, groups } = await load(date, zone, offset);
+  const { fixtures, groups } = await load(date, zone, offset, locale);
   const facts = dayFacts(groups, locale);
   const pretty = dayLabel(date, locale, 'medium');
   const clock = LOCALE_ZONE[locale].label[locale];
@@ -218,7 +219,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 export default async function DateArchivePage({ params }: { params: Promise<Params> }) {
   const { locale, date, zone, today, offset } = resolve(await params);
   const L = STR[locale];
-  const { fixtures, groups } = await load(date, zone, offset);
+  const { fixtures, groups } = await load(date, zone, offset, locale);
   const indexable = isIndexable(offset, fixtures);
   const facts = dayFacts(groups, locale);
   const clock = LOCALE_ZONE[locale].label[locale];

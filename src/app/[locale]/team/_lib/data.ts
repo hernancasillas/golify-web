@@ -14,6 +14,7 @@
 //   - Secondary blocks use the tolerant fetchers and simply do not render when
 //     their data is missing.
 
+import { localizeDeep } from '@/lib/nations';
 import {
   TTL,
   apiFootballGet,
@@ -60,6 +61,8 @@ export interface CurrentComp {
 
 export interface TeamCore {
   info: TeamInfo;
+  /** Reader's locale: national-team names are translated for display. */
+  locale: RouteLocale;
   /** Every competition the team has ever played, with the seasons it played. */
   history: LeagueInfo[];
   /** Competitions of the current season, covered first, league before cups. */
@@ -115,7 +118,7 @@ function currentComps(history: LeagueInfo[], now: number): CurrentComp[] {
 
 /** Resolve the team behind a `{slug}-{id}` param. null → 404. Throws when the
  *  API fails, so ISR keeps serving the last good render. */
-export async function loadTeam(slugParam: string): Promise<TeamCore | null> {
+export async function loadTeam(slugParam: string, locale: RouteLocale = 'en'): Promise<TeamCore | null> {
   const id = idFromSlug(slugParam);
   if (!id) return null;
   const info = await getTeam(id, { strict: true });
@@ -132,7 +135,8 @@ export async function loadTeam(slugParam: string): Promise<TeamCore | null> {
     current[0] ??
     null;
   return {
-    info,
+    info: localizeDeep(info, locale),
+    locale,
     history,
     current,
     main,

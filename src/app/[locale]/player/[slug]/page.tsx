@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { localizeDeep } from '@/lib/nations';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
@@ -65,7 +66,7 @@ async function resolve(params: Promise<Params>): Promise<{ locale: RouteLocale; 
   const d = await loadPlayer(id);
   if (!d) notFound();
   if (slug !== playerSlugId(d.profile)) permanentRedirect(playerPath(locale, d.profile));
-  return { locale, d };
+  return { locale, d: localizeDeep(d, locale) };
 }
 
 function seasonLabelFor(d: PlayerPageData) {

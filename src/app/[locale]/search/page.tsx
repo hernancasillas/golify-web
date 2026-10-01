@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { localizeDeep } from '@/lib/nations';
 import Image from 'next/image';
 import Link from 'next/link';
 import { searchPlayers, searchTeams } from '@/lib/api-football';
@@ -75,7 +76,7 @@ export default async function SearchPage({
   const [teams, players] = ready
     ? await Promise.all([searchTeams(q).catch(() => []), searchPlayers(q).catch(() => [])])
     : [[], []];
-  const topTeams = teams.slice(0, 10);
+  const topTeams = localizeDeep(teams.slice(0, 10), l);
   const topPlayers = players.slice(0, 10);
   const empty = ready && !comps.length && !topTeams.length && !topPlayers.length;
 
