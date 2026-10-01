@@ -1,462 +1,548 @@
-import { idFromSlug } from '@/lib/slug';
 import type { Metadata } from 'next';
-import Image from 'next/image';
-import { notFound } from 'next/navigation';
-import { getFixtureById, type Fixture } from '@/lib/api-football';
-import { InstallCTA } from '@/components/InstallCTA';
+import Link from 'next/link';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
+import { JsonLd } from '@/components/JsonLd';
+import { LocalTimeScript } from '@/components/LocalTime';
 import { DisplayHeading } from '@/components/revamp/ui';
-import { LocalTime, LocalTimeScript } from '@/components/LocalTime';
+import { AdSlot } from '@/components/ads/AdSlot';
+import { Breadcrumbs } from '@/components/blocks/Breadcrumbs';
+import { FaqSection } from '@/components/blocks/FaqSection';
+import { KickoffTable } from '@/components/blocks/KickoffTable';
+import { CommunitySplit } from '@/components/blocks/CommunitySplit';
+import { Scoreboard } from '@/components/match/Scoreboard';
+import { EventsTimeline } from '@/components/match/EventsTimeline';
+import { Lineups } from '@/components/match/Lineups';
+import { StatsComparison } from '@/components/match/StatsComparison';
+import { FormGuide } from '@/components/match/FormGuide';
+import { MatchRowList } from '@/components/match/MatchRowList';
+import { StandingsExcerpt } from '@/components/match/StandingsExcerpt';
+import { GoalsList } from '@/components/match/GoalsList';
+import { ManOfTheMatch, PlayerRatings, RATING_SOURCE } from '@/components/match/PlayerRatings';
+import { InjuryList } from '@/components/match/InjuryList';
+import { PredictCta } from '@/components/match/PredictCta';
+import { Card, Section } from '@/components/match/ui';
+import { goalsOf, ratedPlayers, sortedEvents } from '@/components/match/facts';
+import { correctShare } from '@/lib/community';
 import {
-  SITE_NAME,
-  IOS_APP_ID,
-  WORLD_CUP_LEAGUE_ID,
-  worldCupEventNode,
-  absoluteUrl,
-  fill,
-  localeAlternates,
-  type Locale,
-} from '@/lib/site';
+  ROUTE_LOCALES,
+  datePath,
+  h2hPath,
+  matchPath,
+  matchSlug,
+  refereePath,
+  stadiumPath,
+  teamPath,
+  whereToWatchPath,
+  type RouteLocale,
+} from '@/lib/routes';
+import { idFromSlug, refereeName } from '@/lib/slug';
+import { absolute, pageMetadata, type JsonLdNode } from '@/lib/seo';
+import { fill, worldCupEventNode, WORLD_CUP_EVENT } from '@/lib/site';
+import { HUB_COUNTRY_INFO, KICKOFF_ZONES, isoDateIn, longDateIn, shortDateIn, timeIn } from '@/lib/timezones';
+import { WATCH_COUNTRY_SLUGS } from '@/data/broadcasters';
+import { loadMatch, type MatchModel } from './_lib/load';
+import { buildView, type MatchView } from './_lib/view';
+import { FAQ_OTHER_ZONES, PRIMARY_ZONE } from './_lib/i18n';
 
-// SSR content page (was a client redirect funnel). Renders real match facts so
-// Google AND AI answer-engines can index/cite it, with an install CTA below.
-export const revalidate = 30;
+// Match page v2 — one URL, three moments (plan A4, strategy §6). The same
+// address serves the preview before kickoff, the live match and the final
+// report; the content follows fixturePhase(), and the server HTML is always
+// complete and indexable. A small client component keeps the score and the
+// minute current while the match is live (plan A7).
+//
+// ISR: rendered on first visit, then kept for a minute. Every fetch below is
+// cached, and the primary fixture load is strict, so a failed API call never
+// replaces a good copy with an empty page.
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  return [];
+}
 
 type Params = { locale: string; slug: string };
 
-// ---- tiny i18n (page-local; chrome only, facts come from data) ----
-const STR = {
-  es: {
-    vs: 'vs',
-    scheduled: 'Programado',
-    live: 'En vivo',
-    finished: 'Finalizado',
-    venue: 'Estadio',
-    competition: 'Competición',
-    round: 'Fase',
-    kickoff: 'Inicio',
-    followInApp:
-      'Sigue este partido en vivo, con alineaciones, estadísticas y notificaciones en la app Golify.',
-    openApp: 'Abrir en Golify',
-    ios: 'Descargar para iOS',
-    android: 'Descargar para Android',
-    // "Dónde ver" section. We do not broadcast the match and we do not list
-    // TV channels we cannot verify, so this answers the question we can
-    // answer: how to follow it minute by minute, and where.
-    howToTitle: 'Dónde seguir {home} vs {away} en vivo',
-    howToLead:
-      'El partido se sigue minuto a minuto en Golify: marcador en vivo, alineaciones, tarjetas y notificación en cuanto cae el gol.',
-    howToHonest:
-      'Golify no transmite el partido. Te damos el seguimiento en vivo y las estadísticas; la transmisión corre por cuenta de quien tenga los derechos en tu país.',
-    howToKickoff: 'Hora de inicio, en tu horario local:',
-    howToStarted: 'Comenzó, en tu horario local:',
-    faqWhere: '¿Dónde seguir {home} vs {away} en vivo?',
-    faqWhereA:
-      'En Golify. La app da el marcador en vivo minuto a minuto, alineaciones, tarjetas y una notificación en cada gol de {home} vs {away}. Golify no transmite el partido en video.',
-    faqWhen: '¿A qué hora juegan {home} y {away}?',
-    faqWhenA: '{home} vs {away} comienza {when} ({competition}).',
-    faqScore: '¿Cómo quedó {home} vs {away}?',
-    faqScoreA: '{home} {score} {away}, en {competition}.',
-    metaScheduled: '{home} vs {away}: horario y dónde seguirlo en vivo',
-    metaLive: '{home} {score} {away} en vivo: minuto a minuto',
-    metaFinished: '{home} {score} {away}: resultado',
-    descScheduled:
-      '{home} vs {away} de {competition} ({round}). Horario de inicio y seguimiento en vivo minuto a minuto, con alineaciones y alertas de gol en Golify.',
-    descPlayed:
-      '{home} {score} {away} en {competition} ({round}). Resultado, estadísticas y el minuto a minuto del partido en Golify.',
-  },
-  en: {
-    vs: 'vs',
-    scheduled: 'Scheduled',
-    live: 'Live',
-    finished: 'Finished',
-    venue: 'Venue',
-    competition: 'Competition',
-    round: 'Round',
-    kickoff: 'Kickoff',
-    followInApp:
-      'Follow this match live with lineups, stats and notifications in the Golify app.',
-    openApp: 'Open in Golify',
-    ios: 'Download for iOS',
-    android: 'Download for Android',
-    howToTitle: 'Where to follow {home} vs {away} live',
-    howToLead:
-      'Follow the match minute by minute in Golify: live score, lineups, cards and a notification the moment a goal goes in.',
-    howToHonest:
-      'Golify does not broadcast the match. We give you the live tracking and the stats; the video feed belongs to whoever holds the rights in your country.',
-    howToKickoff: 'Kickoff, in your local time:',
-    howToStarted: 'Kicked off, in your local time:',
-    faqWhere: 'Where can I follow {home} vs {away} live?',
-    faqWhereA:
-      'In Golify. The app gives you the live minute-by-minute score, lineups, cards and a notification on every goal of {home} vs {away}. Golify does not stream the match video.',
-    faqWhen: 'What time do {home} and {away} play?',
-    faqWhenA: '{home} vs {away} kicks off {when} ({competition}).',
-    faqScore: 'How did {home} vs {away} end?',
-    faqScoreA: '{home} {score} {away}, in {competition}.',
-    metaScheduled: '{home} vs {away}: kickoff time and how to follow it live',
-    metaLive: '{home} {score} {away} live: minute by minute',
-    metaFinished: '{home} {score} {away}: result',
-    descScheduled:
-      '{home} vs {away} in {competition} ({round}). Kickoff time and live minute-by-minute tracking, with lineups and goal alerts in Golify.',
-    descPlayed:
-      '{home} {score} {away} in {competition} ({round}). Result, stats and the full minute-by-minute in Golify.',
-  },
-  pt: {
-    vs: 'x',
-    scheduled: 'Agendado',
-    live: 'Ao vivo',
-    finished: 'Encerrado',
-    venue: 'Estádio',
-    competition: 'Competição',
-    round: 'Fase',
-    kickoff: 'Início',
-    followInApp:
-      'Acompanhe este jogo ao vivo, com escalações, estatísticas e notificações no app Golify.',
-    openApp: 'Abrir no Golify',
-    ios: 'Baixar para iOS',
-    android: 'Baixar para Android',
-    howToTitle: 'Onde acompanhar {home} x {away} ao vivo',
-    howToLead:
-      'O jogo é acompanhado minuto a minuto no Golify: placar ao vivo, escalações, cartões e notificação na hora do gol.',
-    howToHonest:
-      'O Golify não transmite o jogo. A gente entrega o acompanhamento ao vivo e as estatísticas; a transmissão é de quem tem os direitos no seu país.',
-    howToKickoff: 'Horário de início, no seu horário local:',
-    howToStarted: 'Começou, no seu horário local:',
-    faqWhere: 'Onde acompanhar {home} x {away} ao vivo?',
-    faqWhereA:
-      'No Golify. O app traz o placar ao vivo minuto a minuto, escalações, cartões e notificação em cada gol de {home} x {away}. O Golify não transmite o vídeo do jogo.',
-    faqWhen: 'Que horas {home} e {away} jogam?',
-    faqWhenA: '{home} x {away} começa {when} ({competition}).',
-    faqScore: 'Como terminou {home} x {away}?',
-    faqScoreA: '{home} {score} {away}, na {competition}.',
-    metaScheduled: '{home} x {away}: horário e onde acompanhar ao vivo',
-    metaLive: '{home} {score} {away} ao vivo: minuto a minuto',
-    metaFinished: '{home} {score} {away}: resultado',
-    descScheduled:
-      '{home} x {away} na {competition} ({round}). Horário de início e acompanhamento ao vivo minuto a minuto, com escalações e alertas de gol no Golify.',
-    descPlayed:
-      '{home} {score} {away} na {competition} ({round}). Resultado, estatísticas e o minuto a minuto do jogo no Golify.',
-  },
-} as const;
-
-function t(locale: string) {
-  return STR[locale as keyof typeof STR] ?? STR.es;
+function asLocale(v: string): RouteLocale | null {
+  return (ROUTE_LOCALES as readonly string[]).includes(v) ? (v as RouteLocale) : null;
 }
 
-function isLiveStatus(f: Fixture): boolean {
-  return ['1H', '2H', 'HT', 'ET', 'P', 'LIVE'].includes(f.fixture.status.short);
+async function resolve(params: Promise<Params>) {
+  const { locale: raw, slug } = await params;
+  const locale = asLocale(raw);
+  const id = idFromSlug(slug);
+  if (!locale || !id) notFound();
+  const m = await loadMatch(id, PRIMARY_ZONE[locale]);
+  if (!m) notFound();
+  return { locale, slug, m };
 }
 
-function statusLabel(f: Fixture, locale: string): string {
-  const s = f.fixture.status.short;
-  const L = t(locale);
-  if (isLiveStatus(f)) return L.live;
-  if (['FT', 'AET', 'PEN'].includes(s)) return L.finished;
-  return L.scheduled;
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const { locale, m } = await resolve(params);
+  const v = buildView(m, locale);
+  return pageMetadata({
+    locale,
+    path: v.path,
+    title: v.title,
+    description: v.description,
+    noindex: !m.indexable,
+    appRoute: `match/${m.f.fixture.id}`,
+  });
 }
 
-// schema.org EventStatusType only defines Scheduled/Postponed/Cancelled/
-// Rescheduled/MovedOnline — there is no "live" or "finished" member, so a
-// playing/played match stays EventScheduled; we only flip the abnormal states.
-function schemaEventStatus(f: Fixture): string {
-  const s = f.fixture.status.short;
-  if (s === 'PST') return 'https://schema.org/EventPostponed';
-  if (['CANC', 'ABD'].includes(s)) return 'https://schema.org/EventCancelled';
+// ---- Structured data -------------------------------------------------------
+
+// schema.org EventStatusType only has Scheduled / Postponed / Cancelled /
+// Rescheduled / MovedOnline: a live or finished match stays EventScheduled.
+function eventStatus(short: string): string {
+  if (short === 'PST') return 'https://schema.org/EventPostponed';
+  if (short === 'CANC' || short === 'ABD') return 'https://schema.org/EventCancelled';
   return 'https://schema.org/EventScheduled';
 }
 
-function title(f: Fixture, locale: string): string {
-  const L = t(locale);
-  const base = `${f.teams.home.name} ${L.vs} ${f.teams.away.name}`;
-  const played = f.goals.home != null && f.goals.away != null;
-  return played ? `${base} ${f.goals.home}-${f.goals.away}` : base;
-}
-
-/** The values every localized template for this page interpolates. */
-function matchVars(f: Fixture, locale: string) {
-  const L = t(locale);
-  const played = f.goals.home != null && f.goals.away != null;
-  return {
-    home: f.teams.home.name,
-    away: f.teams.away.name,
-    vs: L.vs,
-    score: played ? `${f.goals.home}-${f.goals.away}` : '',
-    competition: f.league.name,
-    round: f.league.round,
-    // Templates that mention a time keep it machine-neutral: the visible
-    // kickoff is rendered by <LocalTime> in the visitor's timezone, and the
-    // structured data carries the ISO instant.
-    when: new Date(f.fixture.date).toLocaleString(locale, {
-      dateStyle: 'long',
-      timeStyle: 'short',
-      timeZone: 'UTC',
-    }) + ' UTC',
-  };
-}
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<Params>;
-}): Promise<Metadata> {
-  const { locale, slug } = await params;
-  const id = String(idFromSlug(slug) ?? slug);
-  const f = await getFixtureById(Number(id));
-  if (!f) return { title: SITE_NAME };
-
-  const L = t(locale);
-  const vars = matchVars(f, locale);
-
-  // Search Console shows the demand as "argentina vs egypt live" and
-  // "argentina vs switzerland": the fixture, plus an intent. The headline
-  // matches the intent the match is actually in — a kickoff time before it
-  // starts, the running score while it plays, the result once it is over.
-  const played = f.goals.home != null && f.goals.away != null;
-  const headline = fill(
-    isLiveStatus(f) ? L.metaLive : played ? L.metaFinished : L.metaScheduled,
-    vars,
-  );
-  // The league stays in the description and the H2, not the title: with it,
-  // titles ran past 80 characters and Google cut the intent phrase off.
-  const name = `${headline} | ${SITE_NAME}`;
-  const desc = fill(played ? L.descPlayed : L.descScheduled, vars);
-  const path = `/${locale}/match/${id}`;
-
-  return {
-    title: name,
-    description: desc,
-    alternates: localeAlternates(locale as Locale, `/match/${id}`),
-    openGraph: {
-      title: name,
-      description: desc,
-      url: absoluteUrl(path),
-      siteName: SITE_NAME,
-      type: 'website',
-      images: [f.teams.home.logo, f.teams.away.logo].filter(Boolean),
-    },
-    twitter: { card: 'summary_large_image', title: name, description: desc },
-    other: {
-      'apple-itunes-app': `app-id=${IOS_APP_ID}, app-argument=golify://match/${id}`,
-    },
-  };
-}
-
-export default async function MatchPage({
-  params,
-}: {
-  params: Promise<Params>;
-}) {
-  const { locale, slug } = await params;
-  const id = String(idFromSlug(slug) ?? slug);
-  const f = await getFixtureById(Number(id));
-  if (!f) notFound();
-
-  const L = t(locale);
-  const played = f.goals.home != null && f.goals.away != null;
+function sportsEventNode(m: MatchModel, v: MatchView, locale: RouteLocale, seasonUrl: string | null): JsonLdNode {
+  const f = m.f;
   const kickoff = new Date(f.fixture.date);
-  const isWorldCup = f.league.id === WORLD_CUP_LEAGUE_ID;
-
-  const homeTeam = {
+  // The provider does not report the final-whistle time; a match runs about
+  // two hours (two and a half with extra time), which is what Google gets.
+  const extra = ['AET', 'PEN'].includes(f.fixture.status.short) ? 30 : 0;
+  const end = new Date(kickoff.getTime() + (120 + extra) * 60_000);
+  const country = f.league.country && f.league.country !== 'World' ? f.league.country : undefined;
+  const team = (t: MatchModel['f']['teams']['home']) => ({
     '@type': 'SportsTeam',
-    name: f.teams.home.name,
-    logo: f.teams.home.logo,
-  };
-  const awayTeam = {
-    '@type': 'SportsTeam',
-    name: f.teams.away.name,
-    logo: f.teams.away.logo,
-  };
+    name: t.name,
+    logo: t.logo,
+    url: absolute(teamPath(locale, t)),
+  });
+  const home = team(f.teams.home);
+  const away = team(f.teams.away);
+  const venue = f.fixture.venue;
 
-  // schema.org SportsEvent — the structured signal AI/Google parse to cite us.
-  // `location` and `startDate` are required by Google; we always emit both
-  // (venue fields fall back to the league's host country so the item stays
-  // valid even when the API hasn't assigned a stadium yet).
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'SportsEvent',
-    name: `${f.teams.home.name} ${L.vs} ${f.teams.away.name}`,
-    description: `${f.teams.home.name} ${L.vs} ${f.teams.away.name} — ${f.league.name} ${f.league.round}. ${L.followInApp}`,
-    sport: 'Soccer',
-    startDate: f.fixture.date,
-    // Football matches run ~2h; gives Google an explicit endDate.
-    endDate: new Date(kickoff.getTime() + 2 * 60 * 60 * 1000).toISOString(),
-    eventStatus: schemaEventStatus(f),
-    location: {
-      '@type': 'Place',
-      name: f.fixture.venue.name ?? f.league.country ?? f.league.name,
-      address: f.fixture.venue.city ?? f.league.country ?? undefined,
-    },
-    image: [f.teams.home.logo, f.teams.away.logo, f.league.logo].filter(
-      Boolean,
-    ),
-    homeTeam,
-    awayTeam,
-    performer: [homeTeam, awayTeam],
-    organizer: isWorldCup
-      ? {
-          '@type': 'Organization',
-          name: 'FIFA',
-          url: 'https://www.fifa.com',
-        }
-      : { '@type': 'Organization', name: f.league.name },
-    // superEvent must itself be a valid Event (name + startDate + location):
-    // for World Cup matches we link the canonical tournament node by @id.
-    superEvent: isWorldCup
-      ? worldCupEventNode(absoluteUrl(`/${locale}/world-cup`))
+  const superEvent =
+    m.isWorldCup && f.league.season === 2026
+      ? worldCupEventNode(absolute(`/${locale}/world-cup`))
       : {
           '@type': 'SportsEvent',
-          name: f.league.name,
-          startDate: f.fixture.date,
-          location: {
-            '@type': 'Place',
-            name: f.league.country ?? f.league.name,
-          },
-        },
-    url: absoluteUrl(`/${locale}/match/${id}`),
-  };
+          name: v.compWithSeason,
+          sport: 'Soccer',
+          ...(seasonUrl ? { url: absolute(seasonUrl) } : {}),
+        };
 
-  const live = isLiveStatus(f);
-  const vars = matchVars(f, locale);
-
-  // The question this page is found by. We answer the one we can answer
-  // truthfully — how to follow the match — and say plainly that we do not
-  // carry the broadcast, rather than inventing a channel list.
-  const faqEntries = played
-    ? [
-        [fill(L.faqScore, vars), fill(L.faqScoreA, vars)],
-        [fill(L.faqWhere, vars), fill(L.faqWhereA, vars)],
-      ]
-    : [
-        [fill(L.faqWhere, vars), fill(L.faqWhereA, vars)],
-        [fill(L.faqWhen, vars), fill(L.faqWhenA, vars)],
-      ];
-
-  const faqJsonLd = {
+  return {
     '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    '@id': `${absoluteUrl(`/${locale}/match/${id}`)}#faq`,
-    mainEntity: faqEntries.map(([question, answer]) => ({
-      '@type': 'Question',
-      name: question,
-      acceptedAnswer: { '@type': 'Answer', text: answer },
-    })),
+    '@type': 'SportsEvent',
+    name: `${f.teams.home.name} vs ${f.teams.away.name}`,
+    description: v.description,
+    sport: 'Soccer',
+    startDate: f.fixture.date,
+    endDate: end.toISOString(),
+    eventStatus: eventStatus(f.fixture.status.short),
+    location: venue.name
+      ? {
+          '@type': 'StadiumOrArena',
+          name: venue.name,
+          address: { '@type': 'PostalAddress', ...(venue.city ? { addressLocality: venue.city } : {}), ...(country ? { addressCountry: country } : {}) },
+        }
+      : { '@type': 'Place', name: country ?? f.league.name },
+    image: [f.teams.home.logo, f.teams.away.logo].filter(Boolean),
+    homeTeam: home,
+    awayTeam: away,
+    competitor: [home, away],
+    ...(m.isWorldCup
+      ? { organizer: { '@type': 'Organization', name: WORLD_CUP_EVENT.organizer.name, url: WORLD_CUP_EVENT.organizer.url } }
+      : {}),
+    superEvent,
+    url: absolute(v.path(locale)),
   };
+}
+
+// ---- FAQ -------------------------------------------------------------------
+
+function kickoffAnswer(m: MatchModel, v: MatchView, locale: RouteLocale): string {
+  const t = v.t;
+  const iso = m.f.fixture.date;
+  const zone = PRIMARY_ZONE[locale];
+  const baseDate = isoDateIn(new Date(iso), zone);
+  const others = FAQ_OTHER_ZONES[locale]
+    .map((key) => KICKOFF_ZONES.find((z) => z.key === key))
+    .filter((z): z is (typeof KICKOFF_ZONES)[number] => !!z)
+    .map((z) => {
+      const time = timeIn(iso, z.zone, locale);
+      const sameDay = isoDateIn(new Date(iso), z.zone) === baseDate;
+      return fill(t.faqWhenOther, { country: z.label[locale], time: sameDay ? time : `${time} (${shortDateIn(iso, z.zone, locale)})` });
+    })
+    // "En Colombia es a las 19:30; en Argentina…": only the first is
+    // capitalized (pt starts with the country name, which stays as is).
+    .map((s, i) => (i === 0 || locale === 'pt' ? s : s[0].toLowerCase() + s.slice(1)));
+  return fill(t.faqWhenA, {
+    home: v.home,
+    away: v.away,
+    date: longDateIn(iso, zone, locale),
+    time: timeIn(iso, zone, locale),
+    others: `${others.join('; ')}.`,
+  });
+}
+
+function watchAnswer(m: MatchModel, v: MatchView, locale: RouteLocale): string {
+  const t = v.t;
+  if (m.broadcasts.length === 0) return fill(t.faqWhereNone, { competition: v.compLabel });
+  const list = m.broadcasts.map((b) => `${HUB_COUNTRY_INFO[b.country].name[locale]}: ${b.channels.map((c) => c.name).join(', ')}`);
+  return fill(t.faqWhereHas, { list: list.join('; ') });
+}
+
+function faqEntries(m: MatchModel, v: MatchView, locale: RouteLocale, motm: ReturnType<typeof ratedPlayers>[number] | undefined): [string, string][] {
+  const t = v.t;
+  const vars = { home: v.home, away: v.away };
+  const out: [string, string][] = [];
+  const venue = m.f.fixture.venue;
+  const venueVars = venue.name ? { venue: venue.name, city: venue.city ? `, ${venue.city}` : '' } : null;
+
+  if (m.phase === 'finished') {
+    if (v.summary[0]) out.push([fill(t.faqResult, vars), v.summary[0]]);
+    if (v.scorers.length) out.push([fill(t.faqScorers, vars), v.scorers.join(' ')]);
+    if (motm) {
+      out.push([
+        fill(t.faqMotm, vars),
+        fill(t.faqMotmA, { player: motm.name, team: motm.teamName, source: RATING_SOURCE, rating: motm.rating.toFixed(1) }),
+      ]);
+    }
+    if (venueVars) out.push([fill(t.faqVenuePast, vars), fill(t.faqVenuePastA, venueVars)]);
+    return out;
+  }
+
+  if (m.phase !== 'live') out.push([fill(t.faqWhen, vars), kickoffAnswer(m, v, locale)]);
+  out.push([fill(t.faqWhere, vars), watchAnswer(m, v, locale)]);
+  if (venueVars) out.push([fill(t.faqVenue, vars), fill(t.faqVenueA, venueVars)]);
+  if (m.preview && m.split) {
+    const p = m.split.pct;
+    const top = p.home >= p.draw && p.home >= p.away ? 'home' : p.away >= p.draw ? 'away' : 'draw';
+    const n = m.split.total.toLocaleString(locale === 'pt' ? 'pt-BR' : locale === 'en' ? 'en-US' : 'es-MX');
+    const pctText = locale === 'es' ? `${p[top]} %` : `${p[top]}%`;
+    out.push([
+      t.faqFav,
+      top === 'draw'
+        ? fill(t.faqFavDraw, { pct: pctText, n })
+        : fill(t.faqFavWin, { pct: pctText, n, team: top === 'home' ? v.home : v.away }),
+    ]);
+  }
+  if (m.preview && m.standings && v.preview[0] && m.blocks.standings) {
+    // The first "así llegan" sentence is the standings one whenever both
+    // teams are in the table (previewSentences puts it first).
+    const rows = m.standings.group.rows;
+    if (rows.some((r) => r.team.id === m.f.teams.home.id) && rows.some((r) => r.team.id === m.f.teams.away.id)) {
+      out.push([fill(t.faqTable, vars), v.preview[0]]);
+    }
+  }
+  return out;
+}
+
+// ---- Page ------------------------------------------------------------------
+
+export default async function MatchPage({ params }: { params: Promise<Params> }) {
+  const { locale, slug, m } = await resolve(params);
+  const f = m.f;
+
+  // Canonical slug from the data. A bare legacy id (/es/match/1490500), an
+  // old team name or a wrong order all land here: one permanent redirect to
+  // the URL the builders produce, and every internal link already uses it.
+  const canonical = matchSlug(f.teams.home.name, f.teams.away.name, f.fixture.id);
+  if (slug !== canonical) permanentRedirect(matchPath(locale, f));
+
+  const v = buildView(m, locale);
+  const t = v.t;
+  const path = v.path(locale);
+  const indexable = m.indexable;
+  const live = m.phase === 'live';
+  const finished = m.phase === 'finished';
+  const homeTeam = f.teams.home;
+  const awayTeam = f.teams.away;
+
+  const goals = goalsOf(f);
+  const rated = ratedPlayers(f, v.names);
+  const motm = finished ? rated[0] : undefined;
+  const faq = faqEntries(m, v, locale, motm);
+  const correct = finished && m.split ? correctShare(m.split, f.goals) : null;
+
+  const venue = f.fixture.venue.name
+    ? {
+        label: f.fixture.venue.city ? `${f.fixture.venue.name}, ${f.fixture.venue.city}` : f.fixture.venue.name,
+        href: f.fixture.venue.id ? stadiumPath(locale, { id: f.fixture.venue.id, name: f.fixture.venue.name }) : null,
+      }
+    : null;
+  const referee = f.fixture.referee ? { label: refereeName(f.fixture.referee), href: refereePath(locale, f.fixture.referee) } : null;
+
+  const tableCaption = m.standings?.group.name && m.standings.group.name !== f.league.name
+    ? m.standings.group.name.replace(/^Group\b/, locale === 'en' ? 'Group' : 'Grupo')
+    : null;
+
+  const dayLabel = shortDateIn(f.fixture.date, PRIMARY_ZONE[locale], locale);
+
+  // ---- Blocks ----
+  const summaryBlock =
+    finished && v.summary.length > 0 ? (
+      <Section title={t.summaryTitle}>
+        <Card className="p-5">
+          <p className="leading-relaxed font-semibold">{v.summary.join(' ')}</p>
+          <p className="mt-3 text-xs font-semibold text-muted-foreground">{t.summaryNote}</p>
+        </Card>
+      </Section>
+    ) : null;
+
+  const previewBlock =
+    m.preview && v.preview.length > 0 ? (
+      <Section title={t.previewTitle}>
+        <Card className="p-5">
+          <ul className="space-y-2 leading-relaxed font-semibold">
+            {v.preview.map((s) => (
+              <li key={s}>{s}</li>
+            ))}
+          </ul>
+        </Card>
+      </Section>
+    ) : null;
+
+  const offNote =
+    m.phase === 'off' ? (
+      <Card className="mt-6 p-5">
+        <p className="font-semibold">{fill(t.offNote, { status: v.status })}</p>
+      </Card>
+    ) : null;
+
+  const watchBlock = m.preview ? (
+    <Section title={fill(t.watchTitle, { home: v.home, away: v.away })}>
+      <Card className="p-5">
+        {m.broadcasts.length > 0 ? (
+          <>
+            <p className="text-sm font-semibold text-muted-foreground">
+              {fill(t.watchHas, { competition: v.compLabel, season: m.broadcasts[0].season })}
+            </p>
+            <ul className="mt-3 divide-y divide-border">
+              {m.broadcasts.map((b) => {
+                const href = whereToWatchPath(locale, f.league.id, WATCH_COUNTRY_SLUGS[b.country]);
+                return (
+                  <li key={`${b.country}-${b.season}`} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
+                    <span className="font-extrabold">{HUB_COUNTRY_INFO[b.country].name[locale]}</span>
+                    <span className="min-w-0 flex-1 text-right font-semibold">{b.channels.map((c) => c.name).join(', ')}</span>
+                    {href ? (
+                      <Link href={href} className="w-full text-right text-xs font-bold text-primary hover:underline sm:w-auto">
+                        {t.watchMore}
+                      </Link>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        ) : (
+          <p className="leading-relaxed font-semibold text-muted-foreground">{fill(t.watchNone, { competition: v.compLabel })}</p>
+        )}
+        <p className="mt-3 leading-relaxed font-semibold">{t.watchApp}</p>
+      </Card>
+    </Section>
+  ) : null;
+
+  const formBlock = m.blocks.form ? (
+    <Section title={t.formTitle}>
+      <FormGuide
+        locale={locale}
+        rows={[
+          { team: homeTeam, fixtures: m.formHome },
+          { team: awayTeam, fixtures: m.formAway },
+        ]}
+      />
+    </Section>
+  ) : null;
+
+  const h2hBlock = m.blocks.h2h ? (
+    <Section title={t.h2hTitle} action={{ href: h2hPath(locale, homeTeam, awayTeam), label: t.h2hAll }}>
+      <MatchRowList fixtures={m.h2h} locale={locale} showDate />
+    </Section>
+  ) : null;
+
+  const tableBlock = m.standings ? (
+    <Section title={t.tableTitle} action={v.tableHref ? { href: v.tableHref, label: t.tableAll } : null}>
+      <StandingsExcerpt
+        group={m.standings.group}
+        rows={m.standings.rows}
+        highlight={[homeTeam.id, awayTeam.id]}
+        caption={tableCaption}
+        locale={locale}
+      />
+    </Section>
+  ) : null;
+
+  const lineupsBlock = m.blocks.lineups ? (
+    <Section title={m.preview ? t.lineupsConfirmed : t.lineupsTitle}>
+      <Lineups lineups={f.lineups} locale={locale} />
+    </Section>
+  ) : null;
+
+  const injuriesBlock =
+    m.preview && m.injuries.length > 0 ? (
+      <Section title={t.injuriesTitle}>
+        <InjuryList injuries={m.injuries} teams={[homeTeam, awayTeam]} locale={locale} />
+      </Section>
+    ) : null;
+
+  const eventsBlock =
+    !m.preview && f.events.length > 0 ? (
+      <Section title={t.eventsTitle}>
+        <EventsTimeline events={sortedEvents(f)} names={v.names} locale={locale} />
+      </Section>
+    ) : null;
+
+  const statsBlock = m.blocks.stats ? (
+    <Section title={t.statsTitle}>
+      <StatsComparison stats={f.statistics} home={homeTeam} away={awayTeam} locale={locale} />
+    </Section>
+  ) : null;
+
+  const goalsBlock =
+    finished && goals.length > 0 ? (
+      <Section title={t.goalsTitle}>
+        <GoalsList goals={goals} names={v.names} locale={locale} />
+      </Section>
+    ) : null;
+
+  const motmBlock = motm ? (
+    <Section title={t.motmTitle}>
+      <ManOfTheMatch p={motm} locale={locale} note={fill(t.motmNote, { source: RATING_SOURCE })} />
+    </Section>
+  ) : null;
+
+  const ratingsBlock =
+    finished && rated.length > 1 ? (
+      <Section title={t.ratingsTitle}>
+        <PlayerRatings players={rated.slice(0, 5)} locale={locale} />
+        <p className="mt-2 text-xs font-semibold text-muted-foreground">{fill(t.ratingsNote, { source: RATING_SOURCE })}</p>
+      </Section>
+    ) : null;
+
+  const quinielaBlock =
+    finished && m.split && correct != null ? (
+      <Section title={t.quinielaTitle}>
+        <Card className="p-5">
+          <p className="leading-relaxed font-semibold">
+            {fill(t.quinielaText, {
+              pct: locale === 'es' ? `${correct} %` : `${correct}%`,
+              n: m.split.total.toLocaleString(locale === 'pt' ? 'pt-BR' : locale === 'en' ? 'en-US' : 'es-MX'),
+              outcome:
+                f.goals.home === f.goals.away
+                  ? t.outcomeDraw
+                  : fill(t.outcomeWin, { team: (f.goals.home ?? 0) > (f.goals.away ?? 0) ? v.home : v.away }),
+            })}
+          </p>
+          <div className="mt-4">
+            <CommunitySplit split={m.split} home={v.home} away={v.away} locale={locale} compact />
+          </div>
+        </Card>
+      </Section>
+    ) : null;
+
+  const midAd = <AdSlot id="match-mid" indexable={indexable} label={t.ad} />;
+
+  // Block order per moment. The H2H → ad → table sequence is the plan C3
+  // slot "between H2H and table".
+  const mainBlocks = m.preview ? (
+    <>
+      {offNote}
+      {previewBlock}
+      {m.phase === 'scheduled' ? <KickoffTable iso={f.fixture.date} locale={locale} title={fill(t.kickoffTitle, { home: v.home, away: v.away })} /> : null}
+      {watchBlock}
+      {formBlock}
+      {h2hBlock}
+      {midAd}
+      {tableBlock}
+      {lineupsBlock}
+      {injuriesBlock}
+    </>
+  ) : live ? (
+    <>
+      {eventsBlock}
+      {statsBlock}
+      {lineupsBlock}
+      {h2hBlock}
+      {midAd}
+      {tableBlock}
+    </>
+  ) : (
+    <>
+      {summaryBlock}
+      {goalsBlock}
+      {motmBlock}
+      {statsBlock}
+      {ratingsBlock}
+      {quinielaBlock}
+      {lineupsBlock}
+      {eventsBlock}
+      {h2hBlock}
+      {midAd}
+      {tableBlock}
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      <JsonLd data={sportsEventNode(m, v, locale, v.seasonHref)} />
       <LocalTimeScript locale={locale} />
       <SiteNav />
 
-      <main className="mx-auto max-w-2xl px-5 pt-2 pb-16 sm:px-8">
-        <p className="text-sm font-bold tracking-wide text-muted-foreground uppercase">
-          {f.league.name} · {f.league.round}
-        </p>
+      <main className="mx-auto max-w-6xl px-4 pt-2 pb-12 sm:px-8">
+        <Breadcrumbs crumbs={v.crumbs} currentPath={path} />
 
-        <DisplayHeading as="h1" className="mt-3 text-3xl sm:text-4xl">
-          {title(f, locale)}
+        <DisplayHeading as="h1" className="mt-4 text-3xl sm:text-4xl">
+          {v.matchName}
         </DisplayHeading>
 
-        {live ? (
-          <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-live-glow px-3 py-1.5 text-sm font-bold text-live">
-            <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-live" />
-            {statusLabel(f, locale)}
-            {f.fixture.status.elapsed ? ` · ${f.fixture.status.elapsed}'` : ''}
-          </span>
-        ) : (
-          <p className="mt-3 text-sm font-bold text-muted-foreground">
-            {statusLabel(f, locale)}
-          </p>
-        )}
+        <Scoreboard
+          f={f}
+          locale={locale}
+          eyebrow={v.eyebrow}
+          homeHref={teamPath(locale, homeTeam)}
+          awayHref={teamPath(locale, awayTeam)}
+          venue={venue}
+          referee={referee}
+        />
 
-        <div className="mt-7 flex items-center justify-between rounded-2xl border border-border bg-surface p-6">
-          <div className="flex flex-1 flex-col items-center gap-2.5 text-center">
-            <Image src={f.teams.home.logo} alt={f.teams.home.name} width={56} height={56} unoptimized />
-            <span className="text-sm font-bold">{f.teams.home.name}</span>
+        <AdSlot id="match-below-score" indexable={indexable} label={t.ad} />
+
+        <div className="grid grid-cols-1 gap-x-10 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="min-w-0">
+            {mainBlocks}
+            <FaqSection title={t.faqTitle} entries={faq} pagePath={path} />
           </div>
-          <div className="px-4 font-display text-3xl font-bold tabular-nums">
-            {played ? `${f.goals.home} - ${f.goals.away}` : L.vs}
-          </div>
-          <div className="flex flex-1 flex-col items-center gap-2.5 text-center">
-            <Image src={f.teams.away.logo} alt={f.teams.away.name} width={56} height={56} unoptimized />
-            <span className="text-sm font-bold">{f.teams.away.name}</span>
-          </div>
+
+          <aside className="min-w-0 space-y-8 lg:pt-10">
+            <div className="mt-10 lg:mt-0">
+              <PredictCta
+                locale={locale}
+                fixtureId={f.fixture.id}
+                slug={canonical}
+                split={m.split}
+                home={v.home}
+                away={v.away}
+                played={finished}
+              />
+            </div>
+
+            {m.sameDay.length > 0 ? (
+              <Section title={fill(t.sameDayTitle, { date: dayLabel })} className="mt-0" action={{ href: datePath(locale, m.localDate), label: t.sameDayAll }}>
+                <MatchRowList fixtures={m.sameDay} locale={locale} showLeague />
+              </Section>
+            ) : null}
+
+            {m.nextInLeague.length > 0 ? (
+              <Section title={fill(t.nextTitle, { competition: v.compLabel })} className="mt-0">
+                <MatchRowList fixtures={m.nextInLeague} locale={locale} showDate />
+              </Section>
+            ) : null}
+          </aside>
         </div>
 
-        <dl className="mt-7 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="font-bold text-muted-foreground">{L.kickoff}</dt>
-            <dd className="mt-0.5 font-semibold">
-              <LocalTime iso={f.fixture.date} locale={locale} />
-            </dd>
-          </div>
-          {f.fixture.venue.name ? (
-            <div>
-              <dt className="font-bold text-muted-foreground">{L.venue}</dt>
-              <dd className="mt-0.5 font-semibold">
-                {f.fixture.venue.name}
-                {f.fixture.venue.city ? `, ${f.fixture.venue.city}` : ''}
-              </dd>
-            </div>
-          ) : null}
-          <div>
-            <dt className="font-bold text-muted-foreground">{L.competition}</dt>
-            <dd className="mt-0.5 font-semibold">{f.league.name}</dd>
-          </div>
-          <div>
-            <dt className="font-bold text-muted-foreground">{L.round}</dt>
-            <dd className="mt-0.5 font-semibold">{f.league.round}</dd>
-          </div>
-        </dl>
-
-        <section className="mt-10 rounded-2xl border border-border bg-surface p-6">
-          <h2 className="font-display text-xl font-bold tracking-wide uppercase">
-            {fill(L.howToTitle, vars)}
-          </h2>
-          <p className="mt-3 leading-relaxed font-semibold text-muted-foreground">
-            {L.howToLead}
-          </p>
-          <p className="mt-2 leading-relaxed font-semibold text-muted-foreground">
-            {played ? L.howToStarted : L.howToKickoff}{' '}
-            <LocalTime iso={f.fixture.date} locale={locale} />
-          </p>
-
-          {/* These two Q&A pairs are the FAQPage in the structured data. They
-              are rendered here word for word: schema that does not appear on
-              the page is a rich-result penalty waiting to happen. */}
-          <div className="mt-6 space-y-5">
-            {faqEntries.map(([question, answer]) => (
-              <div key={question}>
-                <h3 className="text-sm font-bold text-foreground">{question}</h3>
-                <p className="mt-1 leading-relaxed font-semibold text-muted-foreground">
-                  {answer}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-5 text-sm font-semibold text-muted-foreground">
-            {L.howToHonest}
-          </p>
-
-          <div className="mt-6">
-            <InstallCTA
-              deeplink={`golify://match/${id}`}
-              labels={{ open: L.openApp, ios: L.ios, android: L.android }}
-            />
-          </div>
-        </section>
+        <AdSlot id="match-end" indexable={indexable} label={t.ad} />
       </main>
 
-      <SiteFooter locale={locale as Locale} />
+      <SiteFooter locale={locale} />
     </div>
   );
 }
