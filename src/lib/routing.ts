@@ -17,7 +17,9 @@ import {
   HUB_COUNTRIES,
   ROUTE_LOCALES,
   SECTIONS,
+  SUBSECTIONS,
   isCompetitionSlug,
+  subsectionFromSegment,
   isHubCountry,
   sectionPath,
   type RouteLocale,
@@ -125,7 +127,18 @@ function resolveLocalized(locale: RouteLocale, segs: string[]): Resolution {
     // Bare id: the page knows the slug and redirects once.
     return s1 === def.internal ? NEXT : { action: 'rewrite', path: join(locale, [def.internal, ...rest]) };
   }
-  return { action: 'redirect', path: join(locale, [canonical, ...rest]) };
+  // Team sub-pages carry a localized word too (/time/x/elenco): translate it
+  // in the same hop instead of leaving the page to redirect a second time.
+  const tail =
+    def === SECTIONS.team && rest[1]
+      ? [rest[0], localizeTeamSub(rest[1], locale), ...rest.slice(2)]
+      : rest;
+  return { action: 'redirect', path: join(locale, [canonical, ...tail]) };
+}
+
+function localizeTeamSub(seg: string, locale: RouteLocale): string {
+  const hit = subsectionFromSegment(seg, ['squad', 'fixtures', 'stats']);
+  return hit ? SUBSECTIONS[hit.key][locale] : seg;
 }
 
 /** Resolve a request pathname (no query string). */

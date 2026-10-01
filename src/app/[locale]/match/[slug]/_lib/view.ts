@@ -4,7 +4,7 @@
 // visible copy can never disagree.
 
 import { competitionName, roundLabel, seasonLabel, seasonSlug, type SeasonRef } from '@/lib/competitions';
-import { competitionPath, homePath, matchPath, type RouteLocale } from '@/lib/routes';
+import { competitionPath, homePath, matchPath, worldCupPath, type RouteLocale } from '@/lib/routes';
 import type { Crumb } from '@/lib/seo';
 import { fill } from '@/lib/site';
 import { shortDateIn, timeIn } from '@/lib/timezones';
@@ -86,7 +86,7 @@ export function buildView(m: MatchModel, locale: RouteLocale) {
   } else if (m.isWorldCup && f.league.season === 2026) {
     // No routes.ts builder exists for the World Cup hub (it predates the
     // localized scheme and keeps its /{locale}/world-cup path).
-    crumbs.push({ name: t.worldCup, path: `/${locale}/world-cup` });
+    crumbs.push({ name: t.worldCup, path: worldCupPath(locale) });
   }
   crumbs.push({ name: matchName });
 

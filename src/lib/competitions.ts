@@ -140,6 +140,12 @@ export interface SeasonRef {
   phase: Phase | null;
 }
 
+/** Seasons named across two calendar years (Premier League 2026/27, and Liga
+ *  MX, whose API season holds Apertura 2026 + Clausura 2027). */
+export function spansTwoYears(c: Competition): boolean {
+  return c.format === 'cross' || (c.format === 'split' && c.clausuraOffset === 1);
+}
+
 export function seasonSlug(c: Competition, ref: SeasonRef): string {
   if (c.format === 'split' && ref.phase) {
     const year = ref.phase === 'apertura' ? ref.apiSeason : ref.apiSeason + (c.clausuraOffset ?? 0);
@@ -176,8 +182,9 @@ export function parseSeasonSlug(c: Competition, slug: string): SeasonRef | null 
 export function seasonLabel(c: Competition, ref: SeasonRef, locale: RouteLocale): string {
   if (c.format === 'split' && ref.phase) {
     const year = ref.phase === 'apertura' ? ref.apiSeason : ref.apiSeason + (c.clausuraOffset ?? 0);
-    const word = ref.phase === 'apertura' ? 'Apertura' : locale === 'pt' ? 'Clausura' : 'Clausura';
-    return `${word} ${year}`;
+    // Same word in every locale: "Apertura"/"Clausura" are the tournaments'
+    // proper names, also in Brazilian and English coverage.
+    return `${ref.phase === 'apertura' ? 'Apertura' : 'Clausura'} ${year}`;
   }
   if (c.format === 'cross') return `${ref.apiSeason}/${String(ref.apiSeason + 1).slice(2)}`;
   return String(ref.apiSeason);
@@ -201,7 +208,10 @@ export function parseRound(round: string): ParsedRound {
     phase = pm[1].toLowerCase() as Phase;
     rest = pm[2].trim();
   }
-  const nm = /^(?:(?:Regular Season|League Stage|Group Stage|Championship Group|Relegation Group|Placement Group|Round)\s*-\s*)?(\d+)$/i.exec(rest);
+  // Only the main phase's rounds are "jornada N". LigaPro's second phase
+  // ("Championship Group - 3") restarts its count, so numbering it would
+  // collide with "Regular Season - 3".
+  const nm = /^(?:(?:Regular Season|League Stage|Group Stage|Round)\s*-\s*)?(\d+)$/i.exec(rest);
   return { phase, number: nm ? Number(nm[1]) : null, stage: rest };
 }
 
@@ -216,7 +226,33 @@ const STAGES: Record<string, Record<RouteLocale, string>> = {
   'play-in semi-finals': { es: 'Play-in', pt: 'Play-in', en: 'Play-in' },
   'play-in final': { es: 'Play-in (final)', pt: 'Play-in (final)', en: 'Play-in final' },
   '3rd place final': { es: 'Tercer lugar', pt: 'Terceiro lugar', en: 'Third place' },
+  'third place': { es: 'Tercer lugar', pt: 'Terceiro lugar', en: 'Third place' },
+  'group stage': { es: 'Fase de grupos', pt: 'Fase de grupos', en: 'Group stage' },
+  'league stage': { es: 'Fase liga', pt: 'Fase de liga', en: 'League phase' },
+  'club friendlies': { es: 'Amistoso', pt: 'Amistoso', en: 'Friendly' },
+  'preliminary round': { es: 'Fase previa', pt: 'Fase preliminar', en: 'Preliminary round' },
 };
+
+const GROUP_PHASES: Record<string, Record<RouteLocale, string>> = {
+  championship: { es: 'Grupo campeonato', pt: 'Grupo do título', en: 'Championship group' },
+  relegation: { es: 'Grupo por la permanencia', pt: 'Grupo do rebaixamento', en: 'Relegation group' },
+  placement: { es: 'Grupo de ubicación', pt: 'Grupo de classificação', en: 'Placement group' },
+};
+
+/** Provider stage names that carry a number but are not a "jornada". */
+function patternedStage(stage: string, locale: RouteLocale, c: Competition | null): string | null {
+  let m = /^(Championship|Relegation|Placement) Group\s*-\s*(\d+)$/i.exec(stage);
+  if (m) return `${GROUP_PHASES[m[1].toLowerCase()][locale]} · ${roundWord(c, locale)} ${m[2]}`;
+  m = /^Qualification Round (\d+)$/i.exec(stage) ?? /^(\d+)(?:st|nd|rd|th) Qualifying Round$/i.exec(stage);
+  if (m) return locale === 'es' ? `Fase previa ${m[1]}` : locale === 'pt' ? `Fase preliminar ${m[1]}` : `Qualifying round ${m[1]}`;
+  m = /^Round of (\d+)$/i.exec(stage);
+  if (m && m[1] !== '16' && m[1] !== '32') {
+    return locale === 'es' ? `Ronda de ${m[1]}` : locale === 'pt' ? `Fase de ${m[1]}` : `Round of ${m[1]}`;
+  }
+  m = /^1\/(\d+)-finals$/i.exec(stage);
+  if (m) return locale === 'en' ? `1/${m[1]} finals` : `1/${m[1]} de final`;
+  return null;
+}
 
 const ROUND_WORD: Record<RouteLocale, string> = { es: 'Jornada', pt: 'Rodada', en: 'Matchday' };
 
@@ -228,5 +264,5 @@ export function roundWord(c: Competition | null, locale: RouteLocale): string {
 export function roundLabel(round: string, locale: RouteLocale, c: Competition | null = null): string {
   const r = parseRound(round);
   if (r.number != null) return `${roundWord(c, locale)} ${r.number}`;
-  return STAGES[r.stage.toLowerCase()]?.[locale] ?? r.stage;
+  return STAGES[r.stage.toLowerCase()]?.[locale] ?? patternedStage(r.stage, locale, c) ?? r.stage;
 }

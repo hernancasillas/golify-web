@@ -35,6 +35,7 @@ import {
   stadiumPath,
   teamPath,
   whereToWatchPath,
+  worldCupPath,
   type RouteLocale,
 } from '@/lib/routes';
 import { idFromSlug, refereeName } from '@/lib/slug';
@@ -120,7 +121,7 @@ function sportsEventNode(m: MatchModel, v: MatchView, locale: RouteLocale, seaso
 
   const superEvent =
     m.isWorldCup && f.league.season === 2026
-      ? worldCupEventNode(absolute(`/${locale}/world-cup`))
+      ? worldCupEventNode(absolute(worldCupPath(locale)))
       : {
           '@type': 'SportsEvent',
           name: v.compWithSeason,

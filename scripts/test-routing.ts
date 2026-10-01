@@ -57,6 +57,9 @@ const cases: Case[] = [
   ['/es/partidos/2026-10-04', 'rewrite /es/matches/2026-10-04'],
   ['/es/app/match/123', 'next'],
   ['/es/seshio', 'next'],
+  ['/es/time/toluca-2281/elenco', 'redirect /es/equipo/toluca-2281/plantilla'],
+  ['/en/equipo/toluca-2281/plantilla', 'redirect /en/team/toluca-2281/squad'],
+  ['/pt/team/toluca-2281/stats', 'redirect /pt/time/toluca-2281/estatisticas'],
 ];
 
 let fail = 0;

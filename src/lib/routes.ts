@@ -172,6 +172,11 @@ export function homePath(locale: RouteLocale): string {
   return `/${locale}`;
 }
 
+/** World Cup 2026 archive hub (kept on its original English segment). */
+export function worldCupPath(locale: RouteLocale): string {
+  return `/${locale}/world-cup`;
+}
+
 export function matchSlug(homeName: string, awayName: string, fixtureId: number): string {
   return withId(`${teamSlug(homeName)}-vs-${teamSlug(awayName)}`, fixtureId);
 }
