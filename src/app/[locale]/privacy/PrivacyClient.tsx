@@ -7,6 +7,7 @@ import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
 import { DisplayHeading } from '@/components/revamp/ui';
 import type { Locale } from '@/lib/site';
+import { WebsitePrivacy } from './WebsitePrivacy';
 
 export default function PrivacyClient() {
   const { t, locale } = useI18n();
@@ -152,6 +153,8 @@ export default function PrivacyClient() {
             <p>{t('privacy.terms.changes.text')}</p>
           </div>
         </Reveal>
+
+        <WebsitePrivacy locale={locale as Locale} />
 
         {/* Account Deletion */}
         <Reveal as="section" className="mt-12">

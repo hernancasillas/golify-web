@@ -1,6 +1,8 @@
 import { I18nProvider } from '@/components/I18nProvider';
 import { InAppBrowserBanner } from '@/components/InAppBrowserHint';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { AnalyticsScripts, ADSENSE_CLIENT } from '@/components/analytics/AnalyticsScripts';
+import { ConsentBanner } from '@/components/consent/ConsentBanner';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
@@ -109,6 +111,8 @@ export async function generateMetadata({
     },
     other: {
       'apple-itunes-app': 'app-id=6772339872',
+      // AdSense site verification (publisher id; team must confirm it).
+      'google-adsense-account': ADSENSE_CLIENT,
     },
   };
 }
@@ -192,6 +196,8 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans">
+        {/* Consent defaults must run before any Google tag, so this goes first. */}
+        <AnalyticsScripts />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(brandJsonLd(locale)) }}
@@ -208,6 +214,7 @@ export default async function LocaleLayout({
             {children}
           </I18nProvider>
         </ThemeProvider>
+        <ConsentBanner locale={locale as Locale} />
         <Analytics />
         <SpeedInsights />
       </body>
