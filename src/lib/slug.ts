@@ -22,8 +22,9 @@ const SPECIAL: Record<string, string> = {
 // as "america"). Only stripped when a real name remains after them.
 const PREFIXES = new Set(['club', 'cd', 'cf', 'fc', 'ca', 'sc', 'ac', 'afc', 'cs', 'se', 'ec']);
 
-export function slugify(input: string): string {
-  const base = input
+export function slugify(input: string | null | undefined): string {
+  // Provider rows occasionally carry a null name; never crash a page on it.
+  const base = (input ?? '')
     .toLowerCase()
     .replace(/[ßæœøłđðþı]/g, (c) => SPECIAL[c] ?? c)
     .normalize('NFD')

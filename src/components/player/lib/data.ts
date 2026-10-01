@@ -56,7 +56,8 @@ export function fullName(p: Pick<PlayerBio, 'firstname' | 'lastname'>): string |
 /** A national team row: API-Football names them after the country
  *  ("Mexico", "Mexico U23"). */
 function isNationalTeam(team: TeamRef, nationality: string | null): boolean {
-  if (!nationality) return false;
+  // The provider sometimes sends a stats row with a null team.
+  if (!nationality || !team?.name) return false;
   return team.name === nationality || team.name.startsWith(`${nationality} U`);
 }
 

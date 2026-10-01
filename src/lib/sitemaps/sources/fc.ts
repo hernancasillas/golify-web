@@ -11,7 +11,8 @@ import type { SitemapEntry, SitemapSource } from '../types';
 import { fcPath, sectionPath } from '@/lib/routes';
 import { FC_SITEMAP_MAX, getSitemapPlayers } from '@/components/watch/data/fc';
 
-const PER_FILE = 1666;
+// 1,665 + the index entry on file 1 = 1,666 entries = 4,998 URLs.
+const PER_FILE = 1665;
 const FILES = Math.ceil(FC_SITEMAP_MAX / PER_FILE);
 const MEMO_MS = 10 * 60 * 1000;
 
