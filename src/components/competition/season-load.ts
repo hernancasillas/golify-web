@@ -26,7 +26,9 @@ export function parseSection(segment: string, locale: RouteLocale): { spec: Sect
     const key = hit.key as SectionKey;
     return { spec: { kind: 'section', key }, canonical: subsection(key, locale) === segment };
   }
-  const words = Object.values(SUBSECTIONS.round).join('|');
+  // "fecha-14" is how Colombia, Argentina, Chile, Ecuador and Libertadores
+  // fans name a round: accept it and redirect to the canonical jornada-14.
+  const words = [...Object.values(SUBSECTIONS.round), 'fecha'].join('|');
   const m = new RegExp(`^(${words})-(\\d{1,3})$`).exec(segment);
   if (m) {
     const n = Number(m[2]);
