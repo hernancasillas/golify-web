@@ -100,7 +100,7 @@ function t(locale: string) {
   return STR[locale as keyof typeof STR] ?? STR.es;
 }
 
-const path = (l: Locale) => `/${l}/nosotros`;
+const path = (l: Locale) => sectionPath('about', l);
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale } = await params;

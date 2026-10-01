@@ -54,6 +54,7 @@ export const SECTIONS = {
   author: { internal: 'author', es: 'autor', pt: 'autor', en: 'author' },
   report: { internal: 'report', es: 'informe', pt: 'relatorio', en: 'report' },
   search: { internal: 'search', es: 'buscar', pt: 'buscar', en: 'search' },
+  about: { internal: 'nosotros', es: 'nosotros', pt: 'sobre', en: 'about' },
   contact: { internal: 'contact', es: 'contacto', pt: 'contato', en: 'contact' },
   editorialPolicy: { internal: 'editorial-policy', es: 'politica-editorial', pt: 'politica-editorial', en: 'editorial-policy' },
   privacy: { internal: 'privacy', es: 'privacidad', pt: 'privacidade', en: 'privacy' },

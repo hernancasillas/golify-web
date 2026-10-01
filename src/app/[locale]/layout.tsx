@@ -20,6 +20,7 @@ import {
   ogImages,
   type Locale,
 } from '@/lib/site';
+import { sectionPath } from '@/lib/routes';
 import '../globals.css';
 
 // This is the root layout, and it lives under the locale segment on purpose:
@@ -156,6 +157,14 @@ function brandJsonLd(locale: string) {
         url: SITE_URL,
         inLanguage: b.htmlLang,
         publisher: { '@id': `${SITE_URL}/#organization` },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${SITE_URL}${sectionPath('search', locale as Locale)}?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
       },
       {
         '@type': 'MobileApplication',

@@ -78,7 +78,7 @@ const entry = (path: (l: RouteLocale) => string, lastmod?: string): SitemapEntry
 
 /** Pages that predate the localized scheme and keep the same segment in
  *  every locale. routes.ts has no builder for them (see sharedRequests). */
-const LEGACY_STATIC = ['world-cup', 'world-cup/bracket', 'features', 'nosotros'];
+const LEGACY_STATIC = ['world-cup', 'world-cup/bracket', 'features'];
 
 const STATIC_SECTIONS: SectionKey[] = [
   'today',
@@ -94,6 +94,7 @@ const STATIC_SECTIONS: SectionKey[] = [
   'terms',
   'cookies',
   'advertise',
+  'about',
 ];
 
 export async function staticEntries(): Promise<SitemapEntry[]> {

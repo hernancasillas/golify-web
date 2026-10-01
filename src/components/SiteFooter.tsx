@@ -89,7 +89,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
     { href: sectionPath('downloads', l), text: t.downloads },
   ];
   const about = [
-    { href: `/${l}/nosotros`, text: t.about },
+    { href: sectionPath('about', l), text: t.about },
     { href: sectionPath('contact', l), text: t.contact },
     { href: sectionPath('editorialPolicy', l), text: t.editorial },
     { href: sectionPath('author', l), text: t.authors },
