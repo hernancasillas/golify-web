@@ -41,6 +41,7 @@ import {
   type SectionKey,
 } from '@/lib/routes';
 import { WORLD_CUP_LEAGUE_ID, WORLD_CUP_SEASON } from '@/lib/site';
+import { isoDateIn } from '@/lib/timezones';
 import type { SitemapEntry } from './types';
 import { dedupe } from './xml';
 
@@ -111,12 +112,20 @@ export async function hubEntries(): Promise<SitemapEntry[]> {
   return HUB_COUNTRIES.map((cc) => entry((l) => hubPath(l, cc)));
 }
 
-/** Date archive: last 30 days + next 7 (UTC dates). */
+/** Date archive: last 30 days + next 7, only days with at least one covered
+ *  fixture (the page's own threshold). The days come from the season fixture
+ *  lists the match sitemaps already load — no extra API calls. Counted in
+ *  Mexico City, the zone the es page uses (pt/en pages share the URL date). */
 export async function dateEntries(now = new Date()): Promise<SitemapEntry[]> {
+  const seasons = await Promise.all(COMPETITIONS.map((c) => seasonFixtures(c)));
+  const days = new Set<string>();
+  for (const s of seasons) {
+    for (const f of s?.fixtures ?? []) days.add(isoDateIn(new Date(f.fixture.date), 'America/Mexico_City'));
+  }
   const out: SitemapEntry[] = [];
   for (let d = -30; d <= 7; d++) {
-    const iso = new Date(now.getTime() + d * 86400_000).toISOString().slice(0, 10);
-    out.push(entry((l) => datePath(l, iso)));
+    const iso = isoDateIn(new Date(now.getTime() + d * 86400_000), 'America/Mexico_City');
+    if (days.has(iso)) out.push(entry((l) => datePath(l, iso)));
   }
   return out;
 }
