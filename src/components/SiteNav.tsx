@@ -18,9 +18,9 @@ export function SiteNav() {
   const locale = seg[1] === 'en' || seg[1] === 'pt' ? seg[1] : 'es';
 
   const LABELS = {
-    es: { today: 'Hoy', live: 'En vivo', leagues: 'Ligas', pools: 'Quinielas', transfers: 'Fichajes', news: 'Noticias', download: 'Descarga la app', menu: 'Menú', search: 'Buscar equipo, jugador o liga', go: 'Buscar' },
-    en: { today: 'Today', live: 'Live', leagues: 'Leagues', pools: 'Pools', transfers: 'Transfers', news: 'News', download: 'Get the app', menu: 'Menu', search: 'Search team, player or league', go: 'Search' },
-    pt: { today: 'Hoje', live: 'Ao vivo', leagues: 'Ligas', pools: 'Bolões', transfers: 'Transferências', news: 'Notícias', download: 'Baixe o app', menu: 'Menu', search: 'Buscar time, jogador ou liga', go: 'Buscar' },
+    es: { today: 'Hoy', live: 'En vivo', leagues: 'Ligas', pools: 'Quinielas', transfers: 'Fichajes', news: 'Noticias', download: 'Descarga la app', menu: 'Menú', search: 'Buscar', go: 'Buscar' },
+    en: { today: 'Today', live: 'Live', leagues: 'Leagues', pools: 'Pools', transfers: 'Transfers', news: 'News', download: 'Get the app', menu: 'Menu', search: 'Search', go: 'Search' },
+    pt: { today: 'Hoje', live: 'Ao vivo', leagues: 'Ligas', pools: 'Bolões', transfers: 'Transferências', news: 'Notícias', download: 'Baixe o app', menu: 'Menu', search: 'Buscar', go: 'Buscar' },
   } as const;
 
   const label = LABELS[locale as keyof typeof LABELS];
@@ -67,19 +67,19 @@ export function SiteNav() {
         </Link>
 
         <div className="flex min-w-0 items-center gap-2 sm:gap-8">
-          <div className="hidden items-center gap-5 text-sm font-bold lg:flex">
+          <div className="hidden items-center gap-4 text-sm font-bold lg:flex xl:gap-5">
             {links.map((x) => (
               <Link
                 key={x.href}
                 href={x.href}
-                className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
               >
                 {x.live ? <span aria-hidden className="h-2 w-2 rounded-full bg-live" /> : null}
                 {x.text}
               </Link>
             ))}
           </div>
-          {searchForm('hidden w-44 xl:w-56 md:block')}
+          {searchForm('hidden w-32 shrink-0 md:block xl:w-48')}
 
           <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher />
