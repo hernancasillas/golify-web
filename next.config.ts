@@ -4,6 +4,15 @@ const nextConfig: NextConfig = {
   // PDF generation for the printable downloads runs in route handlers; the
   // renderer ships its own font/layout engines and must not be bundled.
   serverExternalPackages: ["@react-pdf/renderer"],
+  // Build-time prerendering of the static boards (home, indexes, guides) all
+  // reads API-Football, whose 450 req/min quota is shared with the app.
+  // Many workers rendering at once burst past it and failed the build, so
+  // render with one worker, two pages at a time, and retry a failed page.
+  experimental: {
+    staticGenerationMaxConcurrency: 2,
+    staticGenerationMinPagesPerWorker: 1000,
+    staticGenerationRetryCount: 2,
+  },
   images: {
     // API-Football CDN — league and team logos.
     remotePatterns: [
