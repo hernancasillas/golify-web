@@ -12,6 +12,8 @@
 //   - a per-instance concurrency cap keeps a crawler burst from turning one
 //     render into dozens of parallel calls.
 
+import { unstable_cache } from 'next/cache';
+
 const BASE_URL = 'https://v3.football.api-sports.io';
 const API_KEY = process.env.API_FOOTBALL_KEY ?? '';
 
@@ -69,50 +71,83 @@ interface GetOptions {
   strict?: boolean;
 }
 
+type Page<T> = { rows: T[]; paging?: ApiResponse<T>['paging'] };
+
+/** One uncached call to the provider. Throws on anything that is not a clean
+ *  answer — network error, non-2xx, or the provider's 200-with-`errors`
+ *  (rate limit, plan limits) — so that the caching layer above never stores
+ *  a failure as if it were data. */
+async function fetchOnce<T>(url: string): Promise<Page<T>> {
+  return withSlot(async () => {
+    let lastError = 'unknown';
+    // A burst (a crawler hitting several boards at once) can get a 429 or a
+    // rate-limit body, so one short retry rides it out.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (attempt > 0) await new Promise((r) => setTimeout(r, 700));
+      let res: Response;
+      try {
+        res = await fetch(url, { headers: { 'x-apisports-key': API_KEY }, cache: 'no-store' });
+      } catch (e) {
+        lastError = `network: ${(e as Error).message}`;
+        continue;
+      }
+      if (!res.ok) {
+        lastError = `HTTP ${res.status}`;
+        // 4xx other than "too many requests" will not fix itself.
+        if (res.status !== 429 && res.status < 500) break;
+        continue;
+      }
+      const json: ApiResponse<T> = await res.json();
+      const errs = json.errors;
+      const hasErrors = Array.isArray(errs) ? errs.length > 0 : !!errs && Object.keys(errs).length > 0;
+      if (hasErrors) {
+        lastError = `provider: ${JSON.stringify(errs).slice(0, 200)}`;
+        continue;
+      }
+      const r = json.response;
+      const rows = Array.isArray(r) ? r : r != null ? [r as T] : [];
+      return { rows, paging: json.paging };
+    }
+    throw new ApiFootballError(lastError);
+  });
+}
+
+// Concurrent renders asking for the same URL share one request.
+const inflight = new Map<string, Promise<Page<unknown>>>();
+
+/** Cached call. The cache is Next's data cache through unstable_cache rather
+ *  than `fetch(..., { next: { revalidate } })`: the fetch cache stores any
+ *  200 response, and API-Football answers rate limits with a 200 whose body is
+ *  an error — that body used to be cached for the whole revalidate window (a
+ *  day for history) and broke every page that read it. Here a failure throws
+ *  out of the cached function, and thrown results are never stored. */
 async function request<T>(
   endpoint: string,
   params: Record<string, string | number>,
   cached: boolean,
   revalidate: number,
-): Promise<{ rows: T[]; paging?: ApiResponse<T>['paging'] } | null> {
+): Promise<Page<T> | null> {
   const url = new URL(`${BASE_URL}${endpoint}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.append(k, String(v));
+  const href = url.toString();
 
-  return withSlot(async () => {
-    // A burst (a build rendering many pages, or a crawler hitting several
-    // boards at once) can get a 429, so one short retry rides it out.
-    for (let attempt = 0; attempt < 2; attempt++) {
-      let res: Response;
-      try {
-        res = await fetch(url.toString(), {
-          headers: { 'x-apisports-key': API_KEY },
-          ...(cached ? { next: { revalidate } } : { cache: 'no-store' as const }),
-        });
-      } catch {
-        if (attempt === 0) {
-          await new Promise((r) => setTimeout(r, 500));
-          continue;
-        }
-        return null;
-      }
-
-      if (res.ok) {
-        const json: ApiResponse<T> = await res.json();
-        // API-Football reports quota/plan problems as 200 + `errors`.
-        const errs = json.errors;
-        const hasErrors = Array.isArray(errs) ? errs.length > 0 : !!errs && Object.keys(errs).length > 0;
-        if (hasErrors) return null;
-        const r = json.response;
-        const rows = Array.isArray(r) ? r : r != null ? [r as T] : [];
-        return { rows, paging: json.paging };
-      }
-
-      // 4xx other than "too many requests" will not fix itself — give up.
-      if (res.status !== 429 && res.status < 500) return null;
-      if (attempt === 0) await new Promise((r) => setTimeout(r, 700));
-    }
+  const key = `${cached ? revalidate : 'nostore'}|${href}`;
+  let p = inflight.get(key) as Promise<Page<T>> | undefined;
+  if (!p) {
+    p = cached
+      ? unstable_cache(() => fetchOnce<T>(href), ['api-football', href], {
+          revalidate,
+          tags: ['api-football'],
+        })()
+      : fetchOnce<T>(href);
+    inflight.set(key, p as Promise<Page<unknown>>);
+    p.finally(() => inflight.delete(key)).catch(() => {});
+  }
+  try {
+    return await p;
+  } catch {
     return null;
-  });
+  }
 }
 
 /** Generic cached GET for endpoints this module has no named fetcher for.
