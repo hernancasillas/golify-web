@@ -1,4 +1,6 @@
 import fs from 'fs';
+import type { RouteLocale } from '@/lib/routes';
+import { pageMetadata } from '@/lib/seo';
 import path from 'path';
 import type { Metadata } from 'next';
 import { FeatureScroller, type FeatureStory } from '@/components/FeatureScroller';
@@ -7,12 +9,8 @@ import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
 import { DisplayHeading, DownloadGlyph, Eyebrow, PillLink } from '@/components/revamp/ui';
 import {
-  SITE_NAME,
-  IOS_APP_ID,
   APP_STORE_URL,
   PLAY_STORE_URL,
-  localeAlternates,
-  absoluteUrl,
   type Locale,
 } from '@/lib/site';
 
@@ -116,24 +114,16 @@ function resolveThemedScreenshots(base: string): {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<Params>;
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
   const L = t(locale);
-  return {
-    title: `${L.title} | ${SITE_NAME}`,
+  return pageMetadata({
+    locale: locale as RouteLocale,
+    path: (l) => `/${l}/features`,
+    title: L.title,
     description: L.intro,
-    alternates: localeAlternates(locale as Locale, '/features'),
-    openGraph: {
-      title: `${L.title} | ${SITE_NAME}`,
-      description: L.intro,
-      url: absoluteUrl(`/${locale}/features`),
-      siteName: SITE_NAME,
-      type: 'website',
-    },
-    twitter: { card: 'summary_large_image', title: L.title, description: L.intro },
-    other: { 'apple-itunes-app': `app-id=${IOS_APP_ID}` },
-  };
+  });
 }
 
 export default async function FeaturesPage({

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { matchPath, type RouteLocale } from '@/lib/routes';
 import Link from 'next/link';
 import type { Fixture } from '@/lib/api-football';
 import { LocalTime } from '@/components/LocalTime';
@@ -100,7 +101,7 @@ export function FixtureRow({
   const score = hasScore(f);
   return (
     <Link
-      href={`/${locale}/match/${f.fixture.id}`}
+      href={matchPath(locale as RouteLocale, f)}
       className="block rounded-2xl border border-border bg-surface p-4 transition hover:border-primary/40 hover:bg-surface-2"
     >
       {showLeague ? (
@@ -211,7 +212,7 @@ export function fixtureListJsonLd(
         },
         homeTeam: { '@type': 'SportsTeam', name: f.teams.home.name },
         awayTeam: { '@type': 'SportsTeam', name: f.teams.away.name },
-        url: `${siteUrl}/${locale}/match/${f.fixture.id}`,
+        url: `${siteUrl}${matchPath(locale as RouteLocale, f)}`,
       },
     })),
   };

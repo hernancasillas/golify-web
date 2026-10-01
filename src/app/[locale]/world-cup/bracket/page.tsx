@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/seo';
+import { sectionPath, type RouteLocale } from '@/lib/routes';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getTournamentFixtures } from '@/lib/api-football';
@@ -11,8 +13,6 @@ import {
   SITE_URL,
   WORLD_CUP_LEAGUE_ID,
   WORLD_CUP_SEASON,
-  localeAlternates,
-  ogImages,
   worldCupEventNode,
   type Locale,
 } from '@/lib/site';
@@ -92,22 +92,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const L = t(locale);
-  const name = L.metaTitle;
-
-  return {
-    title: name,
+  return pageMetadata({
+    locale: locale as RouteLocale,
+    path: (l) => `/${l}/world-cup/bracket`,
+    title: L.metaTitle.replace(/\s*\|\s*Golify$/, ''),
     description: L.intro,
-    alternates: localeAlternates(locale as Locale, '/world-cup/bracket'),
-    openGraph: {
-      title: name,
-      description: L.intro,
-      url: `${SITE_URL}/${locale}/world-cup/bracket`,
-      siteName: 'Golify',
-      type: 'website',
-      images: ogImages(),
-    },
-    twitter: { card: 'summary_large_image', title: name, description: L.intro },
-  };
+  });
 }
 
 export default async function BracketPage({
@@ -180,10 +170,10 @@ export default async function BracketPage({
           >
             {L.hub}
           </Link>
-          <Link href={`/${locale}/today`} className="text-sm font-bold text-primary underline">
+          <Link href={sectionPath("today", locale as RouteLocale)} className="text-sm font-bold text-primary underline">
             {L.today}
           </Link>
-          <Link href={`/${locale}/live`} className="text-sm font-bold text-primary underline">
+          <Link href={sectionPath("live", locale as RouteLocale)} className="text-sm font-bold text-primary underline">
             {L.live}
           </Link>
         </p>
