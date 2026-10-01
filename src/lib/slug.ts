@@ -1,3 +1,5 @@
+import { nationKey } from './nations';
+
 // URL slugs. One rule for every entity so a link built on one page always
 // matches the canonical URL the destination page computes for itself: if the
 // two disagreed, every internal link would cost a redirect hop.
@@ -37,7 +39,9 @@ export function slugify(input: string | null | undefined): string {
 
 /** Team names without the "Club"/"FC" noise: "Club America" → "america". */
 export function teamSlug(name: string): string {
-  const parts = slugify(name).split('-');
+  // National teams may arrive localized for display ("Alemania"): slug on
+  // the provider's English name so every locale builds the same URL.
+  const parts = slugify(nationKey(name)).split('-');
   while (parts.length > 1 && PREFIXES.has(parts[0])) parts.shift();
   while (parts.length > 1 && PREFIXES.has(parts[parts.length - 1])) parts.pop();
   return parts.join('-');
