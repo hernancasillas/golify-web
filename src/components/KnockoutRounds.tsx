@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { matchPath, type RouteLocale } from '@/lib/routes';
 import Link from 'next/link';
 import type { Fixture } from '@/lib/api-football';
 
@@ -72,7 +73,7 @@ function TieRow({ f, locale }: { f: Fixture; locale: string }) {
 
   return (
     <Link
-      href={`/${locale}/match/${f.fixture.id}`}
+      href={matchPath(locale as RouteLocale, f)}
       className="block rounded-2xl border border-border bg-surface p-4 transition hover:border-primary/40 hover:bg-surface-2"
     >
       <div className="space-y-2">

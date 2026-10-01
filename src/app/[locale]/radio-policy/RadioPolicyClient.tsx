@@ -1,5 +1,6 @@
 'use client';
 
+import { sectionPath, type RouteLocale } from '@/lib/routes';
 import { useI18n } from '@/components/I18nProvider';
 import Link from 'next/link';
 
@@ -8,7 +9,7 @@ export default function RadioPolicyClient() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#06180E] text-gray-900 dark:text-gray-100">
       <div className="container mx-auto px-4 py-12 max-w-3xl">
-        <Link href="/" className="text-[#0d5e26] dark:text-[#71F59B] hover:underline mb-8 inline-block">
+        <Link href={`/${locale}`} className="text-[#0d5e26] dark:text-[#71F59B] hover:underline mb-8 inline-block">
           {t('privacy.backToHome')}
         </Link>
 
@@ -63,7 +64,7 @@ export default function RadioPolicyClient() {
               {t('privacy.contactEmail')}
             </a>
             . {t('radioPolicy.contact.seeAlso')}{' '}
-            <Link href={`/${locale}/privacy`} className="text-[#0d5e26] dark:text-[#71F59B] underline">
+            <Link href={sectionPath("privacy", locale as RouteLocale)} className="text-[#0d5e26] dark:text-[#71F59B] underline">
               {t('radioPolicy.contact.privacyLink')}
             </Link>
             .

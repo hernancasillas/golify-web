@@ -1,5 +1,6 @@
 'use client';
 
+import { matchPath, type RouteLocale } from '@/lib/routes';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -54,7 +55,7 @@ function TeamRow({
 function MatchRow({ f, locale }: { f: Fixture; locale: string }) {
   return (
     <Link
-      href={`/${locale}/match/${f.fixture.id}`}
+      href={matchPath(locale as RouteLocale, f)}
       className="block rounded-2xl border border-border bg-surface p-4 transition hover:border-primary/40 hover:bg-surface-2"
     >
       <div className="mb-2.5 flex items-center gap-1.5 text-xs font-bold tracking-wide text-muted-foreground uppercase">

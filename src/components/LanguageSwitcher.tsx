@@ -15,16 +15,34 @@ export default function LanguageSwitcher() {
   const router = useRouter();
   const { locale } = useI18n();
 
+  // Public URLs are localized per language (/es/partido/x vs /en/match/x), so
+  // swapping the prefix would 404 or bounce. Every page emits reciprocal
+  // hreflang links through pageMetadata: read the equivalent URL from the
+  // document at click time (it is also right after client navigations, when
+  // Next has already swapped the <head>). The prefix swap is the fallback.
   const switchLocale = (newLocale: string) => {
-    // Swap the locale segment, keeping the rest of the path: a Brazilian
-    // reading the Brasileirão table stays on that table in Portuguese.
-    const segments = pathname.split('/');
-    segments[1] = newLocale;
-    router.push(segments.join('/'));
+    let target: string | null = null;
+    const link = document.querySelector<HTMLLinkElement>(
+      `link[rel="alternate"][hreflang="${newLocale}"]`,
+    );
+    if (link?.href) {
+      try {
+        const u = new URL(link.href, window.location.origin);
+        target = u.pathname + u.search;
+      } catch {
+        target = null;
+      }
+    }
+    if (!target) {
+      const segments = pathname.split('/');
+      segments[1] = newLocale;
+      target = segments.join('/');
+    }
+    router.push(target);
   };
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-1.5" role="group" aria-label="Language">
       {LOCALES.map(({ code, label }) => (
         <Button
           key={code}
