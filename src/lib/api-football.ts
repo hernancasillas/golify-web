@@ -13,6 +13,7 @@
 //     render into dozens of parallel calls.
 
 import { unstable_cache } from 'next/cache';
+import { noteExhausted, readCache, webMayCall, writeCache } from './apif-store';
 
 const BASE_URL = 'https://v3.football.api-sports.io';
 const API_KEY = process.env.API_FOOTBALL_KEY ?? '';
@@ -113,6 +114,7 @@ async function fetchOnce<T>(url: string): Promise<Page<T>> {
         lastError = `provider: ${JSON.stringify(errs).slice(0, 200)}`;
         if (/request limit for the day/i.test(lastError)) {
           quotaBlockedUntil = Date.now() + 15 * 60 * 1000;
+          noteExhausted();
           break;
         }
         continue;
@@ -123,6 +125,26 @@ async function fetchOnce<T>(url: string): Promise<Page<T>> {
     }
     throw new ApiFootballError(lastError);
   });
+}
+
+/** Shared-cache read-through (Supabase, see apif-store.ts): fresh shared copy
+ *  → provider (only while the app's reserve is safe) → stale shared copy. */
+async function sharedFetch<T>(href: string, ttl: number): Promise<Page<T>> {
+  const key = href.replace(BASE_URL, '');
+  const stored = await readCache(key);
+  if (stored?.fresh) return stored.body as Page<T>;
+  if (!(await webMayCall())) {
+    if (stored) return stored.body as Page<T>;
+    throw new ApiFootballError('web reserve reached: leaving the quota to the app');
+  }
+  try {
+    const page = await fetchOnce<T>(href);
+    await writeCache(key, page, ttl);
+    return page;
+  } catch (e) {
+    if (stored) return stored.body as Page<T>;
+    throw e;
+  }
 }
 
 // Concurrent renders asking for the same URL share one request.
@@ -149,7 +171,7 @@ async function request<T>(
   let p = inflight.get(key) as Promise<Page<T>> | undefined;
   if (!p) {
     p = cached
-      ? unstable_cache(() => fetchOnce<T>(href), bucket ? ['api-football', bucket, href] : ['api-football', href], {
+      ? unstable_cache(() => sharedFetch<T>(href, revalidate), bucket ? ['api-football', bucket, href] : ['api-football', href], {
           revalidate,
           tags: ['api-football'],
         })()
