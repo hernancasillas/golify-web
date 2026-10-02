@@ -37,7 +37,11 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       { userAgent: '*', allow: '/', disallow },
-      ...aiBots.map((ua) => ({ userAgent: ua, allow: '/', disallow })),
+      // Each first visit to a page costs API-Football calls shared with the
+      // app; slow down the crawlers that honour Crawl-delay (Bing and most AI
+      // bots — Google ignores it and paces itself).
+      { userAgent: 'Bingbot', allow: '/', disallow, crawlDelay: 5 },
+      ...aiBots.map((ua) => ({ userAgent: ua, allow: '/', disallow, crawlDelay: 10 })),
     ],
     // The index lists every child; the news sitemap is separate (Google News).
     sitemap: [`${SITE_URL}/sitemap.xml`, `${SITE_URL}/news-sitemap.xml`],

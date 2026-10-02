@@ -77,7 +77,13 @@ type Page<T> = { rows: T[]; paging?: ApiResponse<T>['paging'] };
  *  answer — network error, non-2xx, or the provider's 200-with-`errors`
  *  (rate limit, plan limits) — so that the caching layer above never stores
  *  a failure as if it were data. */
+// Once the provider says the DAILY quota is spent, every further call fails
+// until midnight UTC anyway — and the app shares that quota. Stop calling for
+// a while instead of hammering it on every render.
+let quotaBlockedUntil = 0;
+
 async function fetchOnce<T>(url: string): Promise<Page<T>> {
+  if (Date.now() < quotaBlockedUntil) throw new ApiFootballError('daily quota exhausted');
   return withSlot(async () => {
     let lastError = 'unknown';
     // A burst (a crawler hitting several boards at once) can get a 429 or a
@@ -102,6 +108,10 @@ async function fetchOnce<T>(url: string): Promise<Page<T>> {
       const hasErrors = Array.isArray(errs) ? errs.length > 0 : !!errs && Object.keys(errs).length > 0;
       if (hasErrors) {
         lastError = `provider: ${JSON.stringify(errs).slice(0, 200)}`;
+        if (/request limit for the day/i.test(lastError)) {
+          quotaBlockedUntil = Date.now() + 15 * 60 * 1000;
+          break;
+        }
         continue;
       }
       const r = json.response;

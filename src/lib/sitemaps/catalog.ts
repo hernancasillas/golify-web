@@ -45,8 +45,18 @@ const FIXED: Record<string, Generator> = {
   estadios: stadiumEntries,
 };
 
+// API-Football quota guard (2 oct 2026). The web shares the app's daily
+// quota (75k). Once ~60k URLs reached the crawlers, every first visit to a
+// player/H2H/FC/stadium page cost 5–12 API calls and the quota ran out for
+// both web and app. Those families stay out of the sitemaps (the pages keep
+// working and stay linked internally) until the web has its own API key:
+// set GOLIFY_FULL_SITEMAPS=1 to bring them back.
+const FULL = process.env.GOLIFY_FULL_SITEMAPS === '1';
+const HEAVY = (name: string) => /^(jugadores-|h2h-|fc-|estadios)/.test(name);
+
 /** Generator for an exact file name (without ".xml" and page suffix). */
 function generator(name: string): Generator | null {
+  if (!FULL && HEAVY(name)) return null;
   if (FIXED[name]) return FIXED[name];
   let m = /^partidos-(\d{4}-\d{2})$/.exec(name);
   if (m) {
@@ -99,10 +109,11 @@ export async function childFiles(): Promise<string[]> {
     ...matchMonths().map((m) => `partidos-${m}`),
     ...PLAYER_LEAGUES.map((c) => `jugadores-${c.slug}`),
     ...H2H_LEAGUES.map((c) => `h2h-${c.slug}`),
-  ];
+  ].filter((f) => FULL || !HEAVY(f));
   // Imported sources: count their pages. They are other sections' content
   // lists; if one fails here, still list its first file.
   for (const s of IMPORTED) {
+    if (!FULL && HEAVY(s.name)) continue;
     let n = 1;
     try {
       n = paginate(dedupe(await s.entries())).length;
