@@ -39,6 +39,13 @@ Estado al 1 de octubre de 2026. Lo implementado está en producción (`main`). E
 
 ## 3. Monetización (Parte C)
 
+Hecho el 1 oct 2026:
+- AdSense: sitio verificado (etiqueta meta) y revisión solicitada; el estado es "Preparando".
+- El mensaje de consentimiento GDPR/TCF para EEE, Reino Unido y Suiza está publicado, con logo y la URL `/es/privacidad`.
+- En producción el script de AdSense ya carga: `NEXT_PUBLIC_ADS_ENABLED=1` y `NEXT_PUBLIC_ADSENSE_CLIENT=ca-pub-2057486044857110`.
+- [ ] Cuando AdSense apruebe: crear las unidades de anuncio, poner `NEXT_PUBLIC_ADSENSE_SLOTS` en Vercel (los IDs de ubicación están en `docs/monetizacion/README.md`) y redesplegar.
+- Se decidió seguir en Vercel Hobby, que solo admite uso no comercial: hay riesgo de que Vercel suspenda el proyecto.
+
 - [ ] **Vercel Pro** antes de activar anuncios: el plan Hobby es solo para uso no comercial.
 - [ ] Confirmar que `ca-pub-2057486044857110` (el ID de AdMob) es la cuenta de AdSense. Si no lo es, cambiar `NEXT_PUBLIC_ADSENSE_CLIENT`.
 - [ ] Activar en AdSense el mensaje de **Privacy & messaging** (GDPR / TCF v2.2) para EEE, Reino Unido y Suiza.
