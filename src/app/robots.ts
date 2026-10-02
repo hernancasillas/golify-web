@@ -22,6 +22,11 @@ export default function robots(): MetadataRoute.Robots {
     'cohere-ai',
     'DuckAssistBot',
     'meta-externalagent', // Meta AI
+    'Claude-SearchBot', // Claude web search
+    'Applebot', // Siri, Spotlight, Apple Intelligence
+    'MistralAI-User', // Le Chat browsing
+    'YouBot', // You.com
+    'Bravebot', // Brave Search
   ];
 
   // `/go/` is the redirect/install funnel and `/api/` is JSON — no content.
