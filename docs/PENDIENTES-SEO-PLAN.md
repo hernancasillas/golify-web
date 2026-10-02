@@ -51,9 +51,20 @@ Estado al 1 de octubre de 2026. Lo implementado está en producción (`main`). E
 
 ## 4. SEO técnico: seguimiento
 
-- [ ] **Search Console**: enviar `/sitemap.xml` y cada sitemap hijo por separado (50 archivos) para medir el % indexado por tipo.
+Hecho el 1 oct 2026:
+- `www` redirige con 308 (Vercel).
+- Search Console: reenviado `sitemap.xml` (índice) y enviados `news-sitemap.xml` y los hijos `partidos-2026-10`, `equipos`, `torneos`, `jugadores-liga-mx`, `editorial`, `descargas`, `hubs-pais` y `static`. Indexación pedida para home, partidos de hoy, `/es/liga-mx`, la tabla Apertura 2026 y quinielas. Validación iniciada para "Duplicada sin canónica".
+- Bing: enviado `https://golify.futbol/sitemap.xml` y borrado el de www.
+
+Revisar en 3–7 días:
+- [ ] En Search Console, los sitemaps hijos pasan de "No se ha podido obtener" a "Correcto". Es normal justo después de enviarlos; si sigue igual, investigar.
+- [ ] Bajan las duplicadas del informe de indexación (la validación está en curso).
+- [ ] Bing termina de procesar el sitemap.
+- [ ] Los 404 de `/$` y `/&` son URLs basura; no hace falta hacer nada.
+
+- [ ] **Search Console**: enviar los sitemaps hijos que faltan (jugadores de otras ligas, `h2h-*`, `fc-*`, `donde-ver`, `fichajes`, `estadios`, `fechas`) si se quiere medir el % indexado de cada tipo.
 - [ ] Vigilar el informe de Páginas durante 4 semanas: que las URLs nuevas reemplacen a las viejas, sin 404 ni cadenas de redirección.
-- [ ] Dar de alta **Bing Webmaster Tools** (A1.1) y verificar que IndexNow recibe el ping (cron diario a las 07:00 UTC).
+- [ ] Verificar que IndexNow recibe el ping (cron diario a las 07:00 UTC). Bing Webmaster ya está dado de alta.
 - [ ] Pasar el **Rich Results Test** sobre muestras de cada tipo de página (partido, equipo, jugador, liga, guía, H2H, estadio).
 - [ ] **Core Web Vitals** móvil en PageSpeed / CrUX cuando haya datos (meta: LCP < 2,5 s, INP < 200 ms, CLS < 0,1).
 - [ ] La muestra del sitemap dio 96 % indexable. Hay parejas H2H con menos de 3 partidos (equipos recién ascendidos) que el sitemap lista pero la página marca noindex: ajustar si GSC lo reporta.
@@ -67,7 +78,7 @@ Estado al 1 de octubre de 2026. Lo implementado está en producción (`main`). E
 - [ ] Los % de pronóstico solo aparecen con 20 o más pronósticos por partido, y la quiniela pública se indexa con 50 o más. Revisar cuántos partidos llegan al umbral.
 - [ ] El Informe Golify de cada mes sale noindex con menos de 1.000 pronósticos. Revisar cuando haya volumen.
 - [ ] El QR de las descargas lleva a `/go/quiniela`. La app todavía no crea la quiniela de esa jornada con código: requiere trabajo en la app.
-- [ ] Commitear `fuchibol/supabase/migrations/20260930120000_web_public_aggregates.sql` (ya aplicada) en la rama que corresponda.
+- [x] Migración `20260930120000_web_public_aggregates.sql` aplicada y commiteada en fuchibol (rama `ios`). Falta homologarla a `main`.
 - [ ] Correos captados en `web_leads`: definir quién los lee y la secuencia de emails para el kit de oficina.
 
 ## 6. Off-page / marca (Parte B4)
@@ -81,6 +92,9 @@ Estado al 1 de octubre de 2026. Lo implementado está en producción (`main`). E
 - [ ] Hoja de monitoreo mensual de las 20 consultas en ChatGPT, Perplexity, Gemini y AI Overviews, con línea base
 
 ## 7. Deuda técnica menor
+
+- [ ] Selecciones todavía en inglés en las fichas EA FC, el Informe mensual y el buscador (si se busca "Alemania" no aparece "Germany").
+- [ ] La página de amistosos dice "tabla" en el título aunque no tiene tabla. Ocultar el logo FIFA de los amistosos, como hace la app.
 
 - [ ] Errores de lint previos en `ThemeProvider.tsx` y `ThemeToggle.tsx`.
 - [ ] El aviso `metadataBase not set` aparece en alguna ruta (probablemente una imagen OG).
