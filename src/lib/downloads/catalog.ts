@@ -48,6 +48,6 @@ export const downloadCatalog = cache(async (): Promise<CatalogLeague[]> => {
   const failed = results.filter((r) => r.status === 'rejected');
   for (const f of failed) console.error('[downloads] catalog league failed', (f as PromiseRejectedResult).reason);
   // Every league failing is a provider outage, not an empty catalogue.
-  if (failed.length && failed.length === results.length) throw new Error('downloads catalog: provider unavailable');
+  if (failed.length && failed.length === results.length && process.env.NEXT_PHASE !== 'phase-production-build') throw new Error('downloads catalog: provider unavailable');
   return ok;
 });

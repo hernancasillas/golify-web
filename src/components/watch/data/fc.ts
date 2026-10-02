@@ -190,7 +190,12 @@ export const getTopPlayers = cache(async (limit = 100): Promise<FcPlayerRow[]> =
     .order('player_id', { ascending: true })
     // Over-fetch: variants of one footballer collapse to one row below.
     .limit(limit * 3);
-  if (error) throw new Error(`fc: top players lookup failed: ${error.message}`);
+  if (error) {
+    // A slow catalogue query must not fail a deploy; at runtime it throws so
+    // ISR keeps the previous good copy.
+    if (process.env.NEXT_PHASE === 'phase-production-build') return [];
+    throw new Error(`fc: top players lookup failed: ${error.message}`);
+  }
   const seen = new Set<string>();
   const out: FcPlayerRow[] = [];
   for (const p of (data as FcPlayerRow[]) ?? []) {

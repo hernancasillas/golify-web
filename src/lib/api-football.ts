@@ -170,12 +170,18 @@ export async function apiFootballGet<T>(
   return apiGet<T>(endpoint, params, opts);
 }
 
+// During `next build` a provider outage (or a spent daily quota) must not
+// fail the deploy: static pages are prerendered with whatever came back and
+// revalidate minutes later at runtime. `strict` only protects runtime ISR.
+export const IS_BUILD = process.env.NEXT_PHASE === 'phase-production-build';
+
 async function apiGet<T>(
   endpoint: string,
   params: Record<string, string | number> = {},
   opts: GetOptions | number = {},
 ): Promise<T[]> {
-  const o: GetOptions = typeof opts === 'number' ? { revalidate: opts } : opts;
+  const o0: GetOptions = typeof opts === 'number' ? { revalidate: opts } : opts;
+  const o: GetOptions = IS_BUILD ? { ...o0, strict: false } : o0;
   const revalidate = o.revalidate ?? 60;
 
   if (!API_KEY) {
@@ -199,8 +205,9 @@ async function apiGet<T>(
 async function apiGetAllPages<T>(
   endpoint: string,
   params: Record<string, string | number>,
-  opts: GetOptions & { maxPages?: number } = {},
+  opts0: GetOptions & { maxPages?: number } = {},
 ): Promise<T[]> {
+  const opts = IS_BUILD ? { ...opts0, strict: false } : opts0;
   const revalidate = opts.revalidate ?? TTL.daily;
   if (!API_KEY) {
     if (opts.strict) throw new ApiFootballError('API_FOOTBALL_KEY missing');
