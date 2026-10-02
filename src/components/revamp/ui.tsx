@@ -200,8 +200,11 @@ export function LeagueChip({
   href?: string;
   children: ReactNode;
 }) {
-  const className =
-    'inline-flex items-center gap-2 rounded-full border border-primary/20 bg-surface-2 py-2 pr-5 pl-2 text-sm font-bold text-foreground';
+  // The tight left padding is for the logo badge; without one the label
+  // would sit off-centre, so text-only chips get even padding.
+  const className = `inline-flex items-center justify-center gap-2 rounded-full border border-primary/20 bg-surface-2 py-2 text-sm font-bold text-foreground ${
+    logo ? 'pr-5 pl-2' : 'px-4'
+  }`;
   const inner = (
     <>
       {logo ? (
