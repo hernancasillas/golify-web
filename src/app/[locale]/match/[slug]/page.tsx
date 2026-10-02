@@ -56,7 +56,10 @@ import { FAQ_OTHER_ZONES, PRIMARY_ZONE } from './_lib/i18n';
 // ISR: rendered on first visit, then kept for a minute. Every fetch below is
 // cached, and the primary fixture load is strict, so a failed API call never
 // replaces a good copy with an empty page.
-export const revalidate = 60;
+// Live scores update on the client (LiveScore polls /api/live-fixtures);
+// the HTML only needs to follow state changes, and the fixture fetch picks
+// its own TTL from the match state.
+export const revalidate = 300;
 
 export async function generateStaticParams() {
   return [];

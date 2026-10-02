@@ -69,6 +69,9 @@ interface GetOptions {
    *  other ISR outputs: a thrown regeneration keeps the previous good copy,
    *  a returned empty list would replace it. */
   strict?: boolean;
+  /** Separate cache entry for the same URL (e.g. a long-lived copy of a
+   *  finished match next to a short-lived copy of a live one). */
+  bucket?: string;
 }
 
 type Page<T> = { rows: T[]; paging?: ApiResponse<T>['paging'] };
@@ -136,16 +139,17 @@ async function request<T>(
   params: Record<string, string | number>,
   cached: boolean,
   revalidate: number,
+  bucket?: string,
 ): Promise<Page<T> | null> {
   const url = new URL(`${BASE_URL}${endpoint}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.append(k, String(v));
   const href = url.toString();
 
-  const key = `${cached ? revalidate : 'nostore'}|${href}`;
+  const key = `${cached ? revalidate : 'nostore'}|${bucket ?? ''}|${href}`;
   let p = inflight.get(key) as Promise<Page<T>> | undefined;
   if (!p) {
     p = cached
-      ? unstable_cache(() => fetchOnce<T>(href), ['api-football', href], {
+      ? unstable_cache(() => fetchOnce<T>(href), bucket ? ['api-football', bucket, href] : ['api-football', href], {
           revalidate,
           tags: ['api-football'],
         })()
@@ -189,7 +193,7 @@ async function apiGet<T>(
     return [];
   }
 
-  const first = await request<T>(endpoint, params, true, revalidate);
+  const first = await request<T>(endpoint, params, true, revalidate, o.bucket);
   if (first && first.rows.length > 0) return first.rows;
   if (!o.retryUncachedIfEmpty) {
     if (!first && o.strict) throw new ApiFootballError(`API-Football ${endpoint} failed`);
@@ -481,10 +485,35 @@ export async function getFixtureById(id: number): Promise<Fixture | null> {
 /** Full match: events, lineups, team stats and player ratings in one call
  *  (the single-fixture response carries all of them). */
 export async function getFixtureDetail(id: number, opts: { strict?: boolean; revalidate?: number } = {}): Promise<FixtureDetail | null> {
-  const rows = await apiGet<FixtureDetail>('/fixtures', { id }, { revalidate: opts.revalidate ?? TTL.live, strict: opts.strict });
-  const f = rows[0];
+  // Quota: a finished match never changes, yet it used to be re-fetched every
+  // 30 s by every page that shows it (match, player, H2H, referee). Read a
+  // long-lived copy first; only matches that are live, about to start or just
+  // finished go back to the provider on a short window.
+  const long = await apiGet<FixtureDetail>('/fixtures', { id }, { revalidate: TTL.weekly, strict: opts.strict, bucket: 'fx-long' });
+  let f = long[0];
   if (!f) return null;
+  const ttl = opts.revalidate ?? freshness(f);
+  if (ttl < TTL.weekly) {
+    const fresh = await apiGet<FixtureDetail>('/fixtures', { id }, { revalidate: ttl, strict: opts.strict, bucket: `fx-${ttl}` });
+    if (fresh[0]) f = fresh[0];
+  }
   return { ...f, events: f.events ?? [], lineups: f.lineups ?? [], statistics: f.statistics ?? [], players: f.players ?? [] };
+}
+
+/** How long a match's data can be trusted, from its state and kickoff. */
+function freshness(f: Fixture): number {
+  const kickoff = new Date(f.fixture.date).getTime();
+  const now = Date.now();
+  const phase = fixturePhase(f);
+  if (phase === 'live') return TTL.live;
+  if (phase === 'finished' || phase === 'off') {
+    // Stats and ratings settle in the hours after the whistle.
+    return now - kickoff < 6 * 3600_000 ? TTL.day : TTL.weekly;
+  }
+  // Scheduled: lineups land ~1 h before kickoff; the date can move.
+  if (kickoff - now < 3 * 3600_000) return TTL.live;
+  if (kickoff - now < 48 * 3600_000) return TTL.day;
+  return TTL.hours;
 }
 
 // Single `live=all` call covers every live match worldwide — cheaper than
