@@ -8,7 +8,8 @@
 //      URL (table api_football_cache), so the web fetches a URL once per TTL,
 //      not once per instance or per deploy.
 //   2. The web stops calling the provider when the daily requests left fall
-//      under WEB_RESERVE (default 30,000). From then on it serves the cached
+//      under WEB_RESERVE (default 30,000) or the day's total usage passes WEB_SHARE (30%) of the
+//      limit. From then on it serves the cached
 //      copy, even if stale, so the app always keeps that headroom.
 //
 // Server-only. Uses the service role key (never NEXT_PUBLIC_). Without it the
@@ -20,8 +21,12 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 const URL_ = process.env.SUPABASE_URL ?? '';
 const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
 
-/** Daily requests the web must leave for the app. */
+/** Daily requests the web must leave for the app (absolute floor). */
 export const WEB_RESERVE = Number(process.env.API_FOOTBALL_WEB_RESERVE ?? 30000);
+/** The web only calls while the day's TOTAL usage (app + web) is under this
+ *  share of the daily limit. 0.3 of 150k = the web stops at 45k used, so the
+ *  app always keeps at least 70% of the day. */
+export const WEB_SHARE = Number(process.env.API_FOOTBALL_WEB_SHARE ?? 0.3);
 
 let client: SupabaseClient | null = null;
 // Kill switch, off by default: on 2026-10-02 crawler traffic writing large
@@ -85,7 +90,7 @@ export async function writeCache(key: string, body: unknown, ttlSeconds: number)
 const STATUS_URL = 'https://v3.football.api-sports.io/status';
 const SNAPSHOT_MS = 5 * 60_000;
 
-let quota: { remaining: number; observedAt: number } | null = null;
+let quota: { remaining: number; limit: number; observedAt: number } | null = null;
 let quotaReadAt = 0;
 let refreshing: Promise<void> | null = null;
 
@@ -95,7 +100,7 @@ function startOfUtcDay(): number {
 }
 
 async function saveSnapshot(remaining: number, limit: number): Promise<void> {
-  quota = { remaining, observedAt: Date.now() };
+  quota = { remaining, limit, observedAt: Date.now() };
   const c = db();
   if (!c) return;
   try {
@@ -105,7 +110,7 @@ async function saveSnapshot(remaining: number, limit: number): Promise<void> {
 
 /** The provider said the daily quota is gone: tell every instance. */
 export function noteExhausted(): void {
-  void saveSnapshot(0, 75000);
+  void saveSnapshot(0, quota?.limit ?? 150000);
 }
 
 async function refreshFromStatus(): Promise<void> {
@@ -118,7 +123,7 @@ async function refreshFromStatus(): Promise<void> {
     if (r && Number.isFinite(r.current) && Number.isFinite(r.limit_day)) {
       await saveSnapshot(Math.max(0, r.limit_day - r.current), r.limit_day);
     } else if (/request limit for the day/i.test(JSON.stringify(json?.errors ?? ''))) {
-      await saveSnapshot(0, 75000);
+      await saveSnapshot(0, quota?.limit ?? 150000);
     }
   } catch {}
 }
@@ -129,10 +134,10 @@ export async function webMayCall(): Promise<boolean> {
   if (c && Date.now() - quotaReadAt > 60_000) {
     quotaReadAt = Date.now();
     try {
-      const { data } = await c.from('api_football_quota').select('remaining, observed_at').eq('id', 1).maybeSingle();
+      const { data } = await c.from('api_football_quota').select('remaining, limit_day, observed_at').eq('id', 1).maybeSingle();
       if (data) {
         const at = new Date(data.observed_at).getTime();
-        if (!quota || at > quota.observedAt) quota = { remaining: data.remaining, observedAt: at };
+        if (!quota || at > quota.observedAt) quota = { remaining: data.remaining, limit: data.limit_day, observedAt: at };
       }
     } catch {}
   }
@@ -145,5 +150,6 @@ export async function webMayCall(): Promise<boolean> {
   }
   if (!quota) return true;
   if (quota.observedAt < startOfUtcDay()) return true;
-  return quota.remaining > WEB_RESERVE;
+  const used = quota.limit - quota.remaining;
+  return quota.remaining > WEB_RESERVE && used < quota.limit * WEB_SHARE;
 }
