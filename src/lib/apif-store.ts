@@ -24,10 +24,17 @@ const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
 export const WEB_RESERVE = Number(process.env.API_FOOTBALL_WEB_RESERVE ?? 30000);
 
 let client: SupabaseClient | null = null;
+// Kill switch, off by default: on 2026-10-02 crawler traffic writing large
+// JSON bodies here saturated the Supabase project the app also uses. Turn it
+// on (APIF_SHARED_CACHE=1) only with a write budget in place.
+const ENABLED = process.env.APIF_SHARED_CACHE === '1';
+
 function db(): SupabaseClient | null {
-  if (!URL_ || !SERVICE) return null;
+  if (!ENABLED || !URL_ || !SERVICE) return null;
   client ??= createClient(URL_, SERVICE, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    // The cache must never be slower than the provider: give up after 3 s.
+    global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(3000) }) },
   });
   return client;
 }
@@ -105,7 +112,7 @@ async function refreshFromStatus(): Promise<void> {
   const key = process.env.API_FOOTBALL_KEY ?? '';
   if (!key) return;
   try {
-    const res = await fetch(STATUS_URL, { headers: { 'x-apisports-key': key }, cache: 'no-store' });
+    const res = await fetch(STATUS_URL, { headers: { 'x-apisports-key': key }, cache: 'no-store', signal: AbortSignal.timeout(5000) });
     const json = await res.json();
     const r = json?.response?.requests;
     if (r && Number.isFinite(r.current) && Number.isFinite(r.limit_day)) {

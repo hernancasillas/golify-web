@@ -23,6 +23,10 @@ import {
 import { sectionPath } from '@/lib/routes';
 import '../globals.css';
 
+// Pages render in < 2 s; anything longer is a hung upstream call. Cap it so a
+// stuck request cannot hold a Fluid instance for the 300 s platform default.
+export const maxDuration = 30;
+
 // This is the root layout, and it lives under the locale segment on purpose:
 // it is the only place that knows which language the page is in, so it is the
 // only place that can put the right value in <html lang>. Next documents this

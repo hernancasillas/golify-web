@@ -43,7 +43,19 @@ let active = 0;
 const queue: (() => void)[] = [];
 
 async function withSlot<T>(fn: () => Promise<T>): Promise<T> {
-  if (active >= MAX_CONCURRENT) await new Promise<void>((r) => queue.push(r));
+  if (active >= MAX_CONCURRENT) {
+    // Never wait forever for a slot: past 10 s the caller serves stale data.
+    let resolve!: () => void;
+    const turn = new Promise<void>((r) => (resolve = r));
+    queue.push(resolve);
+    const waited = await Promise.race([turn.then(() => true), new Promise<boolean>((r) => setTimeout(() => r(false), 10_000))]);
+    if (!waited) {
+      const i = queue.indexOf(resolve);
+      if (i >= 0) queue.splice(i, 1);
+      else queue.shift()?.(); // the slot was handed to us just now: pass it on
+      throw new ApiFootballError('api-football queue timeout');
+    }
+  }
   active++;
   try {
     return await fn();
@@ -96,7 +108,13 @@ async function fetchOnce<T>(url: string): Promise<Page<T>> {
       if (attempt > 0) await new Promise((r) => setTimeout(r, 700));
       let res: Response;
       try {
-        res = await fetch(url, { headers: { 'x-apisports-key': API_KEY }, cache: 'no-store' });
+        res = await fetch(url, {
+          headers: { 'x-apisports-key': API_KEY },
+          cache: 'no-store',
+          // A hung upstream call used to hold the function open until the
+          // 300 s platform timeout, burning Fluid CPU/memory on every request.
+          signal: AbortSignal.timeout(8000),
+        });
       } catch (e) {
         lastError = `network: ${(e as Error).message}`;
         continue;
