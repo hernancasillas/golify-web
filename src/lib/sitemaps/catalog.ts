@@ -115,6 +115,13 @@ export async function childFiles(): Promise<string[]> {
   for (const s of IMPORTED) {
     if (!FULL && HEAVY(s.name)) continue;
     let n = 1;
+    // At build time list only the first file of each: counting pages means
+    // API/database calls, and a slow upstream must not fail the deploy. ISR
+    // regenerates the full index within the hour.
+    if (process.env.NEXT_PHASE === 'phase-production-build') {
+      files.push(s.name);
+      continue;
+    }
     try {
       n = paginate(dedupe(await s.entries())).length;
     } catch {

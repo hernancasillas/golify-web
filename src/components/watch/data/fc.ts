@@ -80,8 +80,15 @@ export const getFcGame = cache(async (): Promise<FcGame> => {
     .select('id, code, name')
     .eq('code', FC_GAME_CODE)
     .maybeSingle();
-  if (error) throw new Error(`fc: game version lookup failed: ${error.message}`);
-  if (!data) throw new Error(`fc: game version ${FC_GAME_CODE} missing`);
+  if (error || !data) {
+    // A slow database must not fail a deploy: build with a placeholder and let
+    // ISR fill the real catalogue at runtime.
+    if (process.env.NEXT_PHASE === 'phase-production-build') {
+      return { id: '00000000-0000-0000-0000-000000000000', code: FC_GAME_CODE, name: FC_GAME_CODE, short: `EA FC ${FC_GAME_CODE.replace(/^fc/i, '')}` };
+    }
+    if (error) throw new Error(`fc: game version lookup failed: ${error.message}`);
+    throw new Error(`fc: game version ${FC_GAME_CODE} missing`);
+  }
   const d = data as { id: string; code: string; name: string };
   return { ...d, short: `EA FC ${d.code.replace(/^fc/i, '')}` };
 });
