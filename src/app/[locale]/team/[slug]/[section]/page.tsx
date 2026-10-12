@@ -10,6 +10,7 @@ import { loadTeam, mainSeasonLabel, teamRef, type TeamCore } from '../../_lib/da
 import { loadFixturesData, loadSquadData, loadStatsData } from '../../_lib/sections';
 import { loadShell, parseSub, resolveTeam, sportsTeamNode, TeamFrame, type TeamSub } from '../../_lib/shell';
 import { asLocale, teamStrings, fill } from '../../_lib/strings';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Team sub-pages (plan A4 "Equipo · subpáginas"): /plantilla, /calendario,
 // /estadisticas and their pt/en spellings. One route serves the three so the
@@ -23,7 +24,9 @@ import { asLocale, teamStrings, fill } from '../../_lib/strings';
 // ISR: first request renders, then at most every 6 hours. Squad lists and
 // season summaries do not move faster than that; the calendar's results are
 // one click away on the main team page (hourly) and on every match page.
-export const revalidate = 21600;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   return [];
@@ -38,7 +41,7 @@ function leagueFor(core: TeamCore, locale: ReturnType<typeof asLocale>): string 
   return m.competition ? competitionName(m.competition, locale) : m.name;
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale: raw, slug, section } = await params;
   const locale = asLocale(raw);
   const sub = parseSub(section, locale);
@@ -96,7 +99,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function TeamSubPage({ params }: { params: Promise<Params> }) {
+async function TeamSubPage({ params }: { params: Promise<Params> }) {
   const { locale: raw, slug, section } = await params;
   const locale = asLocale(raw);
   const sub = parseSub(section, locale);
@@ -137,3 +140,6 @@ export default async function TeamSubPage({ params }: { params: Promise<Params> 
   );
 }
 
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(TeamSubPage);

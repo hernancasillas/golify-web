@@ -37,6 +37,7 @@ import {
   type L,
 } from '@/components/h2h/shared';
 import { Crest, FactList, MatchRow, Panel, SplitBar, StatTile, SummaryBox } from '@/components/h2h/ui';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Stadium page: /es/estadio/{slug}-{venueId}. The venue record (capacity,
 // address, surface, photo) comes from /venues; everything else is derived
@@ -339,7 +340,7 @@ function placeText(d: Loaded, locale: L): string {
   return [d.city, countryText(d.venue.country, locale)].filter(Boolean).join(', ');
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
   const d = await load(slug, locale);
@@ -365,7 +366,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function StadiumPage({ params }: { params: Promise<Params> }) {
+async function StadiumPage({ params }: { params: Promise<Params> }) {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
   const d = await load(slug, locale);
@@ -739,3 +740,7 @@ export default async function StadiumPage({ params }: { params: Promise<Params> 
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(StadiumPage);

@@ -34,7 +34,6 @@ import {
   COMPETITIONS,
   competitionById,
   competitionName,
-  isCovered,
   parseRound,
   seasonSlug,
   type Competition,
@@ -42,6 +41,7 @@ import {
 } from '@/lib/competitions';
 import { teamSlugId, type RouteLocale } from '@/lib/routes';
 import { idFromSlug } from '@/lib/slug';
+import { teamIndexable } from '@/lib/indexing';
 
 // ---- Current competitions -------------------------------------------------
 
@@ -141,7 +141,8 @@ export async function loadTeam(slugParam: string, locale: RouteLocale = 'en'): P
     current,
     main,
     season: main?.year ?? null,
-    playsCovered: current.some((c) => isCovered(c.id)),
+    // Indexing rule (src/lib/indexing.ts): core league club, not a youth side.
+    playsCovered: teamIndexable(info.team.name, current.map((c) => c.id)),
   };
 }
 

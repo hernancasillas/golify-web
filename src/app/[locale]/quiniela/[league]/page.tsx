@@ -27,6 +27,7 @@ import { ROUTE_LOCALES, homePath, matchPath, poolPath, sectionPath, type RouteLo
 import { idFromSlug } from '@/lib/slug';
 import { pageMetadata } from '@/lib/seo';
 import { installLink, type Locale } from '@/lib/site';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Quiniela hub of one league: /es/quiniela/liga-mx, /pt/bolao/brasileirao,
 // /en/pool/premier-league. A stable URL (the round in progress changes every
@@ -35,7 +36,9 @@ import { installLink, type Locale } from '@/lib/site';
 // current tournament. Indexed on the same rule as a round page — the
 // featured round has ≥ 50 community picks.
 
-export const revalidate = 300;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   return [];
@@ -67,7 +70,7 @@ const resolve = cache(async (localeParam: string, league: string) => {
   return { locale, comp, data, fixtures, splits, picks, indexable: picks >= INDEX_THRESHOLD };
 });
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const p = await params;
   const r = await resolve(p.locale, p.league);
   const t = poolStr(r.locale);
@@ -124,7 +127,7 @@ function FixtureLine({
   );
 }
 
-export default async function PoolLeaguePage({ params }: { params: Promise<Params> }) {
+async function PoolLeaguePage({ params }: { params: Promise<Params> }) {
   const p = await params;
   const { locale, comp, data, fixtures, splits, picks } = await resolve(p.locale, p.league);
   const t = poolStr(locale);
@@ -241,3 +244,7 @@ export default async function PoolLeaguePage({ params }: { params: Promise<Param
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(PoolLeaguePage);

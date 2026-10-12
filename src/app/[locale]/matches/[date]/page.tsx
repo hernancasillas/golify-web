@@ -7,6 +7,7 @@ import { competitionById, competitionName } from '@/lib/competitions';
 import { datePath, homePath, sectionPath, ROUTE_LOCALES, type RouteLocale } from '@/lib/routes';
 import { pageMetadata } from '@/lib/seo';
 import { isoDateIn } from '@/lib/timezones';
+import { dateIndexable } from '@/lib/indexing';
 import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
 import { JsonLd } from '@/components/JsonLd';
@@ -26,6 +27,7 @@ import {
   LOCALE_ZONE,
   parseIsoDate,
 } from '@/components/hubs/data';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Date archive — /es/partidos/2026-10-04 (plan A6: archive navigable by
 // date). Every covered fixture of that calendar day, with the day counted
@@ -40,7 +42,9 @@ import {
 // Cache: the page revalidates hourly; the day's fetch carries its own window
 // (10 min for today and the future, 1 h for the last few days, a day for
 // older history), and Next revalidates at the shortest of the two.
-export const revalidate = 3600;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   return [];
@@ -181,7 +185,9 @@ function resolve(p: Params) {
 }
 
 async function load(date: string, zone: string, offset: number, locale: RouteLocale) {
-  const ttl = offset >= 0 ? 600 : offset >= -3 ? 3600 : TTL.daily;
+  // Today and the days ahead follow the watcher (date:<day> tags); past days
+  // only change if a result is corrected.
+  const ttl = offset >= -3 ? TTL.day : TTL.weekly;
   // Primary entity: strict, so a failed call throws (Next keeps the last
   // good copy) instead of publishing the day as empty.
   const fixtures = localizeFixtures(await fixturesOfDay(date, zone, competitionOrder(), { revalidate: ttl, strict: true }), locale);
@@ -189,10 +195,10 @@ async function load(date: string, zone: string, offset: number, locale: RouteLoc
 }
 
 function isIndexable(offset: number, fixtures: Fixture[]): boolean {
-  return offset >= -400 && offset <= 30 && fixtures.length > 0;
+  return dateIndexable(offset) && fixtures.length > 0;
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale, date, zone, offset } = resolve(await params);
   const L = STR[locale];
   const { fixtures, groups } = await load(date, zone, offset, locale);
@@ -216,7 +222,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function DateArchivePage({ params }: { params: Promise<Params> }) {
+async function DateArchivePage({ params }: { params: Promise<Params> }) {
   const { locale, date, zone, today, offset } = resolve(await params);
   const L = STR[locale];
   const { fixtures, groups } = await load(date, zone, offset, locale);
@@ -367,3 +373,7 @@ export default async function DateArchivePage({ params }: { params: Promise<Para
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(DateArchivePage);

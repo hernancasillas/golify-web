@@ -117,6 +117,8 @@ export function LiveMatchesWidget() {
     let cancelled = false;
 
     async function load() {
+      // A background tab does not need live scores: skip until it is visible.
+      if (document.visibilityState === 'hidden') return;
       try {
         const res = await fetch('/api/live-fixtures', { cache: 'no-store' });
         if (!res.ok || cancelled) return;

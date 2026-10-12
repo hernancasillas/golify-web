@@ -7,6 +7,7 @@ import { Breadcrumbs } from '@/components/blocks/Breadcrumbs';
 import { AppCard, Card, Kicker, PageShell, SectionTitle, TwoColumn } from '@/components/watch/ui';
 import { asLocale } from '@/components/watch/i18n';
 import { countryName, verifiedCombos, verifiedCountries, watchCountrySlug } from '@/components/watch/data/watch';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // "Dónde ver" hub: every covered competition, with the countries whose rights
 // are verified listed first. Reads only the static rights table — no API
@@ -73,7 +74,7 @@ const STR = {
   },
 } as const;
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const locale = asLocale((await params).locale);
   const t = STR[locale];
   return pageMetadata({
@@ -85,7 +86,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function WhereToWatchIndex({ params }: { params: Promise<Params> }) {
+async function WhereToWatchIndex({ params }: { params: Promise<Params> }) {
   const locale = asLocale((await params).locale);
   const t = STR[locale];
   const path = sectionPath('whereToWatch', locale);
@@ -166,3 +167,6 @@ export default async function WhereToWatchIndex({ params }: { params: Promise<Pa
   );
 }
 
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(WhereToWatchIndex);

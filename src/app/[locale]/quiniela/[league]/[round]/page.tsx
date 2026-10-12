@@ -58,6 +58,7 @@ import { installLink } from '@/lib/site';
 import { withUtm } from '@/lib/analytics';
 import { longDateIn, shortDateIn, timeIn } from '@/lib/timezones';
 import type { Locale } from '@/lib/site';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Public quiniela of one round: /es/quiniela/liga-mx/jornada-12,
 // /pt/bolao/brasileirao/rodada-21, /en/pool/premier-league/matchday-6.
@@ -68,7 +69,9 @@ import type { Locale } from '@/lib/site';
 // ≥ 50 picks (plan A4); below that it renders the same page as
 // noindex,follow, with no ads.
 
-export const revalidate = 300;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   return [];
@@ -141,7 +144,7 @@ function labels(r: Awaited<ReturnType<typeof resolve>>) {
   return { league, roundLbl, season };
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const p = await params;
   const r = await resolve(p.locale, p.league, p.round);
   const t = poolStr(r.locale);
@@ -169,7 +172,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function PoolRoundPage({ params }: { params: Promise<Params> }) {
+async function PoolRoundPage({ params }: { params: Promise<Params> }) {
   const p = await params;
   const r = await resolve(p.locale, p.league, p.round);
   const { locale, comp, n, data, fixtures, splits, picks, indexable, prev, next } = r;
@@ -361,3 +364,7 @@ export default async function PoolRoundPage({ params }: { params: Promise<Params
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(PoolRoundPage);

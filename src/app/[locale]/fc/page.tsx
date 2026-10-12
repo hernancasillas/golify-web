@@ -7,6 +7,7 @@ import { AppCard, Kicker, PageShell, SectionTitle, TwoColumn } from '@/component
 import { asLocale, fill } from '@/components/watch/i18n';
 import { fcDisplayName, getFcGame, getTopPlayers } from '@/components/watch/data/fc';
 import { nationalityLabel, positionCode } from '@/components/watch/data/fc-labels';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // EA FC hub: the 100 best-rated footballers of the current game (one card
 // per footballer), each linking to its rating page. Two Supabase queries.
@@ -77,7 +78,7 @@ const STR = {
   },
 } as const;
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const locale = asLocale((await params).locale);
   const t = STR[locale];
   const [game, top] = await Promise.all([getFcGame(), getTopPlayers(TOP_N)]);
@@ -98,7 +99,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function FcIndex({ params }: { params: Promise<Params> }) {
+async function FcIndex({ params }: { params: Promise<Params> }) {
   const locale = asLocale((await params).locale);
   const t = STR[locale];
   const [game, top] = await Promise.all([getFcGame(), getTopPlayers(TOP_N)]);
@@ -166,3 +167,7 @@ export default async function FcIndex({ params }: { params: Promise<Params> }) {
     </PageShell>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(FcIndex);

@@ -54,6 +54,7 @@ import {
 } from '../_lib/data';
 import { loadShell, resolveTeam, sportsTeamNode, TeamFrame, type TeamShell } from '../_lib/shell';
 import { asLocale, teamStrings, type TeamStrings, fill } from '../_lib/strings';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Team hub (plan A4 "Equipo"): next match with kickoff by country, form,
 // table position, scorers, squad, transfers, seasons and rivals — every block
@@ -66,7 +67,9 @@ import { asLocale, teamStrings, type TeamStrings, fill } from '../_lib/strings';
 // Quota per regeneration (most calls are shared cache entries with the
 // sub-pages and the league pages): team, leagues, coach, standings, season
 // fixtures, players (2–3 pages), squad, transfers, league teams.
-export const revalidate = 3600;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   return [];
@@ -75,7 +78,7 @@ export async function generateStaticParams() {
 type Params = { locale: string; slug: string };
 
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
   const core = await loadTeam(slug, locale);
@@ -199,7 +202,7 @@ function outcomeProps(L: TeamStrings, o: Outcome) {
 
 // ---- Page ------------------------------------------------------------------
 
-export default async function TeamPage({ params }: { params: Promise<Params> }) {
+async function TeamPage({ params }: { params: Promise<Params> }) {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
   const core = await resolveTeam(slug, locale);
@@ -836,3 +839,7 @@ function ClubCard({ s }: { s: TeamShell }) {
     </Panel>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(TeamPage);

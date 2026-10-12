@@ -23,6 +23,7 @@ import {
 } from '@/components/watch/data/fc';
 import { eurCompact, nationalityLabel, positionCode, positionList, positionName } from '@/components/watch/data/fc-labels';
 import { listJoin } from '@/components/watch/data/watch';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // EA FC rating page (plan A4 "EA FC /es/fc/{jugador}"): the card from our
 // own Supabase catalog plus a link to the real footballer's page, but only
@@ -226,7 +227,7 @@ function nationalOf(m: FcMembership[]): FcMembership | null {
   return m.find((x) => x.kind === 'national') ?? null;
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
   const p = await load(slug);
@@ -253,7 +254,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function FcPlayerPage({ params }: { params: Promise<Params> }) {
+async function FcPlayerPage({ params }: { params: Promise<Params> }) {
   const { locale: raw, slug } = await params;
   const locale: RouteLocale = asLocale(raw);
   const p = await load(slug);
@@ -455,3 +456,7 @@ export default async function FcPlayerPage({ params }: { params: Promise<Params>
     </PageShell>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(FcPlayerPage);

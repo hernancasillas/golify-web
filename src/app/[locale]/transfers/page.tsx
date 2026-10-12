@@ -7,6 +7,7 @@ import { Breadcrumbs } from '@/components/blocks/Breadcrumbs';
 import { AppCard, Card, Kicker, PageShell, SectionTitle, TwoColumn } from '@/components/watch/ui';
 import { asLocale, fill } from '@/components/watch/i18n';
 import { WINDOW_MONTHS, hasTransfersPage } from '@/components/watch/data/transfers';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // "Fichajes" hub: one link per covered league with a transfers page. No API
 // calls here — each league page carries its own (cached) window.
@@ -66,7 +67,7 @@ const STR = {
   },
 } as const;
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const locale = asLocale((await params).locale);
   const t = STR[locale];
   const vars = { year: new Date().getUTCFullYear(), months: WINDOW_MONTHS };
@@ -78,7 +79,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function TransfersIndex({ params }: { params: Promise<Params> }) {
+async function TransfersIndex({ params }: { params: Promise<Params> }) {
   const locale = asLocale((await params).locale);
   const t = STR[locale];
   const path = sectionPath('transfers', locale);
@@ -132,3 +133,7 @@ export default async function TransfersIndex({ params }: { params: Promise<Param
     </PageShell>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(TransfersIndex);

@@ -33,6 +33,7 @@ import {
   verifiedCountries,
   watchCountrySlug,
 } from '@/components/watch/data/watch';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // "Dónde ver {liga}": the league's index of verified country guides. It is
 // indexable once at least one country has a verified rights entry; until
@@ -155,7 +156,7 @@ function fallbackCountries(c: Competition, verified: HubCountry[]): HubCountry[]
   return HUB_COUNTRIES.filter((k) => want.has(k) && !verified.includes(k));
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { c, locale } = resolve(await params);
   const t = STR[locale];
   const league = competitionName(c, locale);
@@ -172,7 +173,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function WhereToWatchLeaguePage({ params }: { params: Promise<Params> }) {
+async function WhereToWatchLeaguePage({ params }: { params: Promise<Params> }) {
   const { c, locale } = resolve(await params);
   const t = STR[locale];
   const league = competitionName(c, locale);
@@ -308,3 +309,7 @@ export default async function WhereToWatchLeaguePage({ params }: { params: Promi
     </PageShell>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(WhereToWatchLeaguePage);

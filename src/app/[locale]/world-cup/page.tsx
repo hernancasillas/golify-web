@@ -17,6 +17,7 @@ import {
   worldCupEventNode,
   type Locale,
 } from '@/lib/site';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // The tournament hub. Every World Cup match page points its schema `superEvent`
 // at this URL, which used to 404 — an invalid reference on ~100 match pages.
@@ -89,7 +90,7 @@ function t(locale: string) {
   return STR[locale as keyof typeof STR] ?? STR.es;
 }
 
-export async function generateMetadata({
+async function generateMetadataRaw({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -104,7 +105,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function WorldCupPage({
+async function WorldCupPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -203,3 +204,7 @@ export default async function WorldCupPage({
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(WorldCupPage);

@@ -8,6 +8,7 @@ import { timeIn } from '@/lib/timezones';
 import { broadcastsFor, WATCH_COUNTRY_SLUGS } from '@/data/broadcasters';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { LocalTime } from '@/components/LocalTime';
+import { LiveScoreUpdater } from '@/components/LiveScoreUpdater';
 import type { BoardCounts, BoardPhase, CompetitionGroup } from './data';
 
 // The day board: one card per competition, one row per match, every row a
@@ -89,8 +90,10 @@ function adAfter(index: number): boolean {
 export function Board({ groups, locale, time, adPrefix, indexable, watchCountry, watchCountryName, counts }: BoardProps) {
   const L = B[locale];
   let ads = 0;
+  const anyLive = groups.some((g) => g.fixtures.some((f) => fixturePhase(f) === 'live'));
   return (
     <div className="hub-board">
+      {anyLive ? <LiveScoreUpdater htLabel={L.ht} /> : null}
       {counts ? <FilterChips counts={counts} locale={locale} /> : null}
       {groups.map((g, i) => {
         const showAd = adAfter(i);
@@ -252,7 +255,7 @@ function MatchRow({ f, locale, time }: { f: Fixture; locale: RouteLocale; time: 
   const awayLost = decided && f.teams.away.winner === false;
 
   return (
-    <li data-phase={phase}>
+    <li data-phase={phase} data-live-fixture={phase === 'live' ? f.fixture.id : undefined}>
       <Link
         href={matchPath(locale, f)}
         className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 px-4 py-3 transition-colors hover:bg-surface-2 sm:grid-cols-[4.75rem_minmax(0,1fr)_1.75rem_0.75rem_1.75rem_minmax(0,1fr)] sm:gap-y-0"
@@ -262,7 +265,7 @@ function MatchRow({ f, locale, time }: { f: Fixture; locale: RouteLocale; time: 
         </span>
         <TeamCell team={f.teams.home} muted={homeLost} className="col-start-2 row-start-1 sm:flex-row-reverse sm:text-right" />
         {scored ? (
-          <Score value={f.goals.home} live={phase === 'live'} muted={homeLost} className="col-start-3 row-start-1" />
+          <Score value={f.goals.home} side="home" live={phase === 'live'} muted={homeLost} className="col-start-3 row-start-1" />
         ) : null}
         <span
           aria-hidden={scored ? true : undefined}
@@ -273,6 +276,7 @@ function MatchRow({ f, locale, time }: { f: Fixture; locale: RouteLocale; time: 
         {scored ? (
           <Score
             value={f.goals.away}
+            side="away"
             live={phase === 'live'}
             muted={awayLost}
             className="col-start-3 row-start-2 sm:col-start-5 sm:row-start-1"
@@ -293,7 +297,7 @@ export function StatusCell({ f, phase, locale, time }: { f: Fixture; phase: Boar
       <span className="inline-flex items-center gap-1.5 text-sm font-extrabold text-live">
         <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-live" />
         <span className="sr-only">{L.live} </span>
-        {label}
+        <span data-minute>{label}</span>
       </span>
     );
   }
@@ -345,9 +349,22 @@ function TeamCell({
   );
 }
 
-function Score({ value, live, muted, className }: { value: number | null; live: boolean; muted: boolean; className: string }) {
+function Score({
+  value,
+  side,
+  live,
+  muted,
+  className,
+}: {
+  value: number | null;
+  side: 'home' | 'away';
+  live: boolean;
+  muted: boolean;
+  className: string;
+}) {
   return (
     <span
+      data-score={side}
       className={`${className} text-right font-display text-lg leading-none font-bold tabular-nums sm:text-center ${live ? 'text-live' : muted ? 'text-muted-foreground' : 'text-foreground'}`}
     >
       {value ?? '–'}

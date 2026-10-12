@@ -19,13 +19,26 @@ const BASE_URL = 'https://v3.football.api-sports.io';
 const API_KEY = process.env.API_FOOTBALL_KEY ?? '';
 
 // Cache windows (seconds), named by how fast the data moves.
+//
+// Match-driven data (day lists, fixtures, standings, team and league fixture
+// lists) no longer refreshes on a short timer. The watcher cron
+// (/api/cron/watch) invalidates its tags when a match changes state — lineups
+// out, kickoff, final whistle — and at midnight in each board's zone. With no
+// matches in the covered leagues nothing is recomputed. The windows below are
+// only the safety net for when the watcher misses an event.
+// Live scores reach visitors through /api/live-fixtures (client polling), not
+// through page regeneration.
 export const TTL = {
   live: 30,
-  day: 300, // today's fixtures, standings during a matchday
-  standings: 600,
+  day: 3600 * 6, // day lists, team/league next & last fixtures (event-invalidated)
+  standings: 86400, // standings, season fixtures (invalidated at full time)
   hours: 3600 * 6, // squads, coaches, season fixtures of past rounds
   daily: 86400, // leagues, venues, careers, transfers, history
   weekly: 86400 * 7,
+  /** A page rendered without its data (upstream down or the web's API share
+   *  spent) retries after this long instead of keeping the fallback for the
+   *  route's full window. */
+  degraded: 900,
 } as const;
 
 interface ApiResponse<T> {
@@ -191,7 +204,7 @@ async function request<T>(
     p = cached
       ? unstable_cache(() => sharedFetch<T>(href, revalidate), bucket ? ['api-football', bucket, href] : ['api-football', href], {
           revalidate,
-          tags: ['api-football'],
+          tags: cacheTags(endpoint, params),
         })()
       : fetchOnce<T>(href);
     inflight.set(key, p as Promise<Page<unknown>>);
@@ -199,8 +212,61 @@ async function request<T>(
   }
   try {
     return await p;
-  } catch {
+  } catch (e) {
+    logUpstreamFailure(endpoint, e);
     return null;
+  }
+}
+
+/** Cache tags for one provider request, derived from what it asks for. The
+ *  watcher invalidates them when a match changes state (see TAG below):
+ *    fx:<id>      the fixture itself (detail, injuries)
+ *    date:<day>   a day list (`date` param, whatever the zone)
+ *    league:<id>  fixtures, rounds, standings and leaders of a league
+ *    team:<id>    a team's fixtures (next/last/season, head-to-head)
+ *  Only match-driven endpoints get entity tags, so a final whistle never
+ *  invalidates squads, transfers or careers. */
+function cacheTags(endpoint: string, params: Record<string, string | number>): string[] {
+  const tags = ['api-football'];
+  const fixtures = endpoint.startsWith('/fixtures');
+  if (params.id != null && endpoint === '/fixtures') tags.push(TAG.fixture(params.id));
+  if (params.fixture != null && endpoint === '/injuries') tags.push(TAG.fixture(params.fixture));
+  if (params.date != null && endpoint === '/fixtures') tags.push(TAG.date(String(params.date)));
+  const leagueScoped = fixtures || endpoint === '/standings' || endpoint.startsWith('/players/top');
+  if (params.league != null && leagueScoped) tags.push(TAG.league(params.league));
+  if (params.team != null && fixtures) tags.push(TAG.team(params.team));
+  if (params.h2h != null) for (const id of String(params.h2h).split('-')) tags.push(TAG.team(id));
+  return tags;
+}
+
+export const TAG = {
+  fixture: (id: number | string) => `fx:${id}`,
+  date: (iso: string) => `date:${iso}`,
+  league: (id: number | string) => `league:${id}`,
+  team: (id: number | string) => `team:${id}`,
+} as const;
+
+// One line per instance and reason every 5 minutes: enough to see in the
+// Vercel logs why pages fall back, without flooding them during an outage.
+const loggedAt = new Map<string, number>();
+function logUpstreamFailure(endpoint: string, e: unknown): void {
+  const reason = e instanceof Error ? e.message : String(e);
+  const k = reason.slice(0, 60);
+  const now = Date.now();
+  if ((loggedAt.get(k) ?? 0) > now - 300_000) return;
+  loggedAt.set(k, now);
+  console.warn(`[api-football] ${endpoint} unavailable: ${reason}`);
+}
+
+/** Shortens the current ISR render's lifetime to TTL.degraded. Call it when a
+ *  page renders its fallback: the route keeps the lowest revalidate of every
+ *  cached call made during the render, so this one tiny shared entry is enough
+ *  to have the fallback retried in minutes rather than kept for a day. */
+export async function markDegraded(): Promise<void> {
+  try {
+    await unstable_cache(async () => 1, ['golify-degraded'], { revalidate: TTL.degraded })();
+  } catch {
+    // Outside a render (tests, scripts): nothing to shorten.
   }
 }
 
@@ -517,8 +583,9 @@ export interface Trophy {
 // ---- Fixtures ---------------------------------------------------------------
 
 export async function getFixtureById(id: number): Promise<Fixture | null> {
-  // Live/near matches change fast; short revalidate keeps facts current.
-  const rows = await apiGet<Fixture>('/fixtures', { id }, TTL.live);
+  // Tagged fx:<id>: the watcher refreshes it at lineups, kickoff and full
+  // time, so the window is only a safety net.
+  const rows = await apiGet<Fixture>('/fixtures', { id }, 3600);
   return rows[0] ?? null;
 }
 
@@ -545,15 +612,18 @@ function freshness(f: Fixture): number {
   const kickoff = new Date(f.fixture.date).getTime();
   const now = Date.now();
   const phase = fixturePhase(f);
-  if (phase === 'live') return TTL.live;
+  // The watcher invalidates `fx:<id>` when lineups land, at kickoff and at
+  // the final whistle; the live score itself reaches the page through the
+  // client poller. These windows only bound how stale the HTML can get if
+  // the watcher misses an event.
+  if (phase === 'live') return 300;
   if (phase === 'finished' || phase === 'off') {
     // Stats and ratings settle in the hours after the whistle.
-    return now - kickoff < 6 * 3600_000 ? TTL.day : TTL.weekly;
+    return now - kickoff < 6 * 3600_000 ? 3600 : TTL.weekly;
   }
-  // Scheduled: lineups land ~1 h before kickoff; the date can move.
-  if (kickoff - now < 3 * 3600_000) return TTL.live;
-  if (kickoff - now < 48 * 3600_000) return TTL.day;
-  return TTL.hours;
+  if (kickoff - now < 3 * 3600_000) return 1800;
+  if (kickoff - now < 48 * 3600_000) return TTL.hours;
+  return 12 * 3600;
 }
 
 // Single `live=all` call covers every live match worldwide — cheaper than

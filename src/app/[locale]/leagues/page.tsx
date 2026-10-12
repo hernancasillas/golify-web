@@ -20,6 +20,7 @@ import { currentApiSeason } from '@/components/competition/data';
 import { asLocale, fmt, ui } from '@/components/competition/i18n';
 import { kindLabel } from '@/components/competition/page-helpers';
 import { AppPromo, LeagueLogo, PageShell } from '@/components/competition/ui';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Leagues index: /es/ligas, /pt/ligas, /en/leagues — the "Ligas" nav target.
 //
@@ -30,7 +31,9 @@ import { AppPromo, LeagueLogo, PageShell } from '@/components/competition/ui';
 // the current round to know whether it is the Apertura or the Clausura.
 // That is ~24 cached calls on a cold cache and none after. A failed lookup
 // only drops that competition's season link: the hub link always works.
-export const revalidate = 3600;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 type Params = { locale: string };
 
@@ -127,7 +130,7 @@ function groups(): { market: Market; comps: Competition[] }[] {
   return out;
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const locale = checkLocale((await params).locale);
   const S = STR[locale];
   const list = COMPETITIONS.slice(0, 4)
@@ -141,7 +144,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function LeaguesIndex({ params }: { params: Promise<Params> }) {
+async function LeaguesIndex({ params }: { params: Promise<Params> }) {
   const locale = checkLocale((await params).locale);
   const S = STR[locale];
   const t = ui(locale);
@@ -213,3 +216,7 @@ export default async function LeaguesIndex({ params }: { params: Promise<Params>
     </PageShell>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(LeaguesIndex);

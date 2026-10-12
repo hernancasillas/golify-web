@@ -44,6 +44,7 @@ import { WORLD_CUP_LEAGUE_ID, WORLD_CUP_SEASON } from '@/lib/site';
 import { isoDateIn } from '@/lib/timezones';
 import type { SitemapEntry } from './types';
 import { dedupe } from './xml';
+import { hubLocales, matchInIndexWindow, teamIndexable, TEAM_INDEX_LEAGUES } from '@/lib/indexing';
 
 const DOMESTIC = COMPETITIONS.filter((c) => c.kind === 'league');
 
@@ -109,11 +110,12 @@ export async function staticEntries(): Promise<SitemapEntry[]> {
 // ---- hubs-pais.xml / fechas.xml -------------------------------------------
 
 export async function hubEntries(): Promise<SitemapEntry[]> {
-  return HUB_COUNTRIES.map((cc) => entry((l) => hubPath(l, cc)));
+  // Only the country's own language is indexable (src/lib/indexing.ts).
+  return HUB_COUNTRIES.map((cc) => ({ path: (l: RouteLocale) => hubPath(l, cc), locales: hubLocales(cc) }));
 }
 
-/** Date archive: last 30 days + next 7, only days with at least one covered
- *  fixture (the page's own threshold). The days come from the season fixture
+/** Date archive: today + next 7 (dateIndexable), only days with at least one
+ *  covered fixture (the page's own threshold). The days come from the season fixture
  *  lists the match sitemaps already load — no extra API calls. Counted in
  *  Mexico City, the zone the es page uses (pt/en pages share the URL date). */
 export async function dateEntries(now = new Date()): Promise<SitemapEntry[]> {
@@ -123,7 +125,7 @@ export async function dateEntries(now = new Date()): Promise<SitemapEntry[]> {
     for (const f of s?.fixtures ?? []) days.add(isoDateIn(new Date(f.fixture.date), 'America/Mexico_City'));
   }
   const out: SitemapEntry[] = [];
-  for (let d = -30; d <= 7; d++) {
+  for (let d = 0; d <= 7; d++) {
     const iso = isoDateIn(new Date(now.getTime() + d * 86400_000), 'America/Mexico_City');
     if (days.has(iso)) out.push(entry((l) => datePath(l, iso)));
   }
@@ -135,12 +137,15 @@ export async function dateEntries(now = new Date()): Promise<SitemapEntry[]> {
 /** Month files the index advertises: 3 months back to 2 ahead. Computed from
  *  the date alone so the index never waits on the API. */
 export function matchMonths(now = new Date()): string[] {
-  const out: string[] = [];
-  for (let m = -3; m <= 2; m++) {
+  // The index window (a week ahead, two weeks back) spans at most this
+  // month and its neighbours; the 2026 World Cup archive is indexed whole.
+  const out: string[] = [`${WORLD_CUP_SEASON}-06`, `${WORLD_CUP_SEASON}-07`];
+  for (let m = -1; m <= 1; m++) {
     const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + m, 1));
-    out.push(d.toISOString().slice(0, 7));
+    const month = d.toISOString().slice(0, 7);
+    if (!out.includes(month)) out.push(month);
   }
-  return out;
+  return out.sort();
 }
 
 const monthOf = (f: Fixture) => new Date(f.fixture.date).toISOString().slice(0, 7);
@@ -154,15 +159,18 @@ function matchLastmod(f: Fixture): string | undefined {
 }
 
 export async function matchEntries(month: string): Promise<SitemapEntry[]> {
-  const lists = await Promise.all(COMPETITIONS.map((c) => seasonFixtures(c).then((s) => s?.fixtures ?? [])));
-  // The 2026 World Cup (June–July 2026) is fixed history: one weekly-cached call.
-  if (month >= `${WORLD_CUP_SEASON}-06` && month <= `${WORLD_CUP_SEASON}-07`) {
-    lists.push(await getSeasonFixtures(WORLD_CUP_LEAGUE_ID, WORLD_CUP_SEASON, { strict: true, revalidate: TTL.weekly }));
-  }
+  // The 2026 World Cup (June–July 2026) is fixed history, indexed whole: one
+  // weekly-cached call. Every other match only inside the index window.
+  const worldCup = month >= `${WORLD_CUP_SEASON}-06` && month <= `${WORLD_CUP_SEASON}-07`;
+  const lists = worldCup
+    ? [await getSeasonFixtures(WORLD_CUP_LEAGUE_ID, WORLD_CUP_SEASON, { strict: true, revalidate: TTL.weekly })]
+    : await Promise.all(COMPETITIONS.map((c) => seasonFixtures(c).then((s) => s?.fixtures ?? [])));
   const out: SitemapEntry[] = [];
   const seen = new Set<number>();
+  const now = Date.now();
   for (const f of lists.flat()) {
     if (seen.has(f.fixture.id) || monthOf(f) !== month) continue;
+    if (!worldCup && !matchInIndexWindow(f.fixture.date, now)) continue;
     // Postponed/cancelled matches have no scoreboard and no result to show.
     if (fixturePhase(f) === 'off') continue;
     seen.add(f.fixture.id);
@@ -174,8 +182,9 @@ export async function matchEntries(month: string): Promise<SitemapEntry[]> {
 // ---- equipos.xml -------------------------------------------------------
 
 export async function teamEntries(): Promise<SitemapEntry[]> {
+  // Clubs of the core domestic leagues only (src/lib/indexing.ts).
   const lists = await Promise.all(
-    COMPETITIONS.map(async (c) => {
+    COMPETITIONS.filter((c) => TEAM_INDEX_LEAGUES.has(c.id)).map(async (c) => {
       const s = await seasonOf(c);
       return s ? getLeagueTeams(c.id, s.season, { strict: true }) : [];
     }),
@@ -183,7 +192,7 @@ export async function teamEntries(): Promise<SitemapEntry[]> {
   const seen = new Set<number>();
   const out: SitemapEntry[] = [];
   for (const t of lists.flat()) {
-    if (seen.has(t.team.id)) continue;
+    if (seen.has(t.team.id) || !teamIndexable(t.team.name, [...TEAM_INDEX_LEAGUES])) continue;
     seen.add(t.team.id);
     const team = { id: t.team.id, name: t.team.name };
     out.push(entry((l) => teamPath(l, team)));
@@ -248,16 +257,7 @@ export async function competitionEntries(): Promise<SitemapEntry[]> {
       if (cov?.top_assists) out.push(entry((l) => competitionPath(l, c.id, slug, 'assists')!));
       if (cov?.top_cards) out.push(entry((l) => competitionPath(l, c.id, slug, 'cards')!));
 
-      // Numbered rounds of the current season/phase (from the cached fixture
-      // list — no extra /fixtures/rounds call).
-      const rounds = new Set<number>();
-      for (const f of s.fixtures) {
-        const r = parseRound(f.league.round);
-        if (r.number != null && r.phase === phase) rounds.add(r.number);
-      }
-      for (const n of [...rounds].sort((a, b) => a - b)) {
-        out.push(entry((l) => competitionPath(l, c.id, slug, { round: n })!));
-      }
+      // Numbered rounds are noindex (src/lib/indexing.ts): not listed.
       return out;
     }),
   );

@@ -46,6 +46,7 @@ import { WATCH_COUNTRY_SLUGS } from '@/data/broadcasters';
 import { loadMatch, type MatchModel } from './_lib/load';
 import { buildView, type MatchView } from './_lib/view';
 import { FAQ_OTHER_ZONES, PRIMARY_ZONE } from './_lib/i18n';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Match page v2 — one URL, three moments (plan A4, strategy §6). The same
 // address serves the preview before kickoff, the live match and the final
@@ -59,7 +60,9 @@ import { FAQ_OTHER_ZONES, PRIMARY_ZONE } from './_lib/i18n';
 // Live scores update on the client (LiveScore polls /api/live-fixtures);
 // the HTML only needs to follow state changes, and the fixture fetch picks
 // its own TTL from the match state.
-export const revalidate = 300;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   return [];
@@ -81,7 +84,7 @@ async function resolve(params: Promise<Params>) {
   return { locale, slug, m };
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale, m } = await resolve(params);
   const v = buildView(m, locale);
   return pageMetadata({
@@ -242,7 +245,7 @@ function faqEntries(m: MatchModel, v: MatchView, locale: RouteLocale, motm: Retu
 
 // ---- Page ------------------------------------------------------------------
 
-export default async function MatchPage({ params }: { params: Promise<Params> }) {
+async function MatchPage({ params }: { params: Promise<Params> }) {
   const { locale, slug, m } = await resolve(params);
   const f = m.f;
 
@@ -550,3 +553,7 @@ export default async function MatchPage({ params }: { params: Promise<Params> })
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(MatchPage);

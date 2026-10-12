@@ -61,6 +61,7 @@ import {
   TwoColumn,
   ZoneTimes,
 } from '@/components/competition/ui';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Season sub-pages: /es/liga-mx/apertura-2026/{tabla|goleadores|asistencias|
 // tarjetas|calendario|jornada-12} (pt: tabela|artilheiros|…|rodada-12; en:
@@ -73,7 +74,9 @@ import {
 // so ISR keeps the last good copy. A section the provider has nothing for
 // yet (no scorers in week one) still renders an honest empty state, but as
 // noindex and without ads (plan A4 / C3).
-export const revalidate = 600;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   return [];
@@ -363,6 +366,9 @@ async function sectionData(ctx: SeasonCtx, spec: SectionSpec): Promise<SectionDa
 }
 
 function hasContent(d: SectionData): boolean {
+  // Numbered rounds ("jornada 12") repeat what the season calendar shows:
+  // reachable, linked, but not indexed (src/lib/indexing.ts).
+  if (d.kind === 'round') return false;
   if (d.kind === 'table') return d.standings.groups.length > 0;
   if (d.kind === 'top') return d.list.rows.length > 0;
   return true;
@@ -379,7 +385,7 @@ function topLead(list: TopListResult, kind: TopKind, ctx: SeasonCtx, S: S): stri
 
 // ---- Metadata --------------------------------------------------------------------
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale, ctx, section } = await loadSeasonParams(await params);
   if (!section) notFound();
   const S = STR[locale];
@@ -433,7 +439,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 // ---- Page ---------------------------------------------------------------------------
 
-export default async function SeasonSectionPage({ params }: { params: Promise<Params> }) {
+async function SeasonSectionPage({ params }: { params: Promise<Params> }) {
   const { locale, ctx, section } = await loadSeasonParams(await params);
   if (!section) notFound();
   const { comp } = ctx;
@@ -797,3 +803,7 @@ export default async function SeasonSectionPage({ params }: { params: Promise<Pa
     </PageShell>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(SeasonSectionPage);

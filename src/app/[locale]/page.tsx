@@ -9,7 +9,6 @@ import {
   getCurrentRound,
   getFixturesByDate,
   getLeagueInfoCached,
-  getLiveFixtures,
   getSeasonFixtures,
   getStandings,
   getTopScorers,
@@ -51,13 +50,17 @@ import { LocalTime, LocalTimeScript } from '@/components/LocalTime';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteNav } from '@/components/SiteNav';
 import { MatchLine } from '@/components/home/MatchLine';
+import { LiveScoreUpdater } from '@/components/LiveScoreUpdater';
 import { DisplayHeading, Eyebrow, LeagueChip, PillLink } from '@/components/revamp/ui';
 import { SmartDownload } from '@/components/SmartDownload';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
-// ISR: one render per 2 minutes serves everyone. Budget per render: live 1,
+// ISR, event-driven: the page is rebuilt when its data tags are invalidated
+// (date:<today> at kickoffs, full times and midnight; league:<id> at full
+// time), not on a timer. The day here is a safety net. Budget per render:
 // today 1, league info 1, current round 1, season fixtures 1, scorers 1,
-// standings 2 = 8 API calls (all cached by the fetchers).
-export const revalidate = 120;
+// standings 2 = 7 API calls (all cached by the fetchers).
+export const revalidate = 86400;
 
 const LOCALES = ['es', 'pt', 'en'] as const;
 
@@ -170,7 +173,7 @@ export async function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
 }
 
-export async function generateMetadata({
+async function generateMetadataRaw({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -213,7 +216,7 @@ function slugFor(c: Competition, year: number, mainSeason: { c: Competition; slu
   return null;
 }
 
-export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
+async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!(locale in STR)) notFound();
   const l = locale as RouteLocale;
@@ -232,13 +235,16 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const other = competitionById(l === 'pt' ? 262 : 71)!;
 
   // Non-critical blocks fail soft: a quota hiccup empties a block, not the page.
-  const [liveRaw, todayRaw, info] = await Promise.all([
-    getLiveFixtures(COVERED_IDS).catch(() => [] as Fixture[]),
+  // "Live now" comes from today's list, not from `live=all`: a 15-second feed
+  // here made the whole home regenerate every 15 s. The watcher refreshes the
+  // day list at each kickoff and final whistle, and the scores move in the
+  // browser (BoardLiveUpdater) while a match is on.
+  const [todayRaw, info] = await Promise.all([
     getFixturesByDate(todayIso, COVERED_IDS, zone).catch(() => [] as Fixture[]),
     getLeagueInfoCached(main.id).catch(() => null),
   ]);
-  const liveAll = liveRaw.map((f) => localizeFixture(f, l));
   const todayAll = todayRaw.map((f) => localizeFixture(f, l));
+  const liveAll = todayAll.filter((f) => fixturePhase(f) === 'live');
   const season = info ? currentSeason(info) : null;
   const [round, seasonFxRaw, scorers, standings, otherStandings] = await Promise.all([
     season ? getCurrentRound(main.id, season).catch(() => null) : null,
@@ -335,6 +341,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* Live now + open pool */}
+        {liveAll.length ? <LiveScoreUpdater htLabel="HT" /> : null}
         {live.length || poolHref ? (
           <div className="mt-10 grid gap-6 lg:grid-cols-3">
             {live.length ? (
@@ -593,3 +600,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(Home);

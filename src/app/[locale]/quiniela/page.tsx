@@ -16,6 +16,7 @@ import { COMPETITIONS, competitionName, roundLabel, roundWord, seasonLabel } fro
 import { ROUTE_LOCALES, homePath, poolPath, sectionPath, type RouteLocale } from '@/lib/routes';
 import { absolute, pageMetadata } from '@/lib/seo';
 import { installLink, type Locale } from '@/lib/site';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // "Quinielas por jornada" — the nav target of the pool section. One card per
 // covered competition with the round in progress, linked to its public
@@ -27,7 +28,9 @@ import { installLink, type Locale } from '@/lib/site';
 // page itself regenerates at most hourly, so a crawl of this URL costs
 // nothing extra.
 
-export const revalidate = 3600;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 type Params = { locale: string };
 
@@ -35,7 +38,7 @@ function asLocale(v: string): RouteLocale | null {
   return (ROUTE_LOCALES as readonly string[]).includes(v) ? (v as RouteLocale) : null;
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const locale = asLocale((await params).locale);
   if (!locale) notFound();
   const t = poolStr(locale);
@@ -71,7 +74,7 @@ async function loadCards() {
   return rows.map((r) => ({ ...r, picks: totalPicks(splits, r.fixtures) }));
 }
 
-export default async function PoolIndexPage({ params }: { params: Promise<Params> }) {
+async function PoolIndexPage({ params }: { params: Promise<Params> }) {
   const locale = asLocale((await params).locale);
   if (!locale) notFound();
   const t = poolStr(locale);
@@ -187,3 +190,7 @@ export default async function PoolIndexPage({ params }: { params: Promise<Params
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(PoolIndexPage);

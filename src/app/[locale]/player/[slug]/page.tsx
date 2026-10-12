@@ -33,6 +33,7 @@ import { ROUTE_LOCALES, competitionPath, homePath, playerPath, playerSlugId, tea
 import { absolute, pageMetadata, type Crumb, type JsonLdNode } from '@/lib/seo';
 import { fill } from '@/lib/site';
 import { idFromSlug } from '@/lib/slug';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Player page (plan A4 "Jugador", strategy §6): bio, club, season stats by
 // competition, recent matches with his line, career, transfers, trophies and
@@ -160,7 +161,7 @@ function faqEntries(d: PlayerPageData, L: Strings, locale: RouteLocale): [string
 
 // ---- Metadata ---------------------------------------------------------------
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale, d } = await resolve(params);
   const L = t(locale);
   const c = d.current;
@@ -195,7 +196,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 // ---- Page -----------------------------------------------------------------------
 
-export default async function PlayerPage({ params }: { params: Promise<Params> }) {
+async function PlayerPage({ params }: { params: Promise<Params> }) {
   const { locale, d } = await resolve(params);
   const L = t(locale);
   const p = d.profile;
@@ -330,3 +331,7 @@ export default async function PlayerPage({ params }: { params: Promise<Params> }
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(PlayerPage);

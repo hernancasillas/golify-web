@@ -8,7 +8,7 @@ Sitio público SEO de Golify (https://golify.futbol): Next.js 16 (app router, `s
 
 1. **Una sola key de API-Football compartida con la app móvil (fuchibol).** La web nunca debe dejar a la app sin cuota.
 2. **La base de Supabase es de la app, no es caché de la web.** La web solo hace lecturas chicas (p. ej. `% de pronósticos` vía RPC `get_fixture_pick_split`, catálogo `fc_players`), siempre con timeout.
-3. **Vercel Hobby (decisión vigente, oct 2026).** Límite de 4 h/mes de Fluid Active CPU, crons solo diarios. Todo cambio debe cuidar CPU: nada de renders innecesarios, ISR con `revalidate` largo, nada de páginas pesadas abiertas a bots.
+3. **Vercel Pro (desde el 11 oct 2026, tras la pausa por exceso de uso en Hobby).** Crédito de $20/mes; lo que pase de ahí se cobra. Todo cambio debe cuidar CPU y escrituras ISR: nada de renders innecesarios, nada de `revalidate` corto, nada de páginas pesadas abiertas a bots.
 
 ## Incidente del 2 de octubre de 2026 (qué pasó)
 
@@ -31,10 +31,28 @@ Después de enviar los sitemaps a Google Search Console y Bing (1 oct), los craw
 - **robots.txt** (`src/app/robots.ts`): cerradas a crawlers las familias pesadas `jugador/jogador/player`, `h2h`, `fc`, `estadio/stadium`, `arbitro/referee` en todos los locales, y bloqueados bots de entrenamiento/SEO masivo (Bytespider, Amazonbot, cohere-ai, meta-externalagent, CCBot, Diffbot, AhrefsBot, SemrushBot, MJ12bot, DotBot, PetalBot, ImagesiftBot). Esas familias también están fuera del sitemap salvo `GOLIFY_FULL_SITEMAPS=1`.
 - **Build a prueba de upstream lento:** con `NEXT_PHASE === 'phase-production-build'` el catálogo FC y el índice de sitemaps usan fallbacks en lugar de lanzar error; ISR llena los datos reales en runtime. Verificar con `API_FOOTBALL_KEY= npm run build` (build sin gastar API).
 
+## Regeneración por eventos (12 oct 2026)
+
+En Hobby la cuenta se pausó (11 oct): ISR Writes 569K/200K, Fluid CPU 10 h/4 h, 1.1M invocaciones; casi todo bots (home y tableros regenerándose cada 15–120 s). Desde entonces **las páginas solo se regeneran cuando cambia un partido**:
+
+- **Tags de caché automáticos** en cada llamada a API-Football (`cacheTags` en `src/lib/api-football.ts`): `fx:<id>`, `date:<día>`, `league:<id>`, `team:<id>`.
+- **Vigilante** `src/app/api/cron/watch` (cada 5 min, `vercel.json`): sin partidos cubiertos cerca de su hora no llama a la API y no invalida nada. Con partidos: una llamada `/fixtures?ids=` por cada 20 y `revalidateTag(tag, 'max')` al salir las alineaciones, al inicio y al final (al final también liga y equipos). A medianoche de cada zona de los tableros invalida `date:<ayer>`.
+- **Ventanas largas** (`TTL` y `revalidate` de ruta = 1 día) solo como red de seguridad. Ojo: la ruta se regenera con el `revalidate` MÁS BAJO de todas las llamadas cacheadas del render, así que una llamada con TTL corto vuelve a toda la página "de reloj".
+- **Marcador en vivo en el navegador:** `LiveScoreUpdater` parchea las filas con `data-live-fixture` desde `/api/live-fixtures` (dinámica, caché CDN 15 s). No volver a usar `live=all` dentro de páginas.
+
+## Páginas sin datos: nunca 500 (12 oct 2026)
+
+Cuando la API falla o la web ya gastó su parte de la cuota y la URL no tiene copia previa, la página antes respondía 500 (≈40 % de una muestra del sitemap). Ahora `resilientPage` / `resilientMetadata` (`src/lib/resilient.tsx`) capturan `ApiFootballError` y sirven "Datos en camino" con `noindex` y `markDegraded()` (reintento a los 15 min). Los loaders deben lanzar `ApiFootballError` (no `Error`) cuando falta un dato del proveedor.
+
+## Qué se indexa (AdSense rechazó por "contenido de poco valor", oct 2026)
+
+Reglas en `src/lib/indexing.ts`, usadas por páginas y sitemaps: partidos de 7 días antes a 14 días después (Mundial 2026 completo), clubes de ligas `core` (sin juveniles), tableros por país solo en su idioma, fechas de hoy a +7, jornadas numeradas `noindex`. El resto se ve pero no se indexa. Antes de abrir otra familia, medir.
+
 ## Reglas para cambios futuros
 
 - Todo `fetch` a un servicio externo lleva `signal: AbortSignal.timeout(...)`.
-- Páginas dinámicas ISR: `generateStaticParams(){ return [] }` + `revalidate`; nunca `no-store` dentro de ellas (usar el modo `strict` de `src/lib/api-football.ts`).
+- Páginas dinámicas ISR: `generateStaticParams(){ return [] }` + `revalidate`; nunca `no-store` dentro de ellas (usar el modo `strict` de `src/lib/api-football.ts`). Envolver el default export con `resilientPage` y `generateMetadata` con `resilientMetadata`.
+- Nada de TTLs cortos en datos que dependen de partidos: el vigilante invalida por tag.
 - Nada en build debe depender de que Supabase o la API respondan.
 - Antes de abrir una familia de páginas a bots o agregarla al sitemap, estimar cuántas URLs son y cuánto CPU/API cuesta cada render. Reabrir de a una liga y medir.
 - No usar `supabase db push` en fuchibol (muchas migraciones no registradas en remoto); aplicar SQL con `supabase db query --linked -f <archivo>`.
@@ -56,7 +74,7 @@ Después de enviar los sitemaps a Google Search Console y Bing (1 oct), los craw
 
 Objetivo: avisar antes de que la web o la app se queden sin margen. Propuesta:
 
-- **Dónde:** extender el cron diario existente (`vercel.json`, `0 7 * * *` → `/api/cron/indexnow`) o crear `/api/cron/health` (Hobby solo permite crons diarios; para algo más frecuente usar GitHub Actions o un scheduler externo que llame al endpoint con `Authorization: Bearer $CRON_SECRET`).
+- **Dónde:** crear `/api/cron/health` en `vercel.json` (en Pro los crons pueden ser frecuentes).
 - **Qué revisar:**
   - `GET https://v3.football.api-sports.io/status` con la key → `requests.current` / `requests.limit_day`. Avisar si `current / limit_day` > 0.6, y siempre informar el % del día.
   - Uso de Vercel (Fluid Active CPU vs 4 h/mes) desde el dashboard o la API de Vercel.
@@ -67,5 +85,5 @@ Objetivo: avisar antes de que la web o la app se queden sin margen. Propuesta:
 
 - API-Football: el plan vence el **7 oct 2026**; renovar. El límite actual reportado por `/status` es 150 000/día.
 - Medir 3–4 días el consumo real de app y web; si sobra margen, reabrir páginas de jugadores a Google por liga.
-- AdSense en revisión; cuando apruebe, crear unidades y poner `NEXT_PUBLIC_ADSENSE_SLOTS`. Hobby es solo uso no comercial: riesgo asumido por el usuario.
+- AdSense rechazado el 10 oct por "contenido de poco valor". Plan: reducir el índice (hecho), 2–3 notas por semana firmadas por el equipo, volver a pedir revisión en 4–8 semanas. Cuando apruebe, crear unidades y poner `NEXT_PUBLIC_ADSENSE_SLOTS`.
 - Checklist completo de SEO/contenido/monetización: `docs/PENDIENTES-SEO-PLAN.md`.

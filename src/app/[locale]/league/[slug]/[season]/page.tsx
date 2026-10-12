@@ -47,6 +47,7 @@ import {
   TopFive,
   TwoColumn,
 } from '@/components/competition/ui';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Season page: /es/liga-mx/apertura-2026, /pt/brasileirao/2026,
 // /en/premier-league/2026-2027.
@@ -55,7 +56,9 @@ import {
 // provider's own qualification zones, the round in play, the top-5 lists,
 // the round navigation and the format. Past seasons read the same fetchers
 // with a one-day TTL (data.ts seasonTtl), so their regenerations are free.
-export const revalidate = 600;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   return [];
@@ -159,7 +162,7 @@ async function data(ctx: SeasonCtx) {
   return { standings, scorers, assists, cards };
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale, ctx } = await loadSeasonParams(await params);
   const S = STR[locale];
   const name = competitionName(ctx.comp, locale);
@@ -191,7 +194,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function SeasonPage({ params }: { params: Promise<Params> }) {
+async function SeasonPage({ params }: { params: Promise<Params> }) {
   const { locale, ctx } = await loadSeasonParams(await params);
   const { comp, info } = ctx;
   const S = STR[locale];
@@ -396,3 +399,7 @@ export default async function SeasonPage({ params }: { params: Promise<Params> }
     </PageShell>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(SeasonPage);

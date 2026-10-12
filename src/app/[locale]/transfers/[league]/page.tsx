@@ -31,6 +31,7 @@ import {
   type LeagueWindow,
   type TransferRow,
 } from '@/components/watch/data/transfers';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // "Fichajes {liga}": the league's transfer window, built from API-Football's
 // per-club transfer lists (one cached daily call per club — the page's whole
@@ -241,7 +242,7 @@ function stats(w: LeagueWindow) {
   return { ins, outs, loans, leader, topSigner, priciest };
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { c, locale } = resolve(await params);
   const t = STR[locale];
   const w = localizeDeep(await getLeagueWindow(c), locale);
@@ -257,7 +258,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function TransfersLeaguePage({ params }: { params: Promise<Params> }) {
+async function TransfersLeaguePage({ params }: { params: Promise<Params> }) {
   const { c, locale } = resolve(await params);
   const t = STR[locale];
   const league = competitionName(c, locale);
@@ -457,3 +458,6 @@ export default async function TransfersLeaguePage({ params }: { params: Promise<
   );
 }
 
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(TransfersLeaguePage);

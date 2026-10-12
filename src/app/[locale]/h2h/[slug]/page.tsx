@@ -40,6 +40,7 @@ import {
   type L,
 } from '@/components/h2h/shared';
 import { Crest, FactList, MatchRow, Panel, SplitBar, StatTile, SummaryBox } from '@/components/h2h/ui';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Head-to-head page: /es/h2h/{a}-vs-{b}-{idA}-{idB}, one URL per pair (lower
 // id first, see h2hSlug). Everything on it is computed from ONE provider call
@@ -372,7 +373,7 @@ function vars(d: Loaded, locale: L) {
   };
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
   const d = await load(slug, locale);
@@ -389,7 +390,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function H2HPage({ params }: { params: Promise<Params> }) {
+async function H2HPage({ params }: { params: Promise<Params> }) {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
   const d = await load(slug, locale);
@@ -882,3 +883,7 @@ function RecordMatch({ f, locale, zone }: { f: Fixture; locale: L; zone: string 
     </Link>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(H2HPage);

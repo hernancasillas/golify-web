@@ -14,13 +14,14 @@ export function MatchLine({ f, locale }: { f: Fixture; locale: RouteLocale }) {
   return (
     <Link
       href={matchPath(locale, f)}
+      data-live-fixture={phase === 'live' ? f.fixture.id : undefined}
       className="flex items-center gap-3 px-3.5 py-3 transition-colors hover:bg-surface-2"
     >
       <span className="w-14 shrink-0 text-xs font-extrabold text-muted-foreground tabular-nums">
         {phase === 'live' ? (
           <span className="flex items-center gap-1.5 text-live">
             <span aria-hidden className="h-2 w-2 rounded-full bg-live" />
-            {f.fixture.status.short === 'HT' ? 'HT' : `${f.fixture.status.elapsed ?? ''}'`}
+            <span data-minute>{f.fixture.status.short === 'HT' ? 'HT' : `${f.fixture.status.elapsed ?? ''}'`}</span>
           </span>
         ) : phase === 'finished' ? (
           'FT'
@@ -36,7 +37,7 @@ export function MatchLine({ f, locale }: { f: Fixture; locale: RouteLocale }) {
               <span className="truncate text-sm font-bold text-foreground">{tm.name}</span>
             </span>
             {showScore ? (
-              <span className="font-display text-base font-bold tabular-nums text-foreground">
+              <span data-score={i === 0 ? 'home' : 'away'} className="font-display text-base font-bold tabular-nums text-foreground">
                 {i === 0 ? f.goals.home : f.goals.away}
               </span>
             ) : null}

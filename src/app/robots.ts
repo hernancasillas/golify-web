@@ -2,21 +2,19 @@ import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/site';
 import { ROUTE_LOCALES, sectionPath } from '@/lib/routes';
 
-// Explicitly allow general crawlers AND the AI/answer-engine crawlers.
-// Goal: let ChatGPT, Perplexity, Claude, Gemini, etc. read our content pages
-// so they can cite Golify when users ask football questions.
+// Explicitly allow general crawlers AND the AI answer engines (search and
+// live browsing), so ChatGPT, Perplexity, Claude, etc. can read and cite
+// Golify. Model-training crawlers are blocked (oct 2026): they cost crawl and
+// CPU and send no visitors. Google-Extended and Applebot-Extended are opt-out
+// tokens (no crawler of their own): blocking them keeps the pages out of
+// Gemini/Apple model training without touching Google Search or Siri.
 export default function robots(): MetadataRoute.Robots {
   const aiBots = [
-    'GPTBot', // OpenAI training
     'OAI-SearchBot', // ChatGPT search
     'ChatGPT-User', // ChatGPT live browsing
     'PerplexityBot',
     'Perplexity-User',
-    'ClaudeBot',
     'Claude-User',
-    'anthropic-ai',
-    'Google-Extended', // Gemini/Bard
-    'Applebot-Extended',
     'DuckAssistBot',
     'Claude-SearchBot', // Claude web search
     'Applebot', // Siri, Spotlight, Apple Intelligence
@@ -47,8 +45,8 @@ export default function robots(): MetadataRoute.Robots {
       // bots — Google ignores it and paces itself).
       { userAgent: 'Bingbot', allow: '/', disallow, crawlDelay: 5 },
       ...aiBots.map((ua) => ({ userAgent: ua, allow: '/', disallow, crawlDelay: 10 })),
-      // Bulk training crawlers: heavy traffic, no referrals or citations.
-      { userAgent: ['Bytespider', 'Amazonbot', 'cohere-ai', 'meta-externalagent', 'CCBot', 'Diffbot', 'ImagesiftBot', 'AhrefsBot', 'SemrushBot', 'MJ12bot', 'DotBot', 'PetalBot'], disallow: '/' },
+      // Training and bulk SEO crawlers: heavy traffic, no referrals or citations.
+      { userAgent: ['GPTBot', 'ClaudeBot', 'anthropic-ai', 'Google-Extended', 'Applebot-Extended', 'Bytespider', 'Amazonbot', 'cohere-ai', 'meta-externalagent', 'CCBot', 'Diffbot', 'ImagesiftBot', 'AhrefsBot', 'SemrushBot', 'MJ12bot', 'DotBot', 'PetalBot'], disallow: '/' },
     ],
     // The index lists every child; the news sitemap is separate (Google News).
     sitemap: [`${SITE_URL}/sitemap.xml`, `${SITE_URL}/news-sitemap.xml`],

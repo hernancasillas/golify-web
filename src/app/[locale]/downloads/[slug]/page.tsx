@@ -38,6 +38,7 @@ import { dateCell, kickoffCell, printZones, zoneLegend } from '@/lib/downloads/z
 import { printUrl, qrSvg } from '@/lib/downloads/qr';
 import { KIT } from '@/lib/downloads/kit';
 import { faqFor } from '../_lib/faq';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 export const revalidate = 1800;
 export async function generateStaticParams() {
@@ -135,7 +136,7 @@ async function load(params: Promise<Params>) {
   return { locale, d: r };
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale, d } = await load(params);
   const copy = downloadCopy(d, locale);
   return pageMetadata({
@@ -378,7 +379,7 @@ function previewLines(d: Download, l: RouteLocale): string[] {
   return KIT[l].points.map(([a]) => a);
 }
 
-export default async function DownloadPage({ params }: { params: Promise<Params> }) {
+async function DownloadPage({ params }: { params: Promise<Params> }) {
   const { locale, d } = await load(params);
   const s = STR[locale];
   const copy = downloadCopy(d, locale);
@@ -552,3 +553,7 @@ export default async function DownloadPage({ params }: { params: Promise<Params>
     </>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(DownloadPage);

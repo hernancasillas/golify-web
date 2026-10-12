@@ -38,6 +38,7 @@ import {
   watchCountrySlug,
   zonesFor,
 } from '@/components/watch/data/watch';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // "Dónde ver {liga} en {país}" (plan A4): indexable only with a VERIFIED
 // rights entry from src/data/broadcasters.ts. Without one the page still
@@ -266,7 +267,7 @@ function answerText(entries: BroadcastEntry[], locale: RouteLocale, t: (typeof S
   });
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { c, country, locale } = resolve(await params);
   const t = STR[locale];
   const entries = verifiedBroadcasts(c.id, country);
@@ -289,7 +290,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function WhereToWatchCountryPage({ params }: { params: Promise<Params> }) {
+async function WhereToWatchCountryPage({ params }: { params: Promise<Params> }) {
   const { c, country, locale } = resolve(await params);
   const t = STR[locale];
   const entries = verifiedBroadcasts(c.id, country);
@@ -448,3 +449,7 @@ export default async function WhereToWatchCountryPage({ params }: { params: Prom
     </PageShell>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(WhereToWatchCountryPage);

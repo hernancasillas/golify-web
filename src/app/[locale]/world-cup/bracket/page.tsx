@@ -17,6 +17,7 @@ import {
   worldCupEventNode,
   type Locale,
 } from '@/lib/site';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // This URL was the best-performing page in Search Console (position ~8.7) and
 // it 404'd after the reskin deleted the route, while next.config still
@@ -86,7 +87,7 @@ function t(locale: string) {
   return STR[locale as keyof typeof STR] ?? STR.es;
 }
 
-export async function generateMetadata({
+async function generateMetadataRaw({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -101,7 +102,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function BracketPage({
+async function BracketPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -184,3 +185,7 @@ export default async function BracketPage({
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(BracketPage);

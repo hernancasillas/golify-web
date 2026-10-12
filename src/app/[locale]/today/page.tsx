@@ -29,6 +29,7 @@ import {
   LOCALE_ZONE,
   strictAtRuntime,
 } from '@/components/hubs/data';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // The recurring-demand page: "partidos de hoy" is searched every single day,
 // unlike a tournament page that dies with the tournament.
@@ -41,7 +42,9 @@ import {
 // clock. The calendar day itself is the language's main market (Mexico City
 // for es, Brasília for pt, US Eastern for en), stated on the page and shared
 // with the date archive the day tabs link to.
-export const revalidate = 120;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 const STR = {
   es: {
@@ -146,7 +149,7 @@ async function load(locale: RouteLocale) {
   return { zone, today, fixtures, groups: groupByCompetition(fixtures) };
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const locale = resolveLocale((await params).locale);
   const L = STR[locale];
   const { groups } = await load(locale);
@@ -164,7 +167,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function TodayPage({ params }: { params: Promise<{ locale: string }> }) {
+async function TodayPage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = resolveLocale((await params).locale);
   const L = STR[locale];
   const { zone, today, fixtures, groups } = await load(locale);
@@ -281,3 +284,7 @@ export default async function TodayPage({ params }: { params: Promise<{ locale: 
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(TodayPage);

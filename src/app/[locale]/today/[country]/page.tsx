@@ -16,6 +16,7 @@ import {
 } from '@/lib/routes';
 import { pageMetadata } from '@/lib/seo';
 import { HUB_COUNTRY_INFO, isoDateIn } from '@/lib/timezones';
+import { hubIndexable, hubLocales } from '@/lib/indexing';
 import { broadcastsFor } from '@/data/broadcasters';
 import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
@@ -36,6 +37,7 @@ import {
 import { COUNTRY_CLOCK, IN_COUNTRY, countryName, hubZones, titleIn } from '@/components/hubs/countries';
 import { competitionsSentence, dayFacts, kickoffText, listJoin, matchName, plural, topCompetitions } from '@/components/hubs/copy';
 import { addDays, competitionOrder, countPhases, dayLabel, groupByCompetition, zoneOffset } from '@/components/hubs/data';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Country hub — /es/co/partidos-de-hoy (plan A4 "Hub país": one URL per
 // country that updates every day, always indexable).
@@ -49,7 +51,9 @@ import { addDays, competitionOrder, countPhases, dayLabel, groupByCompetition, z
 // page. generateStaticParams returns [] on purpose — prebuilding the 27
 // country × language pages would only spend 9 API calls at build time on
 // boards that are stale two minutes later; the first visit renders each one.
-export const revalidate = 120;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   return [];
@@ -183,7 +187,7 @@ async function load(cc: HubCountry, locale: RouteLocale) {
   return { zone, today, fixtures, groups: groupByCompetition(fixtures) };
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale, cc } = resolve(await params);
   const L = STR[locale];
   const { groups } = await load(cc, locale);
@@ -202,10 +206,13 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     path: (l) => hubPath(l, cc),
     title: fill(hasVerifiedWatch(cc) ? L.titleWatch : L.titleScores, { in: titleIn(cc, locale) }),
     description,
+    // Indexed only in the country's own language (src/lib/indexing.ts).
+    locales: hubLocales(cc),
+    noindex: !hubIndexable(locale, cc),
   });
 }
 
-export default async function CountryHubPage({ params }: { params: Promise<Params> }) {
+async function CountryHubPage({ params }: { params: Promise<Params> }) {
   const { locale, cc } = resolve(await params);
   const L = STR[locale];
   const { today, fixtures, groups } = await load(cc, locale);
@@ -325,7 +332,7 @@ export default async function CountryHubPage({ params }: { params: Promise<Param
                 locale={locale}
                 time={time}
                 adPrefix="hub"
-                indexable
+                indexable={hubIndexable(locale, cc)}
                 watchCountry={cc}
                 watchCountryName={name}
                 counts={counts}
@@ -354,3 +361,7 @@ export default async function CountryHubPage({ params }: { params: Promise<Param
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(CountryHubPage);

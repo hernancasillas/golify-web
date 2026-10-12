@@ -16,6 +16,7 @@
 //   - a "move" from a club to itself is dropped.
 
 import {
+  ApiFootballError,
   apiFootballGet,
   currentSeason,
   getLeagueInfoCached,
@@ -120,15 +121,15 @@ async function seasonTeams(leagueId: number, season: number): Promise<{ season: 
   // for a few days; the previous one is the window people are talking about.
   const prev = await getLeagueTeams(leagueId, season - 1, { strict: true });
   if (prev.length > 0) return { season: season - 1, teams: prev };
-  throw new Error(`transfers: league ${leagueId} has no teams for ${season} or ${season - 1}`);
+  throw new ApiFootballError(`transfers: league ${leagueId} has no teams for ${season} or ${season - 1}`);
 }
 
 export async function getLeagueWindow(c: Competition, now: Date = new Date()): Promise<LeagueWindow> {
   const info = await getLeagueInfoCached(c.id, { strict: true });
   // A covered league must exist upstream: null is an API anomaly, not a 404.
-  if (!info) throw new Error(`transfers: league ${c.id} lookup returned nothing`);
+  if (!info) throw new ApiFootballError(`transfers: league ${c.id} lookup returned nothing`);
   const current = currentSeason(info);
-  if (!current) throw new Error(`transfers: league ${c.id} has no season`);
+  if (!current) throw new ApiFootballError(`transfers: league ${c.id} has no season`);
 
   const { season, teams: allTeams } = await seasonTeams(c.id, current);
   const teams = allTeams.slice(0, MAX_TEAMS);

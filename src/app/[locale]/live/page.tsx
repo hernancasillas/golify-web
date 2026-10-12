@@ -13,14 +13,19 @@ import { DisplayHeading, Eyebrow } from '@/components/revamp/ui';
 import { Board } from '@/components/hubs/Board';
 import { AppPromo, CountryLinks, matchesItemList } from '@/components/hubs/blocks';
 import { competitionsSentence, dayFacts, plural } from '@/components/hubs/copy';
-import { competitionOrder, groupByCompetition, liveFixtures, strictAtRuntime } from '@/components/hubs/data';
+import { addDays, competitionOrder, fixturesOfDay, groupByCompetition, LOCALE_ZONE, strictAtRuntime } from '@/components/hubs/data';
+import { fixturePhase, TTL } from '@/lib/api-football';
+import { isoDateIn } from '@/lib/timezones';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
-// "Resultados en vivo" is the other query typed every day. Fifteen-second
-// revalidation keeps the served HTML close to the real score without hammering
-// the shared API quota: the single `live=all` call is shared with every other
-// caller through the fetch cache. Strict at runtime, so an API failure keeps
-// the last good board instead of announcing "nothing live".
-export const revalidate = 15;
+// "Resultados en vivo" is the other query typed every day. The list of live
+// matches comes from the day lists (yesterday and today in the locale's zone,
+// for matches that cross midnight), which the watcher cron refreshes at every
+// kickoff and final whistle — so with nothing being played the page is never
+// rebuilt. Scores and minutes move in the browser (BoardLiveUpdater polls
+// /api/live-fixtures, one CDN-cached call shared by every visitor). Strict at
+// runtime, so an API failure keeps the last good board.
+export const revalidate = 86400;
 
 const STR = {
   es: {
@@ -32,7 +37,7 @@ const STR = {
     intro: 'Ahora mismo se juegan {n}: {comps}.',
     empty: 'Ahora mismo no hay partidos en juego en las competiciones que seguimos.',
     emptyCta: 'Ver los partidos de hoy',
-    note: 'Esta página se actualiza cada 15 segundos: recárgala para ver el último marcador. Golify no transmite partidos.',
+    note: 'Los marcadores y el minuto se actualizan solos mientras tienes la página abierta. Golify no transmite partidos.',
     todayLink: 'Partidos de hoy',
     countries: 'Partidos de hoy por país',
     match: ['partido', 'partidos'],
@@ -46,7 +51,7 @@ const STR = {
     intro: 'Agora estão rolando {n}: {comps}.',
     empty: 'Nenhum jogo em andamento agora nas competições que acompanhamos.',
     emptyCta: 'Ver os jogos de hoje',
-    note: 'Esta página é atualizada a cada 15 segundos: recarregue para ver o placar mais recente. O Golify não transmite jogos.',
+    note: 'Placar e minuto se atualizam sozinhos enquanto a página estiver aberta. O Golify não transmite jogos.',
     todayLink: 'Jogos de hoje',
     countries: 'Jogos de hoje por país',
     match: ['jogo', 'jogos'],
@@ -60,7 +65,7 @@ const STR = {
     intro: '{n} being played right now: {comps}.',
     empty: 'No matches are being played right now in the competitions we follow.',
     emptyCta: "See today's matches",
-    note: 'This page refreshes every 15 seconds: reload it for the latest score. Golify does not stream matches.',
+    note: 'Scores and the match clock update on their own while the page is open. Golify does not stream matches.',
     todayLink: "Today's matches",
     countries: "Today's matches by country",
     match: ['match', 'matches'],
@@ -72,7 +77,7 @@ function resolveLocale(v: string): RouteLocale {
   return v as RouteLocale;
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const locale = resolveLocale((await params).locale);
   const L = STR[locale];
   return pageMetadata({
@@ -83,10 +88,20 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   });
 }
 
-export default async function LivePage({ params }: { params: Promise<{ locale: string }> }) {
+async function LivePage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = resolveLocale((await params).locale);
   const L = STR[locale];
-  const fixtures = localizeFixtures(await liveFixtures(competitionOrder(), strictAtRuntime()), locale);
+  const { zone } = LOCALE_ZONE[locale];
+  const today = isoDateIn(new Date(), zone);
+  const order = competitionOrder();
+  const opts = { revalidate: TTL.day, strict: strictAtRuntime() };
+  const days = await Promise.all([fixturesOfDay(addDays(today, -1), zone, order, opts), fixturesOfDay(today, zone, order, opts)]);
+  const pos = new Map(order.map((id, i) => [id, i]));
+  const live = days
+    .flat()
+    .filter((f) => fixturePhase(f) === 'live')
+    .sort((a, b) => pos.get(a.league.id)! - pos.get(b.league.id)! || a.fixture.date.localeCompare(b.fixture.date));
+  const fixtures = localizeFixtures(live, locale);
   const groups = groupByCompetition(fixtures);
   const facts = dayFacts(groups, locale);
   const pagePath = sectionPath('live', locale);
@@ -146,3 +161,7 @@ export default async function LivePage({ params }: { params: Promise<{ locale: s
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(LivePage);

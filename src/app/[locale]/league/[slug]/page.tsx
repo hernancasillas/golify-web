@@ -40,6 +40,7 @@ import {
   TopFive,
   TwoColumn,
 } from '@/components/competition/ui';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Competition hub: /es/liga-mx, /pt/brasileirao, /en/premier-league.
 //
@@ -51,7 +52,9 @@ import {
 //
 // ISR: rendered on first request, then cached. A failed provider call throws
 // so Next keeps serving the last good copy instead of caching an empty page.
-export const revalidate = 600;
+// Event-driven: rebuilt when the watcher invalidates its data tags
+// (src/app/api/cron/watch); the window is only a safety net.
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   return [];
@@ -179,7 +182,7 @@ async function snapshot(ctx: SeasonCtx) {
   return { standings, scorers };
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const p = await params;
   const res = resolveCompetitionParam(p.slug);
   if (res.kind !== 'ok') return {};
@@ -220,7 +223,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function CompetitionHub({ params }: { params: Promise<Params> }) {
+async function CompetitionHub({ params }: { params: Promise<Params> }) {
   const { locale, comp, info, ctx } = await load(await params);
   const S = STR[locale];
   const t = ui(locale);
@@ -459,3 +462,7 @@ export default async function CompetitionHub({ params }: { params: Promise<Param
     </PageShell>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(CompetitionHub);

@@ -36,6 +36,7 @@ import {
   type L,
 } from '@/components/h2h/shared';
 import { FactList, MatchRow, Panel, SplitBar, StatTile, SummaryBox } from '@/components/h2h/ui';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // Referee page: /es/arbitro/{name-slug}. No id exists for referees anywhere
 // in the provider, so the slug IS the key: findReferee() scans the covered
@@ -291,7 +292,7 @@ function detailIds(r: RefereeRecord): string {
     .join(',');
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
   const res = await load(slug);
@@ -316,7 +317,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   });
 }
 
-export default async function RefereePage({ params }: { params: Promise<Params> }) {
+async function RefereePage({ params }: { params: Promise<Params> }) {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
   const res = await load(slug);
@@ -590,3 +591,7 @@ export default async function RefereePage({ params }: { params: Promise<Params> 
     </div>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(RefereePage);

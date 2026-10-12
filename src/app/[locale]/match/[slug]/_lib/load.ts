@@ -14,6 +14,7 @@ import { cache } from 'react';
 import { localizeDeep } from '@/lib/nations';
 import type { RouteLocale } from '@/lib/routes';
 import {
+  ApiFootballError,
   TTL,
   apiFootballGet,
   fixturePhase,
@@ -31,6 +32,7 @@ import { getPickSplit, type PickSplit } from '@/lib/community';
 import { broadcastsFor, type BroadcastEntry } from '@/data/broadcasters';
 import { WORLD_CUP_LEAGUE_ID, WORLD_CUP_SEASON } from '@/lib/site';
 import { isoDateIn } from '@/lib/timezones';
+import { matchInIndexWindow } from '@/lib/indexing';
 
 export type Phase = ReturnType<typeof fixturePhase>;
 
@@ -204,13 +206,15 @@ const loadMatchRaw = cache(async (id: number, zone: string): Promise<MatchModel 
   const isWorldCup = leagueId === WORLD_CUP_LEAGUE_ID;
   // The 2026 World Cup archive was indexed before this template existed and
   // stays that way; everything else has to pass the plan A4 threshold.
-  const indexable = (isWorldCup && season === WORLD_CUP_SEASON) || (covered && blockCount >= 2);
+  // …and only inside the index window (src/lib/indexing.ts): a week before
+  // kickoff to two weeks after the final whistle.
+  const indexable = (isWorldCup && season === WORLD_CUP_SEASON) || (covered && blockCount >= 2 && matchInIndexWindow(f.fixture.date));
 
   // A secondary call failed and, without it, the page would drop below the
   // threshold and flip to noindex. That would be rendering a failure as if
   // the data were empty — throw instead, so ISR keeps the last good copy.
   if (degraded && covered && !indexable) {
-    throw new Error(`match ${id}: secondary API-Football data unavailable`);
+    throw new ApiFootballError(`match ${id}: secondary API-Football data unavailable`);
   }
 
   return {

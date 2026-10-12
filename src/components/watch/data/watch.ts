@@ -2,7 +2,7 @@
 // guessed) + the league's upcoming fixtures for the local kickoff table.
 
 import { broadcastsFor, WATCH_COUNTRY_SLUGS, type BroadcastEntry } from '@/data/broadcasters';
-import { apiFootballGet, currentSeason, getLeagueInfoCached, type Fixture } from '@/lib/api-football';
+import { ApiFootballError, apiFootballGet, currentSeason, getLeagueInfoCached, type Fixture } from '@/lib/api-football';
 import { COMPETITIONS, type Competition } from '@/lib/competitions';
 import { HUB_COUNTRIES, type HubCountry, type RouteLocale } from '@/lib/routes';
 import { HUB_COUNTRY_INFO, KICKOFF_ZONES, intlLocale, type ZoneRow } from '@/lib/timezones';
@@ -51,9 +51,9 @@ const FIXTURES_TTL = 3600;
 export async function upcomingLeagueFixtures(c: Competition, n = 12): Promise<{ season: number; fixtures: Fixture[] }> {
   const info = await getLeagueInfoCached(c.id, { strict: true });
   // A covered competition exists upstream; null is a provider hiccup.
-  if (!info) throw new Error(`watch: league ${c.id} lookup returned nothing`);
+  if (!info) throw new ApiFootballError(`watch: league ${c.id} lookup returned nothing`);
   const season = currentSeason(info);
-  if (!season) throw new Error(`watch: league ${c.id} has no season`);
+  if (!season) throw new ApiFootballError(`watch: league ${c.id} has no season`);
   const fixtures = await apiFootballGet<Fixture>(
     '/fixtures',
     { league: c.id, season, next: n },
