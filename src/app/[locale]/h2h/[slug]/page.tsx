@@ -884,6 +884,6 @@ function RecordMatch({ f, locale, zone }: { f: Fixture; locale: L; zone: string 
   );
 }
 
-export const generateMetadata = resilientMetadata(generateMetadataRaw);
+export const generateMetadata = resilientMetadata(generateMetadataRaw, { heavy: true });
 
-export default resilientPage(H2HPage);
+export default resilientPage(H2HPage, { heavy: true });

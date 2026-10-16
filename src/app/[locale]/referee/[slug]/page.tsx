@@ -592,6 +592,6 @@ async function RefereePage({ params }: { params: Promise<Params> }) {
   );
 }
 
-export const generateMetadata = resilientMetadata(generateMetadataRaw);
+export const generateMetadata = resilientMetadata(generateMetadataRaw, { heavy: true });
 
-export default resilientPage(RefereePage);
+export default resilientPage(RefereePage, { heavy: true });

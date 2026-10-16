@@ -16,6 +16,7 @@
 
 import type { Metadata } from 'next';
 import { ApiFootballError, markDegraded } from '@/lib/api-football';
+import { runWithTier } from '@/lib/api-tier';
 import { ROUTE_LOCALES, homePath, sectionPath, type RouteLocale } from '@/lib/routes';
 import { SiteNav } from '@/components/SiteNav';
 import { SiteFooter } from '@/components/SiteFooter';
@@ -76,11 +77,17 @@ export function DataUnavailable({ locale }: { locale: RouteLocale }) {
   );
 }
 
+interface Options {
+  /** Heavy page family (players, H2H, referees, stadiums, FC): its provider
+   *  calls spend from API_FOOTBALL_HEAVY_SHARE (src/lib/api-tier.ts). */
+  heavy?: boolean;
+}
+
 /** Wraps a page component: an upstream failure renders DataUnavailable. */
-export function resilientPage<P extends WithLocale>(Page: (props: P) => Promise<React.ReactNode>) {
+export function resilientPage<P extends WithLocale>(Page: (props: P) => Promise<React.ReactNode>, opts: Options = {}) {
   return async function ResilientPage(props: P) {
     try {
-      return await Page(props);
+      return await runWithTier(opts.heavy ? 'heavy' : 'standard', () => Page(props));
     } catch (e) {
       if (!isUpstreamFailure(e)) throw e;
       await markDegraded();
@@ -90,10 +97,10 @@ export function resilientPage<P extends WithLocale>(Page: (props: P) => Promise<
 }
 
 /** Wraps generateMetadata: an upstream failure yields noindex metadata. */
-export function resilientMetadata<P extends WithLocale>(fn: (props: P) => Promise<Metadata>) {
+export function resilientMetadata<P extends WithLocale>(fn: (props: P) => Promise<Metadata>, opts: Options = {}) {
   return async function generateMetadata(props: P): Promise<Metadata> {
     try {
-      return await fn(props);
+      return await runWithTier(opts.heavy ? 'heavy' : 'standard', () => fn(props));
     } catch (e) {
       if (!isUpstreamFailure(e)) throw e;
       await markDegraded();

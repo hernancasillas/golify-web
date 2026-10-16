@@ -27,6 +27,10 @@ export const WEB_RESERVE = Number(process.env.API_FOOTBALL_WEB_RESERVE ?? 30000)
  *  share of the daily limit. 0.3 of 150k = the web stops at 45k used, so the
  *  app always keeps at least 70% of the day. */
 export const WEB_SHARE = Number(process.env.API_FOOTBALL_WEB_SHARE ?? 0.3);
+/** Same rule for the heavy page families (players, H2H, referees, stadiums,
+ *  FC cards; see api-tier.ts): they stop calling the provider earlier, so a
+ *  crawler walking them can never spend what matches and boards need. */
+export const HEAVY_SHARE = Number(process.env.API_FOOTBALL_HEAVY_SHARE ?? 0.1);
 
 let client: SupabaseClient | null = null;
 // Kill switch, off by default: on 2026-10-02 crawler traffic writing large
@@ -128,8 +132,50 @@ async function refreshFromStatus(): Promise<void> {
   } catch {}
 }
 
-/** May the web spend a provider request right now? */
-export async function webMayCall(): Promise<boolean> {
+export interface QuotaView {
+  /** null until /status has answered once on this instance. */
+  limit: number | null;
+  used: number | null;
+  remaining: number | null;
+  observedAt: string | null;
+  webShare: number;
+  heavyShare: number;
+  reserve: number;
+  webAllowed: boolean;
+  heavyAllowed: boolean;
+}
+
+function allowed(share: number): boolean {
+  if (!quota) return true;
+  if (quota.observedAt < startOfUtcDay()) return true;
+  const used = quota.limit - quota.remaining;
+  return quota.remaining > WEB_RESERVE && used < quota.limit * share;
+}
+
+/** The day's quota as this instance last saw it (refreshed if stale). */
+export async function quotaView(): Promise<QuotaView> {
+  await webMayCall();
+  const q = quota;
+  return {
+    limit: q?.limit ?? null,
+    used: q ? q.limit - q.remaining : null,
+    remaining: q?.remaining ?? null,
+    observedAt: q ? new Date(q.observedAt).toISOString() : null,
+    webShare: WEB_SHARE,
+    heavyShare: HEAVY_SHARE,
+    reserve: WEB_RESERVE,
+    webAllowed: allowed(WEB_SHARE),
+    heavyAllowed: allowed(HEAVY_SHARE),
+  };
+}
+
+/** "used 48210 / 150000" — for log lines that explain a refusal. */
+export function quotaLine(): string {
+  return quota ? `used ${quota.limit - quota.remaining} / ${quota.limit}` : 'quota unknown';
+}
+
+/** May the web spend a provider request right now? `tier` = which share. */
+export async function webMayCall(tier: 'standard' | 'heavy' = 'standard'): Promise<boolean> {
   const c = db();
   if (c && Date.now() - quotaReadAt > 60_000) {
     quotaReadAt = Date.now();
@@ -148,8 +194,5 @@ export async function webMayCall(): Promise<boolean> {
     });
     await refreshing;
   }
-  if (!quota) return true;
-  if (quota.observedAt < startOfUtcDay()) return true;
-  const used = quota.limit - quota.remaining;
-  return quota.remaining > WEB_RESERVE && used < quota.limit * WEB_SHARE;
+  return allowed(tier === 'heavy' ? HEAVY_SHARE : WEB_SHARE);
 }

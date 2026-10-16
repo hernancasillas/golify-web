@@ -332,6 +332,6 @@ async function PlayerPage({ params }: { params: Promise<Params> }) {
   );
 }
 
-export const generateMetadata = resilientMetadata(generateMetadataRaw);
+export const generateMetadata = resilientMetadata(generateMetadataRaw, { heavy: true });
 
-export default resilientPage(PlayerPage);
+export default resilientPage(PlayerPage, { heavy: true });

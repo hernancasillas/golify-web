@@ -44,6 +44,12 @@ En Hobby la cuenta se pausó (11 oct): ISR Writes 569K/200K, Fluid CPU 10 h/4 h,
 
 Cuando la API falla o la web ya gastó su parte de la cuota y la URL no tiene copia previa, la página antes respondía 500 (≈40 % de una muestra del sitemap). Ahora `resilientPage` / `resilientMetadata` (`src/lib/resilient.tsx`) capturan `ApiFootballError` y sirven "Datos en camino" con `noindex` y `markDegraded()` (reintento a los 15 min). Los loaders deben lanzar `ApiFootballError` (no `Error`) cuando falta un dato del proveedor.
 
+## Bots y cuota de la web (15 oct 2026)
+
+- El 15 oct el 61 % de las peticiones venía de Alibaba Cloud (AS45102, Chrome falso, ignora robots.txt) y la ruta de jugador era la que más API gastaba (29K renders en 12 h, 33K llamadas a API-Football). **Firewall de Vercel:** regla propia "Block Alibaba Cloud scraper" (AS45102 → Deny) y Bot Protection en Challenge (los bots verificados como Googlebot pasan).
+- **Familias pesadas** (jugador, H2H, árbitro, estadio, FC) gastan de una cuota menor: `API_FOOTBALL_HEAVY_SHARE` (default 0.1). Se marca con `resilientPage(Page, { heavy: true })` (`src/lib/api-tier.ts`). Pasado el tope sirven caché o "Datos en camino".
+- **Cuota visible:** `GET /api/cron/health` con `Authorization: Bearer $CRON_SECRET` devuelve límite, uso, cuotas y si la web/las pesadas pueden llamar. Los logs de tope incluyen `used X / Y`.
+
 ## Qué se indexa (AdSense rechazó por "contenido de poco valor", oct 2026)
 
 Reglas en `src/lib/indexing.ts`, usadas por páginas y sitemaps: partidos de 7 días antes a 14 días después (Mundial 2026 completo), clubes de ligas `core` (sin juveniles), tableros por país solo en su idioma, fechas de hoy a +7, jornadas numeradas `noindex`. El resto se ve pero no se indexa. Antes de abrir otra familia, medir.
@@ -62,7 +68,8 @@ Reglas en `src/lib/indexing.ts`, usadas por páginas y sitemaps: partidos de 7 d
 | Variable | Uso |
 |---|---|
 | `API_FOOTBALL_KEY` | Key compartida con la app |
-| `API_FOOTBALL_WEB_SHARE` | Fracción máxima del día que puede consumir el total antes de frenar la web (default 0.3) |
+| `API_FOOTBALL_WEB_SHARE` | Fracción máxima del día que puede consumir el total antes de frenar la web (default 0.3; en Vercel está en 0.5 desde el 14 oct) |
+| `API_FOOTBALL_HEAVY_SHARE` | Lo mismo para jugador/H2H/árbitro/estadio/FC (default 0.1) |
 | `API_FOOTBALL_WEB_RESERVE` | Piso absoluto de llamadas que se dejan a la app (default 30000) |
 | `APIF_SHARED_CACHE` | `1` prende la caché en Supabase (apagada; no usar) |
 | `GOLIFY_FULL_SITEMAPS` | `1` agrega al sitemap jugadores/H2H/FC/estadios |

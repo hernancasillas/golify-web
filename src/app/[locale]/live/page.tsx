@@ -95,7 +95,9 @@ async function LivePage({ params }: { params: Promise<{ locale: string }> }) {
   const today = isoDateIn(new Date(), zone);
   const order = competitionOrder();
   const opts = { revalidate: TTL.day, strict: strictAtRuntime() };
-  const days = await Promise.all([fixturesOfDay(addDays(today, -1), zone, order, opts), fixturesOfDay(today, zone, order, opts)]);
+  // Today is the page's data (strict); yesterday only adds matches still
+  // running past midnight, so its failure must not take the page down.
+  const days = await Promise.all([fixturesOfDay(addDays(today, -1), zone, order, opts).catch(() => []), fixturesOfDay(today, zone, order, opts)]);
   const pos = new Map(order.map((id, i) => [id, i]));
   const live = days
     .flat()

@@ -15,6 +15,7 @@ import { pageMetadata } from '@/lib/seo';
 import type { Locale } from '@/lib/site';
 import { downloadCatalog } from '@/lib/downloads/catalog';
 import { CHECKLIST_SLUG, KIT_SLUG, bracketSlug, calendarSlug, downloadPath, downloadsIndexPath, posterSlug, quinielaSlug } from '@/lib/downloads/slugs';
+import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 export const revalidate = 1800;
 
@@ -57,7 +58,7 @@ function isLocale(v: string): v is RouteLocale {
   return (ROUTE_LOCALES as readonly string[]).includes(v);
 }
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+async function generateMetadataRaw({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const t = STR[locale];
@@ -66,7 +67,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 const pill = 'inline-block rounded-full border border-border bg-background px-3.5 py-1.5 text-sm font-medium hover:border-primary hover:text-primary';
 
-export default async function DownloadsIndex({ params }: { params: Promise<Params> }) {
+async function DownloadsIndex({ params }: { params: Promise<Params> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = STR[locale];
@@ -140,3 +141,7 @@ export default async function DownloadsIndex({ params }: { params: Promise<Param
     </>
   );
 }
+
+export const generateMetadata = resilientMetadata(generateMetadataRaw);
+
+export default resilientPage(DownloadsIndex);

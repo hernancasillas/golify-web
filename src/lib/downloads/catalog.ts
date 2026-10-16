@@ -11,6 +11,7 @@ import { cache } from 'react';
 import type { TeamRef } from '@/lib/api-football';
 import { isCovered, type Competition } from '@/lib/competitions';
 import { loadBracket, loadCurrentSeason, loadTable, type LeagueSeason } from './data';
+import { ApiFootballError } from '@/lib/api-football';
 
 /** Plan B3 lead-magnet table: the six quiniela leagues, in market order. */
 export const FEATURED_LEAGUES = [262, 239, 128, 71, 2, 13] as const;
@@ -46,8 +47,10 @@ export const downloadCatalog = cache(async (): Promise<CatalogLeague[]> => {
   );
   const ok = results.flatMap((r) => (r.status === 'fulfilled' && r.value ? [r.value] : []));
   const failed = results.filter((r) => r.status === 'rejected');
-  for (const f of failed) console.error('[downloads] catalog league failed', (f as PromiseRejectedResult).reason);
+  // One line, as a warning: a league failing is the provider's or the quota's
+  // state (logged by api-football.ts), not a bug here.
+  if (failed.length) console.warn(`[downloads] ${failed.length}/${results.length} catalog leagues unavailable`);
   // Every league failing is a provider outage, not an empty catalogue.
-  if (failed.length && failed.length === results.length && process.env.NEXT_PHASE !== 'phase-production-build') throw new Error('downloads catalog: provider unavailable');
+  if (failed.length && failed.length === results.length && process.env.NEXT_PHASE !== 'phase-production-build') throw new ApiFootballError('downloads catalog: provider unavailable');
   return ok;
 });

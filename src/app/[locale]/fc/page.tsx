@@ -168,6 +168,6 @@ async function FcIndex({ params }: { params: Promise<Params> }) {
   );
 }
 
-export const generateMetadata = resilientMetadata(generateMetadataRaw);
+export const generateMetadata = resilientMetadata(generateMetadataRaw, { heavy: true });
 
-export default resilientPage(FcIndex);
+export default resilientPage(FcIndex, { heavy: true });

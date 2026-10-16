@@ -13,7 +13,8 @@
 //     render into dozens of parallel calls.
 
 import { unstable_cache } from 'next/cache';
-import { noteExhausted, readCache, webMayCall, writeCache } from './apif-store';
+import { noteExhausted, quotaLine, readCache, webMayCall, writeCache } from './apif-store';
+import { currentTier } from './api-tier';
 
 const BASE_URL = 'https://v3.football.api-sports.io';
 const API_KEY = process.env.API_FOOTBALL_KEY ?? '';
@@ -164,9 +165,10 @@ async function sharedFetch<T>(href: string, ttl: number): Promise<Page<T>> {
   const key = href.replace(BASE_URL, '');
   const stored = await readCache(key);
   if (stored?.fresh) return stored.body as Page<T>;
-  if (!(await webMayCall())) {
+  const tier = currentTier();
+  if (!(await webMayCall(tier))) {
     if (stored) return stored.body as Page<T>;
-    throw new ApiFootballError('web reserve reached: leaving the quota to the app');
+    throw new ApiFootballError(`${tier === 'heavy' ? 'heavy-page share' : 'web reserve'} reached (${quotaLine()}): leaving the quota to the app`);
   }
   try {
     const page = await fetchOnce<T>(href);
@@ -251,7 +253,9 @@ export const TAG = {
 const loggedAt = new Map<string, number>();
 function logUpstreamFailure(endpoint: string, e: unknown): void {
   const reason = e instanceof Error ? e.message : String(e);
-  const k = reason.slice(0, 60);
+  // Key on the reason without its numbers, so a refusal that carries the
+  // day's usage still logs once per 5 minutes, not once per request.
+  const k = reason.split('(')[0].slice(0, 60);
   const now = Date.now();
   if ((loggedAt.get(k) ?? 0) > now - 300_000) return;
   loggedAt.set(k, now);

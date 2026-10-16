@@ -59,7 +59,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ path: st
   try {
     r = await resolveDownload(file.slug, locale);
   } catch (e) {
-    console.error('[files] provider error', file.slug, e);
+    // 503 + Retry-After is the right answer; the cause (provider or quota) is
+    // already logged by api-football.ts, so a warning is enough here.
+    console.warn('[files] provider unavailable', file.slug, e instanceof Error ? e.message : String(e));
     return new Response('Temporarily unavailable', { status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '120' } });
   }
   if (!r) return notFound();
