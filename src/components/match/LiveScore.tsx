@@ -102,24 +102,23 @@ export function LiveScore({
 
   return (
     <div className="flex flex-col items-center gap-2" aria-live={live ? 'polite' : undefined}>
-      <div className="font-display text-4xl font-bold tabular-nums sm:text-5xl">
+      <div className="rounded-[3px] bg-field-foreground px-4 py-1.5 font-display text-[clamp(52px,2rem+5vw,112px)] leading-none font-black text-field tabular-nums sm:px-6">
         {played ? (
           <>
             {state.home}
-            <span className="px-2 text-muted-foreground">-</span>
+            <span className="px-1.5 opacity-50">–</span>
             {state.away}
           </>
         ) : (
-          <span className="text-muted-foreground">VS</span>
+          <span className="opacity-60">VS</span>
         )}
       </div>
       {live ? (
-        <span className="inline-flex items-center gap-2 rounded-full bg-live-glow px-3 py-1 text-xs font-extrabold tracking-wide text-live uppercase">
-          <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-live" />
+        <span className="inline-flex items-center rounded-[2px] bg-live px-2.5 py-1 text-sm font-extrabold tracking-wide text-white uppercase tabular-nums">
           {statusText(state, locale)}
         </span>
       ) : (
-        <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+        <span className="text-xs font-extrabold tracking-wide uppercase">
           {statusText(state, locale)}
         </span>
       )}

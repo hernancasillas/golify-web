@@ -36,10 +36,11 @@ export function DownloadGlyph({ className }: { className?: string }) {
 type PillVariant = 'mint' | 'gold' | 'outline' | 'dark';
 
 const PILL: Record<PillVariant, string> = {
-  mint: 'bg-primary text-primary-foreground shadow-[0_10px_30px_rgba(92,242,154,0.35)] hover:brightness-105',
+  mint: 'bg-primary text-primary-foreground hover:brightness-105',
   gold: 'bg-gold text-gold-foreground hover:brightness-105',
-  outline: 'border-[1.5px] border-foreground/35 text-foreground hover:bg-foreground/5',
-  dark: 'bg-[#070710] text-[#E8E8F0] hover:brightness-125',
+  outline: 'border-2 border-foreground text-foreground hover:bg-foreground/5',
+  // Ink of the tribuna: green-black with green text by day, inverted at night.
+  dark: 'bg-field-foreground text-field hover:brightness-110',
 };
 
 /** Rounded pill link. Renders <a> for external URLs, next/link otherwise. */
@@ -58,7 +59,7 @@ export function PillLink({
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 }) {
   const cls = cn(
-    'inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-extrabold whitespace-nowrap transition',
+    'inline-flex min-h-11 items-center justify-center gap-2 rounded-[3px] px-5 py-3 text-[15px] font-extrabold whitespace-nowrap transition',
     PILL[variant],
     className,
   );
@@ -97,21 +98,12 @@ export function Eyebrow({
   pulse?: boolean;
   children: ReactNode;
 }) {
-  const tones = {
-    gold: 'bg-gold/12 border-gold/40 text-gold',
-    mint: 'bg-primary/12 border-primary/40 text-primary',
-  };
+  // A plain kicker line, not a pill: the redesign dropped the announcement
+  // badge (see globals.css). `tone` only picks the dot colour now.
   const dot = { gold: 'bg-gold', mint: 'bg-primary' };
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold tracking-wide uppercase',
-        tones[tone],
-      )}
-    >
-      {pulse ? (
-        <span className={cn('h-1.5 w-1.5 rounded-full', dot[tone], 'animate-pulse-dot')} />
-      ) : null}
+    <span className="inline-flex items-center gap-2 text-sm font-extrabold tracking-wide text-muted-foreground uppercase">
+      {pulse ? <span aria-hidden className={cn('h-2 w-2 rounded-full', dot[tone])} /> : null}
       {children}
     </span>
   );
@@ -131,10 +123,9 @@ export function DisplayHeading({
   return (
     <Tag
       className={cn(
-        // Bebas Neue only shipped one weight and read as bold by design; Jost
-        // (its replacement — see globals.css) is a normal geometric sans and
-        // needs an explicit bold weight to read as a headline.
-        'font-display font-bold leading-none tracking-wide text-foreground uppercase',
+        // Big Shoulders Display (see globals.css) at its black weight: the
+        // painted-banner headline of the redesign.
+        'font-display font-black leading-[0.95] tracking-normal text-foreground uppercase',
         className,
       )}
     >
@@ -164,7 +155,7 @@ export function FeatureCard({
   return (
     <div
       className={cn(
-        'rounded-2xl border bg-gradient-to-br from-surface to-band p-8',
+        'rounded-2xl border bg-surface p-8',
         border,
       )}
     >

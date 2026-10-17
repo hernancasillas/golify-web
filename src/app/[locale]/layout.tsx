@@ -6,7 +6,7 @@ import { ConsentBanner } from '@/components/consent/ConsentBanner';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
-import { Manrope, Jost } from 'next/font/google';
+import { Big_Shoulders, Public_Sans } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import {
   SITE_URL,
@@ -33,23 +33,27 @@ export const maxDuration = 30;
 // exact arrangement for internationalized apps. Before, the root layout
 // hardcoded lang="es" and every English page claimed to be Spanish.
 
-// Manrope drives all body/UI copy — it's one of the app's own bundled fonts
-// (constants/theme.ts `Fonts`), so this is shared vocabulary, not a pick of
-// convenience. Jost is the display face (`font-display` utility): the app's
-// real display face, Futura Extra Bold, is a licensed font file bundled in
-// the app and unavailable on the web — Jost is the closest free geometric
-// substitute for big all-caps headlines.
-const manrope = Manrope({
-  variable: '--font-manrope',
+// Redesign "tribuna + transmisión" (oct 2026). Public Sans carries all body
+// and UI copy: plain, very legible at small sizes, with clear numerals for
+// scores and kickoff times. Big Shoulders is the display face (`font-display`
+// utility): condensed lettering like a painted terrace banner, used for
+// headlines and the score digits. Its optical-size axis gives the big
+// headlines the tighter Display cut automatically.
+const publicSans = Public_Sans({
+  variable: '--font-public-sans',
   subsets: ['latin'],
   display: 'swap',
 });
 
-const jost = Jost({
-  variable: '--font-jost',
-  weight: ['500', '600', '700'],
+const bigShoulders = Big_Shoulders({
+  variable: '--font-big-shoulders',
+  weight: 'variable',
+  axes: ['opsz'],
   subsets: ['latin'],
   display: 'swap',
+  // Next has no metrics for this family, so name a condensed fallback.
+  adjustFontFallback: false,
+  fallback: ['Arial Narrow', 'Roboto Condensed', 'Impact', 'sans-serif'],
 });
 
 export function generateStaticParams() {
@@ -205,7 +209,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={brand(locale).htmlLang}
-      className={`${manrope.variable} ${jost.variable} h-full antialiased dark`}
+      className={`${publicSans.variable} ${bigShoulders.variable} h-full antialiased dark`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans">

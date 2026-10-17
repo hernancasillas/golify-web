@@ -91,7 +91,7 @@ export async function writeCache(key: string, body: unknown, ttlSeconds: number)
 // not reliable: once blocked it still reads 74999.) One instance refreshes the
 // shared snapshot every 5 minutes; the rest read it.
 
-const STATUS_URL = 'https://v3.football.api-sports.io/status';
+const STATUS_URL = `${process.env.API_FOOTBALL_BASE_URL || 'https://v3.football.api-sports.io'}/status`;
 const SNAPSHOT_MS = 5 * 60_000;
 
 let quota: { remaining: number; limit: number; observedAt: number } | null = null;

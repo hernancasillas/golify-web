@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Fragment } from 'react';
 import { localizeFixture, nationName } from '@/lib/nations';
 import { notFound } from 'next/navigation';
 import {
@@ -50,9 +51,9 @@ import { LocalTime, LocalTimeScript } from '@/components/LocalTime';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SiteNav } from '@/components/SiteNav';
 import { MatchLine } from '@/components/home/MatchLine';
+import { Tribuna } from '@/components/home/Tribuna';
 import { LiveScoreUpdater } from '@/components/LiveScoreUpdater';
-import { DisplayHeading, Eyebrow, LeagueChip, PillLink } from '@/components/revamp/ui';
-import { SmartDownload } from '@/components/SmartDownload';
+import { DisplayHeading, LeagueChip, PillLink } from '@/components/revamp/ui';
 import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
 // ISR, event-driven: the page is rebuilt when its data tags are invalidated
@@ -78,7 +79,9 @@ const STR = {
     metaTitle: 'Golify: resultados en vivo, horarios y quinielas',
     metaDesc: 'Resultados en vivo, partidos de hoy, tablas, goleadores y quinielas con tus amigos de Liga MX, Brasileirão, MLS, Libertadores y más.',
     eyebrow: 'Fútbol en tiempo real',
-    h1: 'Resultados en vivo y quinielas con tus amigos',
+    h1: 'Resultados en vivo de hoy',
+    final: 'Final', seeTomorrow: 'Ver los partidos de mañana',
+    liveCount: (n: number) => (n === 1 ? '1 partido en vivo' : `${n} partidos en vivo`), next: 'Próximos partidos', localTime: 'Hora local',
     heroP: 'Marcadores al minuto, partidos de hoy, tablas y goleadores. Arma tu quiniela por jornada y compite con tu grupo.',
     ctaToday: 'Ver partidos de hoy', ctaApp: 'Descarga la app',
     live: 'En vivo ahora', liveAll: 'Ver todos los partidos en vivo',
@@ -109,7 +112,9 @@ const STR = {
     metaTitle: 'Golify: resultados ao vivo, horários e bolões',
     metaDesc: 'Resultados ao vivo, jogos de hoje, tabelas, artilheiros e bolões com seus amigos do Brasileirão, Libertadores, Liga MX, MLS e mais.',
     eyebrow: 'Futebol em tempo real',
-    h1: 'Resultados ao vivo e bolões com seus amigos',
+    h1: 'Resultados ao vivo de hoje',
+    final: 'Fim', seeTomorrow: 'Ver os jogos de amanhã',
+    liveCount: (n: number) => (n === 1 ? '1 jogo ao vivo' : `${n} jogos ao vivo`), next: 'Próximos jogos', localTime: 'Horário local',
     heroP: 'Placares minuto a minuto, jogos de hoje, tabelas e artilheiros. Monte seu bolão por rodada e dispute com a sua turma.',
     ctaToday: 'Ver jogos de hoje', ctaApp: 'Baixe o app',
     live: 'Ao vivo agora', liveAll: 'Ver todos os jogos ao vivo',
@@ -140,7 +145,9 @@ const STR = {
     metaTitle: 'Golify: live scores, fixtures and football pools',
     metaDesc: 'Live scores, today’s matches, tables, top scorers and prediction pools with your friends for Liga MX, Brasileirão, MLS, Libertadores and more.',
     eyebrow: 'Football in real time',
-    h1: 'Live scores and prediction pools with your friends',
+    h1: 'Live scores today',
+    final: 'FT', seeTomorrow: 'See tomorrow’s matches',
+    liveCount: (n: number) => (n === 1 ? '1 match live' : `${n} matches live`), next: 'Coming up', localTime: 'Local time',
     heroP: 'Minute-by-minute scores, today’s matches, tables and top scorers. Build your pool for every matchday and compete with your group.',
     ctaToday: 'See today’s matches', ctaApp: 'Get the app',
     live: 'Live now', liveAll: 'See all live matches',
@@ -193,7 +200,7 @@ function Block({ title, href, linkText, children, className }: { title: string; 
   return (
     <section className={className ?? 'mt-10'}>
       <div className="mb-4 flex items-end justify-between gap-3">
-        <DisplayHeading className="text-2xl sm:text-3xl">{title}</DisplayHeading>
+        <DisplayHeading className="text-4xl sm:text-5xl">{title}</DisplayHeading>
         {href && linkText ? (
           <Link href={href} className="shrink-0 text-sm font-bold text-primary hover:underline">
             {linkText}
@@ -205,7 +212,16 @@ function Block({ title, href, linkText, children, className }: { title: string; 
   );
 }
 
-const CARD = 'rounded-2xl border border-border bg-surface';
+const CARD = 'rounded-[4px] border border-border bg-card';
+
+/** Three-letter mosaic code for a team ("Santos Laguna" → SAN), the way a
+ *  stand or a score bug abbreviates it. */
+function teamCode(name: string): string {
+  const skip = /^(club|cf|fc|ca|cd|ac|sc|deportivo|atletico|real|sporting|independiente|new|los|st)$/i;
+  const words = name.normalize('NFD').replace(/[̀-ͯ]/g, '').split(/[\s.-]+/).filter(Boolean);
+  const w = words.find((x) => !skip.test(x) && x.length >= 3) ?? words[0] ?? name;
+  return w.slice(0, 3).toUpperCase();
+}
 
 /** Season slug for a competition when we can name it without guessing:
  *  single-season formats use the year; Liga MX derives its tournament from
@@ -258,7 +274,6 @@ async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const roundFx = round ? seasonFx.filter((f) => f.league.round === round) : [];
   const picks = await getPickSplits([...roundFx.map((f) => f.fixture.id), ...todayAll.map((f) => f.fixture.id)]);
 
-  const live = liveAll.slice(0, 6);
   const board = new Map<number, Fixture[]>();
   for (const f of todayAll) board.set(f.league.id, [...(board.get(f.league.id) ?? []), f]);
 
@@ -320,77 +335,130 @@ async function Home({ params }: { params: Promise<{ locale: string }> }) {
     transfersPath(l, main.id) ? { href: transfersPath(l, main.id)!, text: t.transfersOf(mainName) } : null,
   ].filter((x): x is { href: string; text: string } => !!x);
 
-  const dayTab = 'rounded-full border px-4 py-2 text-sm font-bold transition-colors';
+  const dayTab = 'rounded-[2px] px-4 py-2 text-sm font-extrabold transition-colors';
+
+  // The tribuna's match: the live match the community follows most, else the
+  // match of the day. Beside it, the other live matches, or what kicks off next.
+  const liveByPicks = [...liveAll].sort((a, b) => (picks.get(b.fixture.id)?.total ?? 0) - (picks.get(a.fixture.id)?.total ?? 0));
+  const hero = liveByPicks[0] ?? featured;
+  const heroPhase = hero ? fixturePhase(hero) : null;
+  const otherLive = liveAll.filter((f) => f.fixture.id !== hero?.fixture.id);
+  const side = otherLive.length
+    ? { live: true, rows: otherLive.slice(0, 5) }
+    : { live: false, rows: todayAll.filter((f) => fixturePhase(f) === 'scheduled' && f.fixture.id !== hero?.fixture.id).slice(0, 5) };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <LocalTimeScript locale={intlLocale(l)} />
       <SiteNav />
-      <main className="mx-auto max-w-6xl px-5 pb-16 sm:px-8">
-        {/* Hero */}
-        <section className="pt-4 pb-2 sm:pt-8">
-          <Eyebrow tone="mint">{t.eyebrow}</Eyebrow>
-          <h1 className="mt-4 max-w-3xl font-display text-4xl leading-[1.02] font-bold tracking-wide text-foreground uppercase sm:text-6xl">
-            {t.h1}
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg font-semibold text-muted-foreground">{t.heroP}</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <PillLink href={sectionPath('today', l)} variant="mint">{t.ctaToday}</PillLink>
-            <SmartDownload variant="outline" className="px-6 py-3.5">{t.ctaApp}</SmartDownload>
-          </div>
-        </section>
+      {liveAll.length ? <LiveScoreUpdater htLabel="HT" /> : null}
 
-        {/* Live now + open pool */}
-        {liveAll.length ? <LiveScoreUpdater htLabel="HT" /> : null}
-        {live.length || poolHref ? (
-          <div className="mt-10 grid gap-6 lg:grid-cols-3">
-            {live.length ? (
-              <section className={poolHref ? 'lg:col-span-2' : 'lg:col-span-3'}>
-                <div className="mb-4 flex items-end justify-between gap-3">
-                  <h2 className="flex items-center gap-2.5 font-display text-2xl font-bold tracking-wide uppercase sm:text-3xl">
-                    <span aria-hidden className="h-3 w-3 rounded-full bg-live" />
-                    {t.live}
-                  </h2>
-                  <Link href={sectionPath('live', l)} className="shrink-0 text-sm font-bold text-primary hover:underline">{t.liveAll}</Link>
-                </div>
-                <div className={`${CARD} divide-y divide-border overflow-hidden sm:grid sm:grid-cols-2 sm:divide-y-0`}>
-                  {live.map((f) => (
-                    <div key={f.fixture.id} className="border-border sm:border-b sm:odd:border-r">
-                      <MatchLine f={f} locale={l} />
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-            {poolHref ? (
-              <section>
-                <div className="mb-4">
-                  <DisplayHeading className="text-2xl sm:text-3xl">{t.pool}</DisplayHeading>
-                </div>
-                <div className={`${CARD} p-5`}>
-                  <p className="text-xs font-extrabold tracking-wide text-muted-foreground uppercase">{mainName}</p>
-                  <p className="mt-1 font-display text-2xl font-bold tracking-wide uppercase">{round ? roundLabel(round, l, main) : ''}</p>
-                  <p className="mt-2 text-sm font-semibold text-muted-foreground">
-                    {firstKick && !kickPassed ? (
-                      <>
-                        {t.poolRound}: <LocalTime iso={firstKick} locale={intlLocale(l)} />
-                      </>
+      {/* The tribuna: the nav's green band continues into the hero. The match
+          of the moment is held up as a card mosaic; "live now" sits beside it. */}
+      <section className="band-field" aria-labelledby="home-h1">
+        <div className="mx-auto grid max-w-6xl gap-x-12 gap-y-8 px-5 pt-6 pb-10 sm:px-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+          <div className="min-w-0">
+            <p className="kicker">
+              {liveAll.length ? <span className="kicker-dot" aria-hidden /> : null}
+              <span>
+                {longDateIn(now.toISOString(), zone, l)}
+                {liveAll.length ? ` · ${t.liveCount(liveAll.length)}` : ''}
+              </span>
+            </p>
+            <h1 id="home-h1" className="mt-2.5 mb-5 font-display text-[clamp(44px,1.8rem+3.2vw,84px)] leading-[0.9] font-black text-balance uppercase">
+              {t.h1}
+            </h1>
+            {hero ? (
+              <>
+                <Tribuna
+                  fixtureId={hero.fixture.id}
+                  homeCode={teamCode(hero.teams.home.name)}
+                  awayCode={teamCode(hero.teams.away.name)}
+                  home={heroPhase === 'scheduled' ? null : hero.goals.home}
+                  away={heroPhase === 'scheduled' ? null : hero.goals.away}
+                />
+                <Link
+                  href={matchPath(l, hero)}
+                  data-live-fixture={heroPhase === 'live' ? hero.fixture.id : undefined}
+                  className="mt-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-4"
+                >
+                  <span className="flex min-w-0 flex-col items-start gap-1.5 text-[15px] font-bold sm:flex-row sm:items-center sm:gap-2.5 sm:text-[19px]">
+                    <Image src={hero.teams.home.logo} alt="" width={40} height={40} unoptimized className="h-9 w-9 shrink-0 object-contain sm:h-10 sm:w-10" />
+                    <span data-team="home" className="min-w-0">{hero.teams.home.name}</span>
+                  </span>
+                  <span className="flex items-center gap-2.5">
+                    {heroPhase === 'scheduled' ? (
+                      <span className="rounded-[2px] bg-field-foreground px-2.5 py-1 text-sm font-extrabold text-field tabular-nums">
+                        <LocalTime iso={hero.fixture.date} locale={intlLocale(l)} style="time" />
+                      </span>
                     ) : (
-                      t.poolStarted
+                      <>
+                        <span data-score="home" className="font-display text-[40px] leading-none font-black tabular-nums sm:text-[52px]">{hero.goals.home}</span>
+                        <span className={`rounded-[2px] px-2 py-1 text-sm font-extrabold tabular-nums ${heroPhase === 'live' ? 'bg-live text-white' : 'bg-field-foreground text-field'}`}>
+                          {heroPhase === 'live' ? (
+                            <span data-minute>{hero.fixture.status.short === 'HT' ? 'HT' : `${hero.fixture.status.elapsed ?? ''}′`}</span>
+                          ) : (
+                            t.final
+                          )}
+                        </span>
+                        <span data-score="away" className="font-display text-[40px] leading-none font-black tabular-nums sm:text-[52px]">{hero.goals.away}</span>
+                      </>
                     )}
-                  </p>
-                  {roundPicks > 0 ? (
-                    <p className="mt-1 text-sm font-bold text-foreground">
-                      {roundPicks.toLocaleString(intlLocale(l))} {t.poolPreds}
-                    </p>
-                  ) : null}
-                  <PillLink href={poolHref} variant="mint" className="mt-4 w-full">{t.poolCta}</PillLink>
+                  </span>
+                  <span className="flex min-w-0 flex-col-reverse items-end gap-1.5 text-right text-[15px] font-bold sm:flex-row sm:items-center sm:justify-end sm:gap-2.5 sm:text-[19px]">
+                    <span data-team="away" className="min-w-0">{hero.teams.away.name}</span>
+                    <Image src={hero.teams.away.logo} alt="" width={40} height={40} unoptimized className="h-9 w-9 shrink-0 object-contain sm:h-10 sm:w-10" />
+                  </span>
+                </Link>
+                <div className="mt-3.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-field-foreground/25 pt-3 text-sm font-semibold text-field-muted">
+                  <span>
+                    {t.featured} · {competitionById(hero.league.id) ? competitionName(competitionById(hero.league.id)!, l) : hero.league.name}
+                    {hero.fixture.venue.name ? ` · ${hero.fixture.venue.name}` : ''}
+                  </span>
+                  <Link href={matchPath(l, hero)} className="font-extrabold text-field-foreground underline underline-offset-2">
+                    {t.featuredCta} →
+                  </Link>
                 </div>
-              </section>
-            ) : null}
+              </>
+            ) : (
+              <p className="max-w-2xl text-lg font-semibold text-field-muted">{t.heroP}</p>
+            )}
           </div>
-        ) : null}
 
+          <aside aria-labelledby="live-now-h" className="min-w-0">
+            <h2 id="live-now-h" className="flex items-baseline justify-between gap-3 border-b-2 border-field-foreground pb-1 font-display text-[32px] leading-none font-black uppercase">
+              {side.live ? t.live : t.next}
+              <small className="font-sans text-sm font-semibold normal-case text-field-muted">{t.localTime}</small>
+            </h2>
+            {side.rows.length ? (
+              <div className="fx-list mt-3">
+                {side.rows.map((f, i) => (
+                  <Fragment key={f.fixture.id}>
+                    {i === 0 || side.rows[i - 1].league.id !== f.league.id ? (
+                      <p className="fx-lgh">
+                        <Image src={f.league.logo} alt="" width={20} height={20} unoptimized className="h-5 w-5 rounded-full bg-white object-contain p-px" />
+                        {competitionById(f.league.id) ? competitionName(competitionById(f.league.id)!, l) : f.league.name}
+                      </p>
+                    ) : null}
+                    <MatchLine f={f} locale={l} />
+                  </Fragment>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-4 font-semibold text-field-muted">{t.noToday}</p>
+            )}
+            <PillLink
+              href={side.live ? sectionPath('live', l) : todayAll.length ? sectionPath('today', l) : datePath(l, tIso)}
+              variant="dark"
+              className="mt-4 w-full justify-between"
+            >
+              {side.live ? t.liveAll : todayAll.length ? t.todayAll(todayAll.length) : t.seeTomorrow} <span aria-hidden>→</span>
+            </PillLink>
+          </aside>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-6xl px-5 pb-16 sm:px-8">
         {/* League chips */}
         <section className="mt-8" aria-label={t.chips}>
           <div className="flex gap-2 overflow-x-auto pb-1">
@@ -410,49 +478,69 @@ async function Home({ params }: { params: Promise<{ locale: string }> }) {
 
         {/* Today */}
         <Block title={t.today}>
-          <div className="mb-4 flex gap-2">
-            <Link href={datePath(l, yIso)} className={`${dayTab} border-border text-muted-foreground hover:text-foreground`}>{t.yesterday}</Link>
-            <span className={`${dayTab} border-primary bg-primary text-primary-foreground`} aria-current="date">{t.todayTab}</span>
-            <Link href={datePath(l, tIso)} className={`${dayTab} border-border text-muted-foreground hover:text-foreground`}>{t.tomorrow}</Link>
+          <div className="mb-4 inline-flex gap-0.5 rounded-[3px] border-2 border-foreground p-0.5">
+            <Link href={datePath(l, yIso)} className={`${dayTab} hover:bg-foreground/10`}>{t.yesterday}</Link>
+            <span className={`${dayTab} bg-foreground text-background`} aria-current="date">{t.todayTab}</span>
+            <Link href={datePath(l, tIso)} className={`${dayTab} hover:bg-foreground/10`}>{t.tomorrow}</Link>
           </div>
           <p className="mb-4 text-sm font-semibold text-muted-foreground">{longDateIn(now.toISOString(), zone, l)}</p>
           {todayAll.length === 0 ? (
             <p className="font-semibold text-muted-foreground">{t.noToday}</p>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-x-10 gap-y-2 lg:grid-cols-2">
               {[...board.entries()].slice(0, 6).map(([id, fxs]) => {
                 const c = competitionById(id);
                 return (
-                  <div key={id} className={`${CARD} overflow-hidden`}>
-                    <div className="flex items-center gap-2 border-b border-border bg-surface-2 px-3.5 py-2.5">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white">
-                        <Image src={fxs[0].league.logo} alt="" width={14} height={14} unoptimized className="h-3.5 w-3.5 object-contain" />
-                      </span>
-                      <h3 className="text-xs font-extrabold tracking-wide text-foreground uppercase">{c ? competitionName(c, l) : fxs[0].league.name}</h3>
-                    </div>
-                    <div className="divide-y divide-border">
-                      {fxs.slice(0, 5).map((f) => (
-                        <MatchLine key={f.fixture.id} f={f} locale={l} />
-                      ))}
-                    </div>
-                  </div>
+                  <section key={id} className="fx-list content-start" aria-label={c ? competitionName(c, l) : fxs[0].league.name}>
+                    <h3 className="fx-lgh">
+                      <Image src={fxs[0].league.logo} alt="" width={20} height={20} unoptimized className="h-5 w-5 rounded-full bg-white object-contain p-px" />
+                      {c ? competitionName(c, l) : fxs[0].league.name}
+                    </h3>
+                    {fxs.slice(0, 5).map((f) => (
+                      <MatchLine key={f.fixture.id} f={f} locale={l} />
+                    ))}
+                  </section>
                 );
               })}
             </div>
           )}
           {todayAll.length ? (
             <div className="mt-5">
-              <PillLink href={sectionPath('today', l)} variant="outline">{t.todayAll(todayAll.length)}</PillLink>
+              <PillLink href={sectionPath('today', l)} variant="dark">{t.todayAll(todayAll.length)} <span aria-hidden>→</span></PillLink>
             </div>
           ) : null}
         </Block>
 
         {/* Match of the day + scorers */}
-        {featured || top3.length ? (
-          <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        {featured || top3.length || poolHref ? (
+          <div className="mt-14 grid gap-8 lg:grid-cols-3">
+            {poolHref ? (
+              <section>
+                <DisplayHeading className="mb-4 text-4xl">{t.pool}</DisplayHeading>
+                <div className={`${CARD} p-5`}>
+                  <p className="text-xs font-extrabold tracking-wide text-muted-foreground uppercase">{mainName}</p>
+                  <p className="mt-1 font-display text-4xl leading-none font-black uppercase">{round ? roundLabel(round, l, main) : ''}</p>
+                  <p className="mt-3 text-sm font-semibold text-muted-foreground">
+                    {firstKick && !kickPassed ? (
+                      <>
+                        {t.poolRound}: <LocalTime iso={firstKick} locale={intlLocale(l)} />
+                      </>
+                    ) : (
+                      t.poolStarted
+                    )}
+                  </p>
+                  {roundPicks > 0 ? (
+                    <p className="mt-1 text-sm font-bold text-foreground">
+                      {roundPicks.toLocaleString(intlLocale(l))} {t.poolPreds}
+                    </p>
+                  ) : null}
+                  <PillLink href={poolHref} variant="mint" className="mt-5 w-full">{t.poolCta}</PillLink>
+                </div>
+              </section>
+            ) : null}
             {featured ? (
               <section>
-                <DisplayHeading className="mb-4 text-2xl sm:text-3xl">{t.featured}</DisplayHeading>
+                <DisplayHeading className="mb-4 text-4xl">{t.featured}</DisplayHeading>
                 <div className={`${CARD} p-5`}>
                   <p className="text-xs font-extrabold tracking-wide text-muted-foreground uppercase">
                     {featured.league.name} · <LocalTime iso={featured.fixture.date} locale={intlLocale(l)} style="time" />
@@ -469,13 +557,13 @@ async function Home({ params }: { params: Promise<{ locale: string }> }) {
                   <div className="mt-5">
                     <CommunitySplit split={featuredSplit} home={featured.teams.home.name} away={featured.teams.away.name} locale={l} compact />
                   </div>
-                  <PillLink href={matchPath(l, featured)} variant="mint" className="mt-5 w-full">{t.featuredCta}</PillLink>
+                  <PillLink href={matchPath(l, featured)} variant="outline" className="mt-5 w-full">{t.featuredCta}</PillLink>
                 </div>
               </section>
             ) : null}
             {top3.length ? (
               <section>
-                <DisplayHeading className="mb-4 text-2xl sm:text-3xl">{`${t.scorers} ${mainName}`}</DisplayHeading>
+                <DisplayHeading className="mb-4 text-4xl">{`${t.scorers} ${mainName}`}</DisplayHeading>
                 <ol className={`${CARD} divide-y divide-border`}>
                   {top3.map((p, i) => (
                     <li key={p.player.id}>
@@ -486,7 +574,7 @@ async function Home({ params }: { params: Promise<{ locale: string }> }) {
                           <span className="block truncate font-bold text-foreground">{p.player.name}</span>
                           <span className="block truncate text-xs font-semibold text-muted-foreground">{p.statistics[0]?.team.name}</span>
                         </span>
-                        <span className="font-display text-xl font-bold text-primary">{p.statistics[0]?.goals.total ?? 0}</span>
+                        <span className="font-display text-3xl leading-none font-black text-foreground tabular-nums">{p.statistics[0]?.goals.total ?? 0}</span>
                         <span className="sr-only">{t.goals}</span>
                       </Link>
                     </li>
@@ -533,7 +621,7 @@ async function Home({ params }: { params: Promise<{ locale: string }> }) {
                   : [];
               return (
                 <div key={c.id} className={`${CARD} p-4`}>
-                  <h3 className="font-display text-lg font-bold tracking-wide uppercase">{competitionName(c, l)}</h3>
+                  <h3 className="font-display text-2xl leading-none font-black uppercase">{competitionName(c, l)}</h3>
                   {lead ? (
                     <p className="mt-2 text-sm font-semibold text-muted-foreground">
                       {t.leader}: <span className="font-extrabold text-foreground">{lead.team}</span> · {lead.points} pts
@@ -555,9 +643,9 @@ async function Home({ params }: { params: Promise<{ locale: string }> }) {
           <Block title={t.reports}>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {pieces.map((p) => (
-                <Link key={p.path} href={p.path} className={`${CARD} block p-4 transition-colors hover:bg-surface-2`}>
+                <Link key={p.path} href={p.path} className="group block border-t-2 border-foreground pt-3.5">
                   <p className="text-xs font-extrabold tracking-wide text-primary uppercase">{p.label}</p>
-                  <h3 className="mt-2 font-bold text-foreground">{p.title}</h3>
+                  <h3 className="mt-2 text-lg leading-snug font-bold text-balance text-foreground group-hover:underline">{p.title}</h3>
                   <p className="mt-2 text-xs font-semibold text-muted-foreground">{p.byline}</p>
                 </Link>
               ))}
@@ -568,9 +656,9 @@ async function Home({ params }: { params: Promise<{ locale: string }> }) {
         <AdSlot id="home-leaderboard-2" format="leaderboard" indexable />
 
         {/* App promo */}
-        <section className="mt-10 rounded-3xl bg-band p-6 sm:p-10">
-          <DisplayHeading className="text-3xl sm:text-4xl">{t.promoH}</DisplayHeading>
-          <p className="mt-3 max-w-2xl font-semibold text-muted-foreground">{t.promoP}</p>
+        <section className="band-field mt-14 rounded-[4px] p-6 sm:p-10">
+          <h2 className="font-display text-[clamp(40px,1.6rem+2.4vw,72px)] leading-[0.92] font-black uppercase">{t.promoH}</h2>
+          <p className="mt-4 max-w-2xl text-[17px] font-semibold text-field-muted">{t.promoP}</p>
           <div className="mt-6">
             <InstallCTA labels={{ open: t.open, ios: t.ios, android: t.android }} />
           </div>
@@ -589,8 +677,8 @@ async function Home({ params }: { params: Promise<{ locale: string }> }) {
 
         {/* Definition + FAQ */}
         <section className="mt-10 max-w-3xl">
-          <h2 className="font-display text-xl font-bold tracking-wide uppercase">{t.whatH}</h2>
-          <p className="mt-3 leading-relaxed font-semibold text-muted-foreground">{t.what(COMPETITIONS.length)}</p>
+          <DisplayHeading className="text-4xl sm:text-5xl">{t.whatH}</DisplayHeading>
+          <p className="mt-3 max-w-[62ch] leading-relaxed font-semibold text-muted-foreground">{t.what(COMPETITIONS.length)}</p>
         </section>
         <div className="max-w-3xl">
           <FaqSection title={t.faqH} entries={faq} pagePath={`/${l}`} />

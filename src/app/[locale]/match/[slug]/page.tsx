@@ -494,23 +494,28 @@ async function MatchPage({ params }: { params: Promise<Params> }) {
       <LocalTimeScript locale={locale} />
       <SiteNav />
 
+      {/* The match head sits on the tribuna band, like the home hero. */}
+      <section className="band-field">
+        <div className="mx-auto max-w-6xl px-4 pt-2 pb-8 sm:px-8">
+          <Breadcrumbs crumbs={v.crumbs} currentPath={path} />
+
+          <DisplayHeading as="h1" className="mt-4 text-[clamp(30px,1.2rem+2vw,44px)] text-balance text-field-foreground">
+            {v.matchName}
+          </DisplayHeading>
+
+          <Scoreboard
+            f={f}
+            locale={locale}
+            eyebrow={v.eyebrow}
+            homeHref={teamPath(locale, homeTeam)}
+            awayHref={teamPath(locale, awayTeam)}
+            venue={venue}
+            referee={referee}
+          />
+        </div>
+      </section>
+
       <main className="mx-auto max-w-6xl px-4 pt-2 pb-12 sm:px-8">
-        <Breadcrumbs crumbs={v.crumbs} currentPath={path} />
-
-        <DisplayHeading as="h1" className="mt-4 text-3xl sm:text-4xl">
-          {v.matchName}
-        </DisplayHeading>
-
-        <Scoreboard
-          f={f}
-          locale={locale}
-          eyebrow={v.eyebrow}
-          homeHref={teamPath(locale, homeTeam)}
-          awayHref={teamPath(locale, awayTeam)}
-          venue={venue}
-          referee={referee}
-        />
-
         <AdSlot id="match-below-score" indexable={indexable} label={t.ad} />
 
         <div className="grid grid-cols-1 gap-x-10 lg:grid-cols-[minmax(0,1fr)_340px]">

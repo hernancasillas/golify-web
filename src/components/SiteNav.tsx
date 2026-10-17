@@ -41,9 +41,11 @@ export function SiteNav() {
         minLength={3}
         placeholder={label.search}
         aria-label={label.search}
-        className="w-full rounded-full border border-border bg-surface px-4 py-2 text-sm font-semibold text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+        className="w-full rounded-[3px] border-2 border-field-foreground bg-transparent px-3 py-2 text-sm font-semibold text-field-foreground placeholder:text-field-muted"
       />
-      <button type="submit" className="sr-only">
+      {/* Enter submits the form; this hidden button is for assistive tech
+          only, so it stays out of the tab order (it has no visible focus). */}
+      <button type="submit" className="sr-only" tabIndex={-1}>
         {label.go}
       </button>
     </form>
@@ -51,17 +53,19 @@ export function SiteNav() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="relative w-full">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-5 sm:gap-4 sm:px-8 sm:py-6">
+    // The nav sits on the tribuna band (brand green by day, night-stand green
+    // in dark mode) on every page; the home hero continues the same band.
+    <header className="band-field relative w-full">
+      <nav className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-2 border-b-2 border-field-foreground px-4 py-2.5 sm:gap-4 sm:px-8">
         <Link href={homePath(l)} className="flex shrink-0 items-center gap-2 sm:gap-3">
           <Image
             src="/icon.svg"
             alt="Golify"
             width={40}
             height={40}
-            className="h-8 w-8 rounded-xl sm:h-10 sm:w-10"
+            className="h-8 w-8 rounded-full sm:h-9 sm:w-9"
           />
-          <span className="font-display text-xl font-bold tracking-wide text-foreground sm:text-2xl">
+          <span className="font-display text-[26px] leading-none font-black tracking-wide sm:text-[30px]">
             GOLIFY
           </span>
         </Link>
@@ -72,9 +76,10 @@ export function SiteNav() {
               <Link
                 key={x.href}
                 href={x.href}
-                className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
+                aria-current={pathname === x.href ? 'page' : undefined}
+                className="flex items-center gap-1.5 border-b-[3px] border-transparent py-4 whitespace-nowrap font-bold hover:border-field-foreground aria-[current=page]:border-field-foreground"
               >
-                {x.live ? <span aria-hidden className="h-2 w-2 rounded-full bg-live" /> : null}
+                {x.live ? <span aria-hidden className="h-2 w-2 rounded-full bg-live ring-2 ring-field-foreground" /> : null}
                 {x.text}
               </Link>
             ))}
@@ -87,7 +92,7 @@ export function SiteNav() {
           </div>
 
           <SmartDownload
-            variant="mint"
+            variant="dark"
             className="hidden px-5 py-2.5 lg:inline-flex"
           >
             {label.download}
@@ -100,7 +105,7 @@ export function SiteNav() {
             onClick={() => setMenuOpen((v) => !v)}
             aria-expanded={menuOpen}
             aria-label={label.menu}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border text-foreground lg:hidden"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[3px] border-2 border-field-foreground lg:hidden"
           >
             {menuOpen ? (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -116,7 +121,7 @@ export function SiteNav() {
       </nav>
 
       {menuOpen ? (
-        <div className="absolute inset-x-0 top-full z-20 border-t border-border bg-background px-5 py-5 shadow-[0_16px_40px_rgba(0,0,0,0.25)] sm:px-8 lg:hidden">
+        <div className="band-field absolute inset-x-0 top-full z-20 border-b-2 border-field-foreground px-5 py-5 shadow-[0_16px_40px_rgba(0,0,0,0.25)] sm:px-8 lg:hidden">
           {searchForm('mb-4')}
           <div className="flex flex-col gap-4 text-base font-bold">
             {links.map((x) => (
@@ -124,14 +129,14 @@ export function SiteNav() {
                 key={x.href}
                 href={x.href}
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2 text-foreground"
+                className="flex items-center gap-2"
               >
                 {x.live ? <span aria-hidden className="h-2 w-2 rounded-full bg-live" /> : null}
                 {x.text}
               </Link>
             ))}
           </div>
-          <SmartDownload variant="mint" className="mt-5 w-full">
+          <SmartDownload variant="dark" className="mt-5 w-full">
             {label.download}
           </SmartDownload>
         </div>

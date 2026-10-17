@@ -23,13 +23,18 @@
      brand accent (green) — never reuse --primary for a live match badge. */
   --color-live: var(--live);
   --color-live-glow: var(--live-glow);
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Public Sans: a plain, very legible grotesque with good numerals — the
+     "transmisión" half of the redesign (oct 2026). */
+  --font-sans: var(--font-public-sans), system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
-  /* The app's real display face is Futura Extra Bold — a licensed font file
-     bundled in the app, not available on the web. Jost (Google Fonts) is the
-     closest free geometric substitute. */
-  --font-display: var(--font-jost), "Jost", -apple-system, sans-serif;
+  /* Big Shoulders: condensed lettering of a painted terrace banner —
+     the "tribuna" half of the redesign (oct 2026). Replaces Jost. */
+  --font-display: var(--font-big-shoulders), "Arial Narrow", "Roboto Condensed", Impact, sans-serif;
+  --color-field: var(--field);
+  --color-field-foreground: var(--field-foreground);
+  --color-field-muted: var(--field-muted);
+  --color-link: var(--link);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -69,38 +74,50 @@
 }
 
 :root {
-  /* Light mode — app's lightColors (constants/theme.ts), green accent palette. */
-  --background: #ECECF2;
-  --foreground: #1A1A2E;
+  /* Light mode — redesign "tribuna + transmisión" (oct 2026). Neutrals are
+     tinted toward the logo's green-black; the brand green is unchanged. */
+  --background: #EEF2EF;
+  --foreground: #0B1A12;
   --card: #FFFFFF;
-  --card-foreground: #1A1A2E;
+  --card-foreground: #0B1A12;
   --popover: #FFFFFF;
-  --popover-foreground: #1A1A2E;
+  --popover-foreground: #0B1A12;
   --primary: #00A040;
-  --primary-foreground: #070710;
-  --secondary: #F7F7FA;
-  --secondary-foreground: #1A1A2E;
-  --muted: #F7F7FA;
-  --muted-foreground: #5C5C7A;
+  --primary-foreground: #04140A;
+  --secondary: #E2E9E4;
+  --secondary-foreground: #0B1A12;
+  --muted: #E2E9E4;
+  --muted-foreground: #46564C;
   --accent: #00A040;
-  --accent-foreground: #070710;
+  --accent-foreground: #04140A;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #E2E2EA;
+  --border: #CFD9D2;
+  /* Green as TEXT on the light ground: the brand green itself is 3.2:1 there,
+     so links and green labels use a deeper step of it (5.3:1). */
+  --link: #007A31;
+  /* The tribuna: nav band and hero, painted in the brand green. */
+  --field: #00C853;
+  --field-foreground: #06180E;
+  --field-muted: #0B3A1F;
+  --tifo-gap: #00B84B; --tifo-a: #00C853; --tifo-b: #08D25D; --tifo-on: #F3FFF6; --tifo-back: #06180E;
+  --score-bg: #0B1A12;
+  --score-fg: #FFFFFF;
   --input: rgba(0, 0, 0, 0.08);
-  --ring: #00A040;
+  --ring: #0B1A12;
   --gold: #D4A800;
   --gold-foreground: #241a0c;
-  --band: #F7F7FA;
+  --band: #E2E9E4;
   --surface: #FFFFFF;
-  --surface-2: #F7F7FA;
-  --live: #E0304E;
-  --live-glow: rgba(224, 48, 78, 0.10);
+  --surface-2: #E2E9E4;
+  --live: #C81E3C;
+  --live-glow: rgba(200, 30, 60, 0.10);
   --chart-1: #00A040;
   --chart-2: #D4A800;
   --chart-3: #0d5e26;
   --chart-4: #1A1A2E;
   --chart-5: #041008;
-  --radius: 0.625rem;
+  /* Small radii: things on a broadcast graphic are cut, not pillowed. */
+  --radius: 0.25rem;
   --sidebar: #F7F7FA;
   --sidebar-foreground: #1A1A2E;
   --sidebar-primary: #00A040;
@@ -117,31 +134,39 @@
      hex the app ships. `accent` = green (DEFAULT_ACCENT_KEY), the default a
      fresh app install shows — not the legacy pink baked into a few of the
      app's own older style factories. See app-alignment pass, sep-2026. */
-  --background: #232628;
-  --foreground: #E8E8F0;
-  --card: #1C1C1C;
-  --card-foreground: #E8E8F0;
-  --popover: #1C1C1C;
-  --popover-foreground: #E8E8F0;
+  --background: #0C110F;
+  --foreground: #EEF3F0;
+  --card: #151C19;
+  --card-foreground: #EEF3F0;
+  --popover: #151C19;
+  --popover-foreground: #EEF3F0;
   --primary: #00C853;
-  --primary-foreground: #070710;
-  --secondary: #202020;
-  --secondary-foreground: #E8E8F0;
-  --muted: #202020;
-  --muted-foreground: #8888AA;
+  --primary-foreground: #04140A;
+  --secondary: #1D2622;
+  --secondary-foreground: #EEF3F0;
+  --muted: #1D2622;
+  --muted-foreground: #A3B0AA;
   --accent: #00C853;
-  --accent-foreground: #070710;
+  --accent-foreground: #04140A;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: #2A2A2A;
+  --border: #28322E;
+  --link: #00C853;
+  /* Night match: the stand goes dark green and the cards light up green. */
+  --field: #06180E;
+  --field-foreground: #E8F5EC;
+  --field-muted: #9FC4AE;
+  --tifo-gap: #03100A; --tifo-a: #0A2A18; --tifo-b: #0D321E; --tifo-on: #00C853; --tifo-back: #E8F5EC;
+  --score-bg: #EEF3F0;
+  --score-fg: #0C110F;
   --input: rgba(255, 255, 255, 0.1);
-  --ring: #00C853;
+  --ring: #EEF3F0;
   --gold: #FFD60A;
   --gold-foreground: #241a0c;
-  --band: #202020;
-  --surface: #1C1C1C;
-  --surface-2: #202020;
-  --live: #FF3B5C;
-  --live-glow: rgba(255, 59, 92, 0.15);
+  --band: #151C19;
+  --surface: #151C19;
+  --surface-2: #1D2622;
+  --live: #C81E3C;
+  --live-glow: rgba(200, 30, 60, 0.18);
   --chart-1: #00C853;
   --chart-2: #FFD60A;
   --chart-3: #4edd7a;
@@ -190,3 +215,74 @@
 .animate-pulse-dot {
   animation: pulseDot 1.6s ease-in-out infinite;
 }
+/* ── Redesign "tribuna + transmisión" (oct 2026) ────────────────────────────
+   Two halves: the tribuna (nav band and home hero painted in the brand green,
+   the match of the moment as a card mosaic) and the transmisión (every match
+   a broadcast strip with the score in an inverted block). See
+   .design/DIRECTION.md in the design workspace for the reasoning. */
+
+/* Green used as text reads from --link (deeper in light mode for contrast).
+   Unlayered on purpose so it wins over the utility of the same name. */
+.text-primary { color: var(--link); }
+
+/* The tribuna band: nav + hero sit on the field colour. */
+.band-field { background: var(--field); color: var(--field-foreground); }
+.band-field .text-muted-foreground { color: var(--field-muted); }
+.band-field :focus-visible { outline-color: var(--field-foreground); }
+
+/* A kicker line: replaces the old announcement pill. */
+.kicker { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; }
+.kicker-dot { width: 10px; height: 10px; flex: none; border-radius: 9999px; background: var(--live); box-shadow: 0 0 0 2px var(--field-foreground); }
+
+/* ── Broadcast strip (one match) ─────────────────────────────────────────── */
+.fx-list { container-type: inline-size; display: grid; gap: 6px; }
+.fx-lgh { display: flex; align-items: center; gap: 10px; padding: 16px 0 4px; font-size: 13px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--muted-foreground); }
+.fx-lgh:first-child { padding-top: 0; }
+.band-field .fx-lgh { color: var(--field-foreground); }
+.fx { position: relative; display: grid; grid-template-columns: 72px minmax(0, 1fr) 76px minmax(0, 1fr); align-items: stretch; min-height: 56px; overflow: hidden; border: 1px solid transparent; border-radius: 4px; background: var(--card); color: var(--foreground); }
+.fx:hover .fx-nm { text-decoration: underline; text-underline-offset: 3px; }
+.fx-m { display: grid; place-items: center; padding: 4px; background: var(--surface-2); color: var(--muted-foreground); font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; text-align: center; line-height: 1.2; }
+.dark .fx[data-phase="live"] .fx-m { color: #FF5C77; }
+.fx[data-phase="live"] .fx-m { color: #B3132F; }
+.fx-t { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 8px 16px; font-size: 16px; font-weight: 700; }
+.fx-t img { width: 28px; height: 28px; flex: none; object-fit: contain; }
+.fx-nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fx-h { justify-content: flex-end; text-align: right; }
+.fx-lost .fx-nm { color: var(--muted-foreground); }
+.fx-s { display: flex; align-items: center; justify-content: center; gap: 4px; background: var(--score-bg); color: var(--score-fg); font-family: var(--font-display); font-size: 28px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.fx-s .fx-sep { opacity: .45; }
+.fx[data-phase="scheduled"] .fx-s, .fx[data-phase="off"] .fx-s { background: var(--surface-2); color: var(--muted-foreground); font-family: var(--font-sans); font-size: 14px; font-weight: 700; }
+.fx-gol { position: absolute; inset: 0; display: flex; align-items: center; gap: 14px; padding-left: 20px; background: var(--live); color: #fff; font-family: var(--font-display); font-size: 28px; font-weight: 900; letter-spacing: .03em; transform: translateX(-101%); pointer-events: none; }
+.fx-gol small { font-family: var(--font-sans); font-size: 15px; font-weight: 700; letter-spacing: 0; }
+.fx.is-goal .fx-gol { transform: none; }
+@media (prefers-reduced-motion: no-preference) { .fx-gol { transition: transform .45s cubic-bezier(.2, .8, .2, 1); } }
+@container (max-width: 560px) {
+  .fx { grid-template-columns: 58px minmax(0, 1fr) 46px; grid-template-rows: auto auto; min-height: 0; }
+  .fx-m { grid-row: 1 / 3; }
+  .fx-t { gap: 10px; padding: 7px 12px; font-size: 15px; }
+  .fx-t img { width: 22px; height: 22px; }
+  .fx-h { grid-column: 2; grid-row: 1; flex-direction: row-reverse; justify-content: flex-end; text-align: left; padding-bottom: 2px; }
+  .fx-a { grid-column: 2; grid-row: 2; padding-top: 2px; }
+  .fx-s { grid-column: 3; grid-row: 1 / 3; flex-direction: column; gap: 8px; font-size: 24px; }
+  .fx-s .fx-sep { display: none; }
+  .fx[data-phase="scheduled"] .fx-s, .fx[data-phase="off"] .fx-s { font-size: 13px; }
+  .fx-gol { font-size: 22px; padding-left: 14px; }
+}
+
+/* ── The tribuna mosaic ──────────────────────────────────────────────────── */
+.tifo-wrap { perspective: 1100px; }
+.tifo { position: relative; max-width: 100%; border: 2px solid var(--field-foreground); background: var(--tifo-gap); }
+@media (prefers-reduced-motion: no-preference) { .tifo { transform: rotateX(5deg); transform-origin: 50% 100%; } }
+.tifo canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 7; }
+.tifo-still { position: absolute; inset: 0; display: grid; place-items: center; color: var(--tifo-on); font-family: var(--font-display); font-size: clamp(44px, 9vw, 140px); font-weight: 900; letter-spacing: .04em; white-space: nowrap; }
+.tifo.is-on .tifo-still { visibility: hidden; }
+
+/* On the band, green text would vanish into the green: use the band ink. */
+.band-field .text-primary { color: var(--field-foreground); }
+.band-field input:focus-visible { outline: 3px solid var(--field-foreground); outline-offset: 2px; }
+
+/* "En vivo" as TEXT: the solid --live red is for fills (white on it passes);
+   as text it needs a darker step by day and a lighter one at night. */
+.text-live { color: #B3132F; }
+.dark .text-live { color: #FF5C77; }
+.band-field .text-live { color: var(--field-foreground); }

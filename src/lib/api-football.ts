@@ -16,7 +16,8 @@ import { unstable_cache } from 'next/cache';
 import { noteExhausted, quotaLine, readCache, webMayCall, writeCache } from './apif-store';
 import { currentTier } from './api-tier';
 
-const BASE_URL = 'https://v3.football.api-sports.io';
+// Overridable only to point local development at a mock (never set in Vercel).
+const BASE_URL = process.env.API_FOOTBALL_BASE_URL || 'https://v3.football.api-sports.io';
 const API_KEY = process.env.API_FOOTBALL_KEY ?? '';
 
 // Cache windows (seconds), named by how fast the data moves.

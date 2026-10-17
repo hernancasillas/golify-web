@@ -24,9 +24,26 @@ export function LiveScoreUpdater({ htLabel }: { htLabel: string }) {
     let stopped = false;
     let misses = 0;
 
-    const setText = (root: HTMLElement, sel: string, v: string) => {
+    const setText = (root: HTMLElement, sel: string, v: string): boolean => {
       const el = root.querySelector(sel);
-      if (el && el.textContent !== v) el.textContent = v;
+      if (!el || el.textContent === v) return false;
+      el.textContent = v;
+      return true;
+    };
+
+    // A score that moved is a goal: slide the broadcast "GOL" band over the
+    // row for a few seconds and tell the home tribuna (Tribuna.tsx) so it can
+    // repaint its mosaic. Not on the first tick, which only syncs the page.
+    let first = true;
+    const goal = (row: HTMLElement, side: 'home' | 'away', f: FeedRow) => {
+      const band = row.querySelector<HTMLElement>('.fx-gol small');
+      const team = row.querySelector(`[data-team="${side}"]`)?.textContent ?? '';
+      if (band) band.textContent = `${team} · ${f.goals.home}–${f.goals.away}`;
+      row.classList.add('is-goal');
+      window.setTimeout(() => row.classList.remove('is-goal'), 3400);
+      window.dispatchEvent(
+        new CustomEvent('golify:goal', { detail: { id: f.fixture.id, home: f.goals.home, away: f.goals.away } }),
+      );
     };
 
     async function tick() {
@@ -41,14 +58,16 @@ export function LiveScoreUpdater({ htLabel }: { htLabel: string }) {
           const f = byId.get(row.dataset.liveFixture ?? '');
           if (!f) continue;
           seen++;
-          if (f.goals.home != null) setText(row, '[data-score="home"]', String(f.goals.home));
-          if (f.goals.away != null) setText(row, '[data-score="away"]', String(f.goals.away));
+          const homeMoved = f.goals.home != null && setText(row, '[data-score="home"]', String(f.goals.home));
+          const awayMoved = f.goals.away != null && setText(row, '[data-score="away"]', String(f.goals.away));
+          if (!first && (homeMoved || awayMoved)) goal(row, homeMoved ? 'home' : 'away', f);
           const s = f.fixture.status;
           if (s.short === 'HT') setText(row, '[data-minute]', htLabel);
           else if (s.elapsed != null) setText(row, '[data-minute]', `${s.elapsed}'`);
         }
         // An empty feed is as likely a hiccup as a final whistle: only give up
         // when the feed answers with other matches and none of ours, twice.
+        first = false;
         if (seen > 0) misses = 0;
         else if (fixtures.length > 0 && ++misses >= 2) stopped = true;
       } catch {

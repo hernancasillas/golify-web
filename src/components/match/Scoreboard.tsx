@@ -3,7 +3,7 @@ import type { Fixture } from '@/lib/api-football';
 import { LocalTime } from '@/components/LocalTime';
 import { TRACKED_LEAGUE_IDS } from '@/lib/leagues';
 import { LiveScore } from './LiveScore';
-import { Card, Logo } from './ui';
+import { Logo } from './ui';
 import { isLiveShort, type MatchLocale } from './status';
 
 const L = {
@@ -14,11 +14,9 @@ const L = {
 
 function TeamSide({ team, href }: { team: Fixture['teams']['home']; href: string }) {
   return (
-    <Link href={href} className="group flex min-w-0 flex-col items-center gap-2.5 text-center">
-      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white p-2 shadow-sm sm:h-20 sm:w-20">
-        <Logo src={team.logo} size={56} className="h-full w-full" />
-      </span>
-      <span className="max-w-full text-sm font-extrabold break-words group-hover:underline sm:text-base">{team.name}</span>
+    <Link href={href} className="group flex min-w-0 flex-col items-center gap-3 text-center">
+      <Logo src={team.logo} size={80} />
+      <span className="max-w-full font-display text-2xl leading-none font-black break-words uppercase group-hover:underline sm:text-4xl">{team.name}</span>
     </Link>
   );
 }
@@ -49,8 +47,8 @@ export function Scoreboard({
   const showPens = pen?.home != null && pen?.away != null;
 
   return (
-    <Card className="mt-5 p-5 sm:p-7">
-      <p className="text-center text-xs font-extrabold tracking-[0.14em] text-primary uppercase">{eyebrow}</p>
+    <div className="mt-5">
+      <p className="text-center text-sm font-extrabold tracking-[0.06em] uppercase">{eyebrow}</p>
       <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-6">
         <TeamSide team={f.teams.home} href={homeHref} />
         <div className="flex flex-col items-center gap-1.5">
@@ -73,12 +71,12 @@ export function Scoreboard({
             }}
           />
           {showHt ? (
-            <span className="text-xs font-semibold text-muted-foreground tabular-nums">
+            <span className="text-xs font-semibold text-field-muted tabular-nums">
               {t.ht}: {ht!.home}-{ht!.away}
             </span>
           ) : null}
           {showPens ? (
-            <span className="text-xs font-bold text-foreground tabular-nums">
+            <span className="text-xs font-bold tabular-nums">
               {t.pens}: {pen!.home}-{pen!.away}
             </span>
           ) : null}
@@ -86,7 +84,7 @@ export function Scoreboard({
         <TeamSide team={f.teams.away} href={awayHref} />
       </div>
 
-      <dl className="mt-6 grid grid-cols-1 gap-3 border-t border-border pt-5 text-sm sm:grid-cols-3">
+      <dl className="mt-7 grid grid-cols-1 gap-3 border-t border-field-foreground/25 pt-5 text-sm sm:grid-cols-3">
         <div className="min-w-0">
           <dt className="text-xs font-bold tracking-wide text-muted-foreground uppercase">{t.kickoff}</dt>
           <dd className="mt-0.5 font-semibold">
@@ -118,6 +116,6 @@ export function Scoreboard({
           </div>
         ) : null}
       </dl>
-    </Card>
+    </div>
   );
 }

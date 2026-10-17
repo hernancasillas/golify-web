@@ -22,7 +22,8 @@ export function ThemeToggle() {
       variant="outline"
       size="icon"
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="rounded-full"
+      aria-label={theme === 'dark' ? 'Light theme' : 'Dark theme'}
+      className="h-10 w-10 rounded-[3px] border-2 border-field-foreground bg-transparent text-field-foreground shadow-none hover:bg-field-foreground/10 hover:text-field-foreground dark:border-field-foreground dark:bg-transparent dark:hover:bg-field-foreground/10"
     >
       {theme === 'dark' ? (
         <Sun className="h-5 w-5" />

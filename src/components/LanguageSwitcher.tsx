@@ -46,10 +46,15 @@ export default function LanguageSwitcher() {
       {LOCALES.map(({ code, label }) => (
         <Button
           key={code}
-          variant={locale === code ? 'default' : 'outline'}
+          variant="ghost"
           size="sm"
           onClick={() => switchLocale(code)}
-          className="rounded-full"
+          aria-pressed={locale === code}
+          className={
+            locale === code
+              ? 'rounded-[2px] bg-field-foreground px-2 text-field hover:bg-field-foreground hover:text-field'
+              : 'rounded-[2px] px-2 text-field-foreground hover:bg-field-foreground/10 hover:text-field-foreground'
+          }
         >
           {label}
         </Button>

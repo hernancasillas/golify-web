@@ -3,12 +3,13 @@ import Link from 'next/link';
 import { Fragment } from 'react';
 import { fixturePhase, type Fixture } from '@/lib/api-football';
 import { competitionName, roundLabel } from '@/lib/competitions';
-import { competitionPath, matchPath, whereToWatchPath, type HubCountry, type RouteLocale } from '@/lib/routes';
+import { competitionPath, whereToWatchPath, type HubCountry, type RouteLocale } from '@/lib/routes';
 import { timeIn } from '@/lib/timezones';
 import { broadcastsFor, WATCH_COUNTRY_SLUGS } from '@/data/broadcasters';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { LocalTime } from '@/components/LocalTime';
 import { LiveScoreUpdater } from '@/components/LiveScoreUpdater';
+import { FxRow } from '@/components/broadcast/FxRow';
 import type { BoardCounts, BoardPhase, CompetitionGroup } from './data';
 
 // The day board: one card per competition, one row per match, every row a
@@ -201,9 +202,9 @@ function CompetitionCard({
   const channels = [...new Set(watch.flatMap((b) => b.channels.map((ch) => ch.name)))];
 
   return (
-    <section data-group className="mt-5 overflow-hidden rounded-2xl border border-border bg-surface">
-      <header className="flex items-center justify-between gap-3 border-b border-border bg-surface-2/60 px-4 py-3">
-        <h2 className="flex min-w-0 items-center gap-2 font-display text-[15px] leading-tight font-bold tracking-wide text-foreground uppercase">
+    <section data-group className="mt-7">
+      <header className="mb-2 flex items-center justify-between gap-3">
+        <h2 className="flex min-w-0 items-center gap-2.5 text-[13px] leading-tight font-extrabold tracking-[0.07em] text-muted-foreground uppercase">
           {/* White backdrop: some league crests are dark on transparency. */}
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white">
             <Image src={first.league.logo} alt="" width={16} height={16} unoptimized className="h-4 w-4 object-contain" />
@@ -221,13 +222,13 @@ function CompetitionCard({
           </Link>
         ) : null}
       </header>
-      <ul className="divide-y divide-border">
+      <ul className="fx-list">
         {fixtures.map((f) => (
           <MatchRow key={f.fixture.id} f={f} locale={locale} time={time} />
         ))}
       </ul>
       {channels.length > 0 && watchCountryName ? (
-        <p className="border-t border-border px-4 py-2.5 text-xs font-bold text-muted-foreground">
+        <p className="mt-2 text-xs font-bold text-muted-foreground">
           {L.watchIn.replace('{country}', watchCountryName)}{' '}
           {watchHref ? (
             <Link href={watchHref} className="text-foreground underline-offset-2 hover:underline">
@@ -243,47 +244,15 @@ function CompetitionCard({
 }
 
 // ---- Match row --------------------------------------------------------------
-// One markup, two layouts: stacked teams on phones, home | score | away on
-// wider screens (grid positions switch at `sm`).
+// A broadcast strip (components/broadcast/FxRow): status | home | score block |
+// away, stacked teams when the board is narrow. The <li> carries the phase for
+// the CSS-only filter chips.
 
 function MatchRow({ f, locale, time }: { f: Fixture; locale: RouteLocale; time: TimeMode }) {
-  const L = B[locale];
   const phase = fixturePhase(f);
-  const scored = f.goals.home != null && f.goals.away != null;
-  const decided = phase === 'finished';
-  const homeLost = decided && f.teams.home.winner === false;
-  const awayLost = decided && f.teams.away.winner === false;
-
   return (
-    <li data-phase={phase} data-live-fixture={phase === 'live' ? f.fixture.id : undefined}>
-      <Link
-        href={matchPath(locale, f)}
-        className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 px-4 py-3 transition-colors hover:bg-surface-2 sm:grid-cols-[4.75rem_minmax(0,1fr)_1.75rem_0.75rem_1.75rem_minmax(0,1fr)] sm:gap-y-0"
-      >
-        <span className="col-start-1 row-span-2 row-start-1 flex flex-col items-start justify-center sm:row-span-1">
-          <StatusCell f={f} phase={phase} locale={locale} time={time} />
-        </span>
-        <TeamCell team={f.teams.home} muted={homeLost} className="col-start-2 row-start-1 sm:flex-row-reverse sm:text-right" />
-        {scored ? (
-          <Score value={f.goals.home} side="home" live={phase === 'live'} muted={homeLost} className="col-start-3 row-start-1" />
-        ) : null}
-        <span
-          aria-hidden={scored ? true : undefined}
-          className="hidden text-center text-xs font-bold text-muted-foreground sm:col-start-4 sm:row-start-1 sm:block"
-        >
-          {scored ? '–' : L.vs}
-        </span>
-        {scored ? (
-          <Score
-            value={f.goals.away}
-            side="away"
-            live={phase === 'live'}
-            muted={awayLost}
-            className="col-start-3 row-start-2 sm:col-start-5 sm:row-start-1"
-          />
-        ) : null}
-        <TeamCell team={f.teams.away} muted={awayLost} className="col-start-2 row-start-2 sm:col-start-6 sm:row-start-1" />
-      </Link>
+    <li data-phase={phase}>
+      <FxRow f={f} locale={locale} status={<StatusCell f={f} phase={phase} locale={locale} time={time} />} />
     </li>
   );
 }
@@ -294,8 +263,7 @@ export function StatusCell({ f, phase, locale, time }: { f: Fixture; phase: Boar
   if (phase === 'live') {
     const label = s.short === 'HT' ? L.ht : s.elapsed != null ? `${s.elapsed}'` : L.live;
     return (
-      <span className="inline-flex items-center gap-1.5 text-sm font-extrabold text-live">
-        <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-live" />
+      <span className="inline-flex items-center gap-1.5 text-sm font-extrabold">
         <span className="sr-only">{L.live} </span>
         <span data-minute>{label}</span>
       </span>
@@ -328,46 +296,6 @@ export function StatusCell({ f, phase, locale, time }: { f: Fixture; phase: Boar
           {z.short ? <span className="ml-1 text-[10px] font-bold text-muted-foreground">{z.short}</span> : null}
         </time>
       ))}
-    </span>
-  );
-}
-
-function TeamCell({
-  team,
-  muted,
-  className,
-}: {
-  team: { name: string; logo: string };
-  muted: boolean;
-  className: string;
-}) {
-  return (
-    <span className={`flex min-w-0 items-center gap-2 ${className}`}>
-      <Image src={team.logo} alt="" width={22} height={22} unoptimized className="h-[22px] w-[22px] shrink-0 object-contain" />
-      <span className={`truncate text-sm font-bold ${muted ? 'text-muted-foreground' : 'text-foreground'}`}>{team.name}</span>
-    </span>
-  );
-}
-
-function Score({
-  value,
-  side,
-  live,
-  muted,
-  className,
-}: {
-  value: number | null;
-  side: 'home' | 'away';
-  live: boolean;
-  muted: boolean;
-  className: string;
-}) {
-  return (
-    <span
-      data-score={side}
-      className={`${className} text-right font-display text-lg leading-none font-bold tabular-nums sm:text-center ${live ? 'text-live' : muted ? 'text-muted-foreground' : 'text-foreground'}`}
-    >
-      {value ?? '–'}
     </span>
   );
 }
