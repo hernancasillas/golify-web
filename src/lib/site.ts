@@ -63,9 +63,12 @@ export const WORLD_CUP_EVENT = {
 };
 
 // schema.org Place[] for the three host countries.
+// Each host country as a Place with an address (Event rich results flag a
+// location without one).
 export const WORLD_CUP_LOCATION = WORLD_CUP_EVENT.hosts.map((name) => ({
-  '@type': 'Country',
+  '@type': 'Place',
   name,
+  address: { '@type': 'PostalAddress', addressLocality: name, addressCountry: name },
 }));
 
 // The full tournament SportsEvent node, reused as the canonical hub event and

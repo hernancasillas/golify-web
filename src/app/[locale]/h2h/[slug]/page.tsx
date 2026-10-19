@@ -7,7 +7,7 @@ import { apiFootballGet, TTL, type Fixture, type TeamRef } from '@/lib/api-footb
 import { getPickSplit } from '@/lib/community';
 import { competitionById, competitionName } from '@/lib/competitions';
 import { competitionPath, h2hPath, h2hSlug, homePath, matchPath, playerPath, poolPath, teamPath } from '@/lib/routes';
-import { absolute, pageMetadata, type Crumb } from '@/lib/seo';
+import { absolute, eventPlace, pageMetadata, type Crumb } from '@/lib/seo';
 import { fill } from '@/lib/site';
 import { idPairFromSlug } from '@/lib/slug';
 import { longDateIn, timeIn } from '@/lib/timezones';
@@ -521,11 +521,7 @@ async function H2HPage({ params }: { params: Promise<Params> }) {
         sport: 'Soccer',
         startDate: next.fixture.date,
         eventStatus: 'https://schema.org/EventScheduled',
-        location: {
-          '@type': 'Place',
-          name: next.fixture.venue.name ?? next.league.country ?? next.league.name,
-          ...(next.fixture.venue.city ? { address: next.fixture.venue.city } : {}),
-        },
+        location: eventPlace({ venue: next.fixture.venue.name, city: next.fixture.venue.city, country: next.league.country, fallback: next.league.name }),
         homeTeam: { '@type': 'SportsTeam', name: next.teams.home.name, logo: next.teams.home.logo },
         awayTeam: { '@type': 'SportsTeam', name: next.teams.away.name, logo: next.teams.away.logo },
         organizer: { '@type': 'Organization', name: next.league.name },

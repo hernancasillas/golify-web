@@ -475,7 +475,8 @@ async function StadiumPage({ params }: { params: Promise<Params> }) {
   const address = {
     '@type': 'PostalAddress',
     ...(venue.address ? { streetAddress: venue.address } : {}),
-    ...(d.city ? { addressLocality: d.city } : {}),
+    // Always a locality: Event rich results flag an address without one.
+    addressLocality: d.city || venue.name,
     ...(venue.country ? { addressCountry: venue.country.replace(/-/g, ' ') } : {}),
   };
   const placeLd = { '@type': 'StadiumOrArena', name: venue.name, address };

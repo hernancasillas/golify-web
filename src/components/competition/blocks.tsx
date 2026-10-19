@@ -4,7 +4,7 @@ import Link from 'next/link';
 import type { Fixture } from '@/lib/api-football';
 import type { Competition } from '@/lib/competitions';
 import { competitionPath, poolPath, transfersPath, whereToWatchPath, type RouteLocale } from '@/lib/routes';
-import { absolute, type JsonLdNode } from '@/lib/seo';
+import { absolute, eventPlace, type JsonLdNode } from '@/lib/seo';
 import { cn } from '@/lib/utils';
 import { roundName, type RoundGroup, type SeasonCtx } from './data';
 import { fmt, ui } from './i18n';
@@ -115,10 +115,7 @@ export function seasonEventNode(
     endDate: split ? last?.slice(0, 10) : ctx.meta.end,
     eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    location:
-      country && country !== 'World'
-        ? { '@type': 'Place', name: country, address: { '@type': 'PostalAddress', addressCountry: ctx.info.country.code ?? country } }
-        : { '@type': 'Place', name: ctx.info.league.name },
+    location: eventPlace({ country, fallback: ctx.info.league.name }),
     organizer: { '@type': 'SportsOrganization', name: ctx.info.league.name, url: absolute(competitionPath(locale, ctx.comp.id)!) },
     image: ctx.info.league.logo,
     url: absolute(path),

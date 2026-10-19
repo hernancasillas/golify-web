@@ -33,6 +33,7 @@ import { broadcastsFor, type BroadcastEntry } from '@/data/broadcasters';
 import { WORLD_CUP_LEAGUE_ID, WORLD_CUP_SEASON } from '@/lib/site';
 import { isoDateIn } from '@/lib/timezones';
 import { matchInIndexWindow } from '@/lib/indexing';
+import { runWithTier } from '@/lib/api-tier';
 
 export type Phase = ReturnType<typeof fixturePhase>;
 
@@ -154,7 +155,15 @@ const loadMatchRaw = cache(async (id: number, zone: string): Promise<MatchModel 
   // copy of the page); a genuinely unknown id comes back null → 404.
   const f = await getFixtureDetail(id, { strict: true });
   if (!f) return null;
+  // Matches outside the index window (src/lib/indexing.ts) are noindex and
+  // mostly reached by crawlers walking old fixtures: their secondary calls
+  // (standings, H2H, form, the day's list…) spend from the small heavy share,
+  // so a crawl of thousands of old matches cannot starve the live boards.
+  const inWindow = matchInIndexWindow(f.fixture.date) || (f.league.id === WORLD_CUP_LEAGUE_ID && f.league.season === WORLD_CUP_SEASON);
+  return inWindow ? buildModel(f, id, zone) : runWithTier('heavy', () => buildModel(f, id, zone));
+});
 
+async function buildModel(f: FixtureDetail, id: number, zone: string): Promise<MatchModel> {
   const phase = fixturePhase(f);
   const preview = phase === 'scheduled' || phase === 'off';
   const leagueId = f.league.id;
@@ -239,7 +248,7 @@ const loadMatchRaw = cache(async (id: number, zone: string): Promise<MatchModel 
     blockCount,
     indexable,
   };
-});
+}
 
 /** Match model with national-team names in the reader's language (display
  *  only; slugs map back to the provider's English names). */

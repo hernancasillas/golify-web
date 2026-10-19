@@ -39,7 +39,7 @@ import {
   type RouteLocale,
 } from '@/lib/routes';
 import { idFromSlug, refereeName } from '@/lib/slug';
-import { absolute, pageMetadata, type JsonLdNode } from '@/lib/seo';
+import { absolute, eventPlace, pageMetadata, type JsonLdNode } from '@/lib/seo';
 import { fill, worldCupEventNode, WORLD_CUP_EVENT } from '@/lib/site';
 import { HUB_COUNTRY_INFO, KICKOFF_ZONES, isoDateIn, longDateIn, shortDateIn, timeIn } from '@/lib/timezones';
 import { WATCH_COUNTRY_SLUGS } from '@/data/broadcasters';
@@ -144,13 +144,7 @@ function sportsEventNode(m: MatchModel, v: MatchView, locale: RouteLocale, seaso
     startDate: f.fixture.date,
     endDate: end.toISOString(),
     eventStatus: eventStatus(f.fixture.status.short),
-    location: venue.name
-      ? {
-          '@type': 'StadiumOrArena',
-          name: venue.name,
-          address: { '@type': 'PostalAddress', ...(venue.city ? { addressLocality: venue.city } : {}), ...(country ? { addressCountry: country } : {}) },
-        }
-      : { '@type': 'Place', name: country ?? f.league.name },
+    location: eventPlace({ venue: venue.name, city: venue.city, country, fallback: f.league.name }),
     image: [f.teams.home.logo, f.teams.away.logo].filter(Boolean),
     homeTeam: home,
     awayTeam: away,

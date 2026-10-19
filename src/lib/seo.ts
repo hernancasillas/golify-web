@@ -98,6 +98,30 @@ export function pageMetadata(i: PageMetaInput): Metadata {
 
 export type JsonLdNode = Record<string, unknown>;
 
+/** `location` for a SportsEvent, always with an address. Google's Event rich
+ *  results flag a location without one ("Falta el campo address", Search
+ *  Console, oct 2026). The provider's venue city is the most specific value
+ *  we have; without it the country, then the place's own name. */
+export function eventPlace(v: {
+  venue?: string | null;
+  city?: string | null;
+  country?: string | null;
+  /** Name to use when there is no venue (league or country). */
+  fallback: string;
+}): JsonLdNode {
+  const country = v.country && v.country !== 'World' ? v.country : undefined;
+  const name = v.venue || country || v.fallback;
+  return {
+    '@type': v.venue ? 'StadiumOrArena' : 'Place',
+    name,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: v.city || country || name,
+      ...(country ? { addressCountry: country } : {}),
+    },
+  };
+}
+
 /** Serializes JSON-LD for a <script> tag. `<` is escaped so a name coming
  *  from the data provider can never close the script element. */
 export function jsonLdString(data: JsonLdNode | JsonLdNode[]): string {

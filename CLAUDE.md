@@ -48,6 +48,9 @@ Cuando la API falla o la web ya gastó su parte de la cuota y la URL no tiene co
 
 - El 15 oct el 61 % de las peticiones venía de Alibaba Cloud (AS45102, Chrome falso, ignora robots.txt) y la ruta de jugador era la que más API gastaba (29K renders en 12 h, 33K llamadas a API-Football). **Firewall de Vercel:** regla propia "Block Alibaba Cloud scraper" (AS45102 → Deny) y Bot Protection en Challenge (los bots verificados como Googlebot pasan).
 - **Familias pesadas** (jugador, H2H, árbitro, estadio, FC) gastan de una cuota menor: `API_FOOTBALL_HEAVY_SHARE` (default 0.1). Se marca con `resilientPage(Page, { heavy: true })` (`src/lib/api-tier.ts`). Pasado el tope sirven caché o "Datos en camino".
+- **Partidos fuera de la ventana de índice** (más de 14 días atrás o más de 7 adelante, salvo Mundial 2026): sus llamadas secundarias también gastan de la cuota pesada (`runWithTier('heavy', …)` en `match/[slug]/_lib/load.ts`).
+- **Firewall (19 oct):** además de AS45102, Challenge para la huella JA4 `t13d1717h2_5b57614c22b0_3cbfd9057e0d` + UA `Firefox/151.0` (scraper, ~27K req/día; Challenge y no Deny porque la huella la comparten usuarios reales de Firefox). Rate limit 60 req/min por IP en partido/jugador/equipo/H2H/árbitro/estadio/FC → 429 (pendiente de confirmar el cobro en el panel).
+- **Datos estructurados:** todo `SportsEvent.location` sale de `eventPlace()` (`src/lib/seo.ts`), siempre con `address` (Search Console marcó "Falta el campo address").
 - **Cuota visible:** `GET /api/cron/health` con `Authorization: Bearer $CRON_SECRET` devuelve límite, uso, cuotas y si la web/las pesadas pueden llamar. Los logs de tope incluyen `used X / Y`.
 
 ## Qué se indexa (AdSense rechazó por "contenido de poco valor", oct 2026)

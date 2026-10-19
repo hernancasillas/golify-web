@@ -12,7 +12,7 @@ import {
   type HubCountry,
   type RouteLocale,
 } from '@/lib/routes';
-import { absolute, type JsonLdNode } from '@/lib/seo';
+import { absolute, eventPlace, type JsonLdNode } from '@/lib/seo';
 import { HUB_COUNTRY_INFO } from '@/lib/timezones';
 import { broadcastsFor, WATCH_COUNTRY_SLUGS } from '@/data/broadcasters';
 import { CommunitySplit } from '@/components/blocks/CommunitySplit';
@@ -317,6 +317,7 @@ export function matchesItemList(fixtures: Fixture[], locale: RouteLocale, name: 
         sport: 'Soccer',
         startDate: f.fixture.date,
         eventStatus: eventStatus(f),
+        location: eventPlace({ venue: f.fixture.venue?.name, city: f.fixture.venue?.city, country: f.league.country, fallback: f.league.name }),
         url: absolute(matchPath(locale, f)),
         homeTeam: { '@type': 'SportsTeam', name: f.teams.home.name },
         awayTeam: { '@type': 'SportsTeam', name: f.teams.away.name },

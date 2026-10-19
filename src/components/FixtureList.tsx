@@ -4,6 +4,7 @@ import { matchPath, type RouteLocale } from '@/lib/routes';
 import Link from 'next/link';
 import type { Fixture } from '@/lib/api-football';
 import { LocalTime } from '@/components/LocalTime';
+import { eventPlace } from '@/lib/seo';
 
 // Server-rendered fixture rows. Same visual language as LiveMatchesWidget, but
 // no client JS: these lists exist so Google and the answer engines can read
@@ -207,10 +208,7 @@ export function fixtureListJsonLd(
         sport: 'Soccer',
         startDate: f.fixture.date,
         eventStatus: 'https://schema.org/EventScheduled',
-        location: {
-          '@type': 'Place',
-          name: f.fixture.venue.name ?? f.league.country ?? f.league.name,
-        },
+        location: eventPlace({ venue: f.fixture.venue.name, city: f.fixture.venue.city, country: f.league.country, fallback: f.league.name }),
         homeTeam: { '@type': 'SportsTeam', name: nationName(f.teams.home.name, locale as RouteLocale) },
         awayTeam: { '@type': 'SportsTeam', name: nationName(f.teams.away.name, locale as RouteLocale) },
         url: `${siteUrl}${matchPath(locale as RouteLocale, f)}`,

@@ -17,6 +17,7 @@ export default function robots(): MetadataRoute.Robots {
     'Claude-User',
     'DuckAssistBot',
     'Claude-SearchBot', // Claude web search
+    'Amzn-SearchBot', // Alexa+/Rufus answers (not the Amazonbot crawler, which is blocked)
     'Applebot', // Siri, Spotlight, Apple Intelligence
     'MistralAI-User', // Le Chat browsing
     'YouBot', // You.com

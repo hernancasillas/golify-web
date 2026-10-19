@@ -6,7 +6,7 @@ import { TrackedLink } from '@/components/analytics/Tracked';
 import { correctShare, type PickSplit } from '@/lib/community';
 import { fixturePhase, type Fixture } from '@/lib/api-football';
 import { matchPath, type RouteLocale } from '@/lib/routes';
-import { absolute, type JsonLdNode } from '@/lib/seo';
+import { absolute, eventPlace, type JsonLdNode } from '@/lib/seo';
 import type { PickerMatch } from './PoolPicker';
 import { poolStr, tpl } from './strings';
 
@@ -65,13 +65,7 @@ export function roundEventsNode(name: string, fixtures: Fixture[], locale: Route
         ],
         url: absolute(matchPath(locale, f)),
       };
-      if (f.fixture.venue?.name) {
-        event.location = {
-          '@type': 'Place',
-          name: f.fixture.venue.name,
-          ...(f.fixture.venue.city ? { address: f.fixture.venue.city } : {}),
-        };
-      }
+      event.location = eventPlace({ venue: f.fixture.venue?.name, city: f.fixture.venue?.city, country: f.league.country, fallback: f.league.name });
       return { '@type': 'ListItem', position: i + 1, item: event };
     }),
   };
