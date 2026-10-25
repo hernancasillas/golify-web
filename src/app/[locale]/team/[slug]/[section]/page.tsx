@@ -6,9 +6,8 @@ import { absolute, pageMetadata } from '@/lib/seo';
 import { FixturesView } from '../../_components/FixturesView';
 import { SquadView } from '../../_components/SquadView';
 import { StatsView } from '../../_components/StatsView';
-import { loadTeam, mainSeasonLabel, teamRef, type TeamCore } from '../../_lib/data';
-import { loadFixturesData, loadSquadData, loadStatsData } from '../../_lib/sections';
-import { loadShell, parseSub, resolveTeam, sportsTeamNode, TeamFrame, type TeamSub } from '../../_lib/shell';
+import { loadTeam, mainSeasonLabel, teamRef, type TeamCore } from '../../_lib/data';import { loadFixturesData, loadSquadData, loadStatsData } from '../../_lib/sections';
+import { loadShell, parseSub, resolveTeam, sportsTeamNode, TeamFrame, withTeamTier, type TeamSub } from '../../_lib/shell';
 import { asLocale, teamStrings, fill } from '../../_lib/strings';
 import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
@@ -48,11 +47,15 @@ async function generateMetadataRaw({ params }: { params: Promise<Params> }): Pro
   if (!sub) return {};
   const core = await loadTeam(slug, locale);
   if (!core) return {};
+  return withTeamTier(core, () => subMetadata(core, locale, sub.key));
+}
+
+async function subMetadata(core: TeamCore, locale: ReturnType<typeof asLocale>, key: TeamSub): Promise<Metadata> {
   const L = teamStrings(locale);
   const t = core.info.team;
   const team = t.name;
   const season = mainSeasonLabel(core);
-  const path = (l: ReturnType<typeof asLocale>) => teamPath(l, teamRef(core), sub.key);
+  const path = (l: ReturnType<typeof asLocale>) => teamPath(l, teamRef(core), key);
   const base = {
     locale,
     path,
@@ -60,7 +63,7 @@ async function generateMetadataRaw({ params }: { params: Promise<Params> }): Pro
     appRoute: `team/${t.id}`,
   };
 
-  if (sub.key === 'squad') {
+  if (key === 'squad') {
     const d = await loadSquadData(core);
     return pageMetadata({
       ...base,
@@ -69,7 +72,7 @@ async function generateMetadataRaw({ params }: { params: Promise<Params> }): Pro
       noindex: !d.indexable,
     });
   }
-  if (sub.key === 'fixtures') {
+  if (key === 'fixtures') {
     const d = await loadFixturesData(core);
     const comps = [...new Map(d.fixtures.map((f) => [f.league.id, f.league.name])).values()];
     return pageMetadata({
@@ -105,11 +108,14 @@ async function TeamSubPage({ params }: { params: Promise<Params> }) {
   const sub = parseSub(section, locale);
   if (!sub) notFound();
   const core = await resolveTeam(slug, locale, sub);
+  return withTeamTier(core, () => SubView(core, locale, sub.key));
+}
+
+async function SubView(core: TeamCore, locale: ReturnType<typeof asLocale>, key: TeamSub) {
   const s = await loadShell(core, locale);
   const L = s.L;
   const team = s.team.name;
   const season = s.seasonText ?? '';
-  const key: TeamSub = sub.key;
 
   if (key === 'squad') {
     const data = await loadSquadData(core);

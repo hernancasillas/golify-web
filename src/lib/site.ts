@@ -10,6 +10,11 @@ export const ANDROID_PACKAGE = 'com.goligulias.fuchibol';
 export const APP_STORE_URL = `https://apps.apple.com/app/id${IOS_APP_ID}`;
 export const PLAY_STORE_URL = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`;
 
+// Mobile app strip (AppBanner): localStorage key holding the dismiss time, and
+// how long it stays hidden after the ✕.
+export const APP_BANNER_KEY = 'golify-app-banner';
+export const APP_BANNER_DAYS = 14;
+
 // Official social profiles — feed Organization `sameAs` so Google/AI engines
 // consolidate the "Golify" brand entity onto golify.futbol (not lookalikes).
 export const INSTAGRAM_URL = 'https://www.instagram.com/golify.futbol';

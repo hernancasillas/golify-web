@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { TrackedLink } from '@/components/analytics/Tracked';
 import { Fact } from '@/components/team/ui';
+import { TeamSubLink } from '@/components/team/TeamSubLink';
 import { teamPath, type RouteLocale } from '@/lib/routes';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +23,7 @@ export function TeamHeader({
   tabs,
   active,
   navLabel,
+  linkSubs = true,
 }: {
   locale: RouteLocale;
   team: { id: number; name: string; logo: string };
@@ -32,6 +34,8 @@ export function TeamHeader({
   tabs: { label: string; key: TeamTab }[];
   active: TeamTab;
   navLabel: string;
+  /** false: sub-page tabs are buttons, not hrefs (see TeamSubLink). */
+  linkSubs?: boolean;
 }) {
   return (
     <>
@@ -82,22 +86,28 @@ export function TeamHeader({
       <nav aria-label={navLabel} className="mt-6 -mx-4 overflow-x-auto border-b border-border px-4 sm:mx-0 sm:px-0">
         <ul className="flex gap-6 sm:gap-8">
           {tabs.map((t) => {
-            const href = teamPath(locale, team, t.key === 'overview' ? undefined : t.key);
             const current = t.key === active;
+            const cls = cn(
+              'flex h-12 items-center px-1 text-[15px] font-semibold whitespace-nowrap transition-colors',
+              current
+                ? 'text-foreground shadow-[inset_0_-3px_0_var(--primary)]'
+                : 'text-muted-foreground hover:text-foreground',
+            );
             return (
               <li key={t.key}>
-                <Link
-                  href={href}
-                  aria-current={current ? 'page' : undefined}
-                  className={cn(
-                    'flex h-12 items-center px-1 text-[15px] font-semibold whitespace-nowrap transition-colors',
-                    current
-                      ? 'text-foreground shadow-[inset_0_-3px_0_var(--primary)]'
-                      : 'text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  {t.label}
-                </Link>
+                {t.key !== 'overview' && !linkSubs ? (
+                  <TeamSubLink locale={locale} team={team} sub={t.key} current={current} className={cls}>
+                    {t.label}
+                  </TeamSubLink>
+                ) : (
+                  <Link
+                    href={teamPath(locale, team, t.key === 'overview' ? undefined : t.key)}
+                    aria-current={current ? 'page' : undefined}
+                    className={cls}
+                  >
+                    {t.label}
+                  </Link>
+                )}
               </li>
             );
           })}

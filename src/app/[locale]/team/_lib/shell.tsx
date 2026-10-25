@@ -27,6 +27,7 @@ import { JsonLd } from '@/components/JsonLd';
 import { TeamHeader, type TeamTab } from '@/components/team/TeamHeader';
 import { canonicalSlug, countryName, findStanding, loadCoach, loadTeam, mainSeasonLabel, teamRef, type TeamCore } from './data';
 import { installLink } from '@/lib/site';
+import { runWithTier } from '@/lib/api-tier';
 import { teamStrings, type TeamStrings, fill } from './strings';
 
 export type TeamSub = 'squad' | 'fixtures' | 'stats';
@@ -52,6 +53,14 @@ export async function resolveTeam(slug: string, locale: RouteLocale, sub?: { key
     permanentRedirect(teamPath(locale, teamRef(core), sub?.key));
   }
   return core;
+}
+
+/** Clubs outside the indexed leagues (src/lib/indexing.ts) are noindex and
+ *  reached mostly by scrapers walking club after club (oct 2026: Romanian
+ *  and J2 clubs topped the traffic). Everything a page asks after resolving
+ *  the club spends from the small heavy share (src/lib/api-tier.ts). */
+export function withTeamTier<T>(core: TeamCore, fn: () => Promise<T>): Promise<T> {
+  return core.playsCovered ? fn() : runWithTier('heavy', fn);
 }
 
 export interface TeamShell {
@@ -214,6 +223,7 @@ export function TeamFrame({
           tabs={(['overview', 'fixtures', 'squad', 'stats'] as const).map((key) => ({ key, label: s.L.tabs[key] }))}
           active={active}
           navLabel={s.L.sectionsNav}
+          linkSubs={s.core.playsCovered}
         />
         <div className="mt-6">{children}</div>
       </main>

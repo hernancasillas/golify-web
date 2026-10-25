@@ -230,6 +230,10 @@
 .band-field .text-muted-foreground { color: var(--field-muted); }
 .band-field :focus-visible { outline-color: var(--field-foreground); }
 
+/* Mobile app strip: hidden before first paint once dismissed (class set by
+   the inline script in the locale layout), so it never flashes. */
+.app-banner-off .app-banner { display: none; }
+
 /* A kicker line: replaces the old announcement pill. */
 .kicker { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; }
 .kicker-dot { width: 10px; height: 10px; flex: none; border-radius: 9999px; background: var(--live); box-shadow: 0 0 0 2px var(--field-foreground); }

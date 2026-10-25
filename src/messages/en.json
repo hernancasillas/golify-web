@@ -9,9 +9,13 @@
     "copy": "Copy link",
     "copied": "Link copied!",
     "close": "Close",
-    "continueAnyway": "Continue here",
-    "bannerText": "You're in an in-app browser — the download may fail.",
-    "bannerCta": "How to open it →"
+    "continueAnyway": "Continue here"
+  },
+  "appBanner": {
+    "title": "Golify app",
+    "tagline": "Goal alerts, pools and widgets · Free",
+    "cta": "Get the app",
+    "close": "Hide"
   },
   "hero": {
     "title": "Golify",

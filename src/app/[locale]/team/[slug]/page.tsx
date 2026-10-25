@@ -51,8 +51,10 @@ import {
   teamRef,
   zoneForCountry,
   type Outcome,
+  type TeamCore,
 } from '../_lib/data';
-import { loadShell, resolveTeam, sportsTeamNode, TeamFrame, type TeamShell } from '../_lib/shell';
+import { loadShell, resolveTeam, sportsTeamNode, TeamFrame, withTeamTier, type TeamShell } from '../_lib/shell';
+import { TeamSubLink } from '@/components/team/TeamSubLink';
 import { asLocale, teamStrings, type TeamStrings, fill } from '../_lib/strings';
 import { resilientMetadata, resilientPage } from '@/lib/resilient';
 
@@ -206,6 +208,10 @@ async function TeamPage({ params }: { params: Promise<Params> }) {
   const { locale: raw, slug } = await params;
   const locale = asLocale(raw);
   const core = await resolveTeam(slug, locale);
+  return withTeamTier(core, () => TeamView(core, locale));
+}
+
+async function TeamView(core: TeamCore, locale: ReturnType<typeof asLocale>) {
   const s = await loadShell(core, locale);
   const { L, team } = s;
   const id = team.id;
@@ -445,9 +451,9 @@ async function TeamPage({ params }: { params: Promise<Params> }) {
                   flush
                   aside={
                     season ? (
-                      <Link href={teamPath(locale, team, 'fixtures')} className="font-bold text-primary hover:underline">
+                      <SubLink s={s} sub="fixtures">
                         {L.seeCalendar}
-                      </Link>
+                      </SubLink>
                     ) : null
                   }
                 >
@@ -538,9 +544,9 @@ async function TeamPage({ params }: { params: Promise<Params> }) {
             <Panel
               title={L.squadPreview}
               aside={
-                <Link href={teamPath(locale, team, 'squad')} className="font-bold text-primary hover:underline">
+                <SubLink s={s} sub="squad">
                   {L.seeSquad} ({fill(L.squadCount, { n: String(squad.length) })})
-                </Link>
+                </SubLink>
               }
             >
               <div className="grid gap-5 sm:grid-cols-2">
@@ -722,6 +728,20 @@ async function TeamPage({ params }: { params: Promise<Params> }) {
 }
 
 // ---- Blocks ----------------------------------------------------------------
+
+/** Sub-page link: a real href for indexed clubs, a button otherwise. */
+function SubLink({ s, sub, children }: { s: TeamShell; sub: 'fixtures' | 'squad'; children: React.ReactNode }) {
+  const cls = 'font-bold text-primary hover:underline';
+  return s.core.playsCovered ? (
+    <Link href={teamPath(s.locale, s.team, sub)} className={cls}>
+      {children}
+    </Link>
+  ) : (
+    <TeamSubLink locale={s.locale} team={s.team} sub={sub} className={cls}>
+      {children}
+    </TeamSubLink>
+  );
+}
 
 function NextMatch({ f, s, live, split }: { f: Fixture; s: TeamShell; live: boolean; split: Awaited<ReturnType<typeof getPickSplit>> }) {
   const { L, locale } = s;

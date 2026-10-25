@@ -1,10 +1,9 @@
+import { AppBanner } from '@/components/AppBanner';
 import { I18nProvider } from '@/components/I18nProvider';
-import { InAppBrowserBanner } from '@/components/InAppBrowserHint';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AnalyticsScripts, ADSENSE_CLIENT } from '@/components/analytics/AnalyticsScripts';
+import { VercelMetrics } from '@/components/analytics/VercelMetrics';
 import { ConsentBanner } from '@/components/consent/ConsentBanner';
-import { Analytics } from '@vercel/analytics/next';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
 import { Big_Shoulders, Public_Sans } from 'next/font/google';
 import { notFound } from 'next/navigation';
@@ -15,6 +14,8 @@ import {
   SAME_AS,
   APP_STORE_URL,
   PLAY_STORE_URL,
+  APP_BANNER_KEY,
+  APP_BANNER_DAYS,
   DEFAULT_OG_IMAGE,
   LOCALES,
   ogImages,
@@ -221,19 +222,17 @@ export default async function LocaleLayout({
         />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var t=localStorage.getItem('golify-theme');if(t==='light'){document.documentElement.classList.remove('dark');}else{document.documentElement.classList.add('dark');}})();`,
+            __html: `(function(){var t=localStorage.getItem('golify-theme');if(t==='light'){document.documentElement.classList.remove('dark');}else{document.documentElement.classList.add('dark');}try{var d=+localStorage.getItem('${APP_BANNER_KEY}');if(d&&Date.now()-d<${APP_BANNER_DAYS * 86400000})document.documentElement.classList.add('app-banner-off');}catch(e){}})();`,
           }}
         />
         <ThemeProvider defaultTheme="dark">
           <I18nProvider locale={locale as Locale}>
-            {/* Instagram/TikTok/Facebook webview → hint on how to escape it. */}
-            <InAppBrowserBanner />
+            <AppBanner />
             {children}
           </I18nProvider>
         </ThemeProvider>
         <ConsentBanner locale={locale as Locale} />
-        <Analytics />
-        <SpeedInsights />
+        <VercelMetrics />
       </body>
     </html>
   );

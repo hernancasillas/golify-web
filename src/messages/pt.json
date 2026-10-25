@@ -9,9 +9,13 @@
     "copy": "Copiar link",
     "copied": "Link copiado!",
     "close": "Fechar",
-    "continueAnyway": "Continuar aqui",
-    "bannerText": "Você está no navegador de outro app: o download pode falhar.",
-    "bannerCta": "Como abrir →"
+    "continueAnyway": "Continuar aqui"
+  },
+  "appBanner": {
+    "title": "App do Golify",
+    "tagline": "Alertas de gol, bolões e widgets · Grátis",
+    "cta": "Baixar",
+    "close": "Ocultar"
   },
   "hero": {
     "title": "Golify",
