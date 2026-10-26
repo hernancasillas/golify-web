@@ -114,14 +114,14 @@
     "backToHome": "← Back to home",
     "privacyPolicy": {
       "title": "Privacy Policy",
-      "lastUpdated": "Last updated: July 13, 2026",
+      "lastUpdated": "Last updated: October 25, 2026",
       "intro": "Golify respects your privacy. This policy explains what information we collect, how we use it, and your rights.",
       "infoWeCollect": {
         "title": "1. Information We Collect",
         "accountData": "Account data: email, username, profile photo.",
         "usageData": "Usage data: matches tracked, retas joined, EA FC catalog interactions.",
         "deviceData": "Device data: device type, OS version, push notification token.",
-        "locationData": "Location data: only if you grant permission, used for local retas.",
+        "locationData": "Location data: only if you grant permission and use \"Collectors near you\" in the sticker album. We store your location to show you to nearby collectors; you can stop sharing it from the app.",
         "healthData": "Health data: only if you grant permission, read from Apple HealthKit or Google Health Connect for the Pulso wellness feature. Processed exclusively on your device — see the Health Data section below."
       },
       "howWeUse": {
@@ -145,7 +145,17 @@
       },
       "sharing": {
         "title": "4. Sharing Your Information",
-        "text": "We do not sell your personal data. We only share data with trusted service providers (e.g., cloud hosting, analytics) under strict confidentiality agreements, or when required by law."
+        "text": "We do not sell your personal data. We only share data with trusted service providers (e.g., cloud hosting, analytics) under strict confidentiality agreements, or when required by law.",
+        "providersIntro": "These are the providers that receive data when you use the app:",
+        "providers": {
+          "supabase": "Supabase (database and authentication): your account, what you follow, your quinielas, tournaments and chats, and your notification token.",
+          "signIn": "Apple and Google: only if you sign in with them, to verify your identity.",
+          "push": "Expo, Apple Push Notification service and Firebase Cloud Messaging: deliver notifications and Live Activities to your device.",
+          "admob": "Google AdMob: shows ads to people who are not Pro. Every ad in the app is non-personalized: we do not ask for tracking permission or use the advertising identifier (IDFA). AdMob receives technical device data, an approximate location derived from your IP address, and ad interaction data in order to serve and measure ads.",
+          "newRelic": "New Relic: crash and performance diagnostics for the app (crashes, load times, screens visited), associated with your user ID or a device ID.",
+          "revenueCat": "RevenueCat: manages Golify Pro subscriptions with your purchase history. Payments are processed by Apple or Google; we never receive your card details."
+        },
+        "noTracking": "Golify does not track you: we do not combine app data with data from other companies for advertising, and we do not share it with data brokers."
       },
       "yourRights": {
         "title": "5. Your Rights",

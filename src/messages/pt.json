@@ -114,14 +114,14 @@
     "backToHome": "← Voltar ao início",
     "privacyPolicy": {
       "title": "Política de Privacidade",
-      "lastUpdated": "Última atualização: 13 de julho de 2026",
+      "lastUpdated": "Última atualização: 25 de outubro de 2026",
       "intro": "O Golify respeita a sua privacidade. Esta política explica quais informações coletamos, como as usamos e quais são os seus direitos.",
       "infoWeCollect": {
         "title": "1. Informações que coletamos",
         "accountData": "Dados de conta: e-mail, nome de usuário, foto de perfil.",
         "usageData": "Dados de uso: jogos acompanhados, Retas em que você entrou, interações com o catálogo do EA FC.",
         "deviceData": "Dados do dispositivo: tipo de dispositivo, versão do sistema, token de notificações push.",
-        "locationData": "Dados de localização: somente se você autorizar, usados nas Retas locais.",
+        "locationData": "Dados de localização: somente se você autorizar e usar \"Colecionadores perto de você\" no álbum de figurinhas. Guardamos sua localização para mostrar você a outros colecionadores próximos; você pode parar de compartilhá-la pelo app.",
         "healthData": "Dados de saúde: somente se você autorizar, lidos do Apple HealthKit ou do Google Health Connect para o recurso de bem-estar Pulso. São processados exclusivamente no seu dispositivo — veja a seção Dados de Saúde abaixo."
       },
       "howWeUse": {
@@ -145,7 +145,17 @@
       },
       "sharing": {
         "title": "4. Compartilhamento das suas informações",
-        "text": "Não vendemos os seus dados pessoais. Só compartilhamos dados com fornecedores de confiança (por exemplo, hospedagem em nuvem e analytics) sob acordos estritos de confidencialidade, ou quando a lei exige."
+        "text": "Não vendemos os seus dados pessoais. Só compartilhamos dados com fornecedores de confiança (por exemplo, hospedagem em nuvem e analytics) sob acordos estritos de confidencialidade, ou quando a lei exige.",
+        "providersIntro": "Estes são os fornecedores que recebem dados quando você usa o app:",
+        "providers": {
+          "supabase": "Supabase (banco de dados e autenticação): sua conta, o que você segue, seus bolões, torneios e chats, e seu token de notificações.",
+          "signIn": "Apple e Google: somente se você entrar com eles, para verificar sua identidade.",
+          "push": "Expo, Apple Push Notification service e Firebase Cloud Messaging: entregam as notificações e as Live Activities no seu dispositivo.",
+          "admob": "Google AdMob: mostra anúncios para quem não é Pro. Todos os anúncios do app são não personalizados: não pedimos permissão de rastreamento nem usamos o identificador de publicidade (IDFA). O AdMob recebe dados técnicos do dispositivo, uma localização aproximada derivada do IP e dados de interação com os anúncios para exibi-los e medi-los.",
+          "newRelic": "New Relic: diagnóstico de falhas e desempenho do app (fechamentos inesperados, tempos de carregamento, telas visitadas), associado ao seu ID de usuário ou a um ID do dispositivo.",
+          "revenueCat": "RevenueCat: gerencia as assinaturas do Golify Pro com seu histórico de compras. Os pagamentos são processados pela Apple ou pelo Google; nunca recebemos os dados do seu cartão."
+        },
+        "noTracking": "O Golify não rastreia você: não combinamos os dados do app com dados de outras empresas para publicidade nem os compartilhamos com intermediários de dados."
       },
       "yourRights": {
         "title": "5. Os seus direitos",

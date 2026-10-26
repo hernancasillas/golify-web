@@ -9,6 +9,10 @@ import { DisplayHeading } from '@/components/revamp/ui';
 import type { Locale } from '@/lib/site';
 import { WebsitePrivacy } from './WebsitePrivacy';
 
+// Proveedores que reciben datos de la app (App Store 5.1.1(i)). Mantener en sync
+// con la etiqueta App Privacy de la app en App Store Connect.
+const SHARING_PROVIDERS = ['supabase', 'signIn', 'push', 'admob', 'newRelic', 'revenueCat'] as const;
+
 export default function PrivacyClient() {
   const { t, locale } = useI18n();
   return (
@@ -75,6 +79,13 @@ export default function PrivacyClient() {
               {t('privacy.privacyPolicy.sharing.title')}
             </h3>
             <p>{t('privacy.privacyPolicy.sharing.text')}</p>
+            <p>{t('privacy.privacyPolicy.sharing.providersIntro')}</p>
+            <ul className="list-disc space-y-1 pl-5">
+              {SHARING_PROVIDERS.map((key) => (
+                <li key={key}>{t(`privacy.privacyPolicy.sharing.providers.${key}`)}</li>
+              ))}
+            </ul>
+            <p>{t('privacy.privacyPolicy.sharing.noTracking')}</p>
 
             <h3 className="text-lg font-bold text-foreground">
               {t('privacy.privacyPolicy.yourRights.title')}
