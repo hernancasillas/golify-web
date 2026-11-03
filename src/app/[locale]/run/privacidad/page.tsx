@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { localeAlternates, type Locale } from '@/lib/site';
 import LegalLayout, { Section, CONTACT_EMAIL } from '../../seshio/LegalLayout';
 
-const UPDATED = '2026-11-03';
+const UPDATED = '2026-11-04';
 
 export async function generateMetadata({
   params,
@@ -68,10 +68,12 @@ function Spanish({ locale }: { locale: string }) {
           <li>
             <strong>Con tu cuenta de Garmin.</strong> Inicias sesión en la página de Garmin; nunca
             vemos tu contraseña. Con tu consentimiento expreso, Garmin nos envía tus resúmenes
-            diarios: variabilidad cardiaca de la noche, sueño, estrés y Body Battery. Nuestro servidor
-            los cifra en cuanto llegan con una llave que solo existe en tu teléfono, así que no puede
-            leerlos, y los borra en cuanto tu teléfono los descarga o, a más tardar, a las 24 horas. Lo
-            demás que Garmin pueda enviar, como actividades o ubicación, se descarta sin guardarse.
+            diarios (variabilidad cardiaca de la noche, sueño, estrés y Body Battery) y tus carreras
+            con su ruta GPS, distancia, tiempo, altitud y pulso; al conectar pedimos también las de los
+            últimos 30 días. Nuestro servidor los cifra en cuanto llegan con una llave que solo existe
+            en tu teléfono, así que no puede leerlos, y los borra en cuanto tu teléfono los descarga o,
+            a más tardar, a las 24 horas los resúmenes y a los 7 días las carreras. Lo demás que Garmin
+            pueda enviar, como otros deportes, se descarta sin guardarse.
           </li>
           <li>
             <strong>Con tu Personal API key.</strong> La key se guarda en el Llavero de iOS, solo en
@@ -95,7 +97,7 @@ function Spanish({ locale }: { locale: string }) {
             Tu Personal API key de Garmin, si la conectas: se guarda en el Llavero de iOS, solo en
             este dispositivo, y no se sincroniza con iCloud ni llega a nosotros.
           </li>
-          <li>Tus días de Garmin ya descifrados, de los últimos 60 días.</li>
+          <li>Tus días de Garmin ya descifrados, de los últimos 60 días, y tus carreras de Garmin con su ruta completa.</li>
           <li>Las carreras que importas de Strava, en una copia local que se renueva al menos cada 7 días.</li>
         </ul>
       </Section>
@@ -133,7 +135,8 @@ function Spanish({ locale }: { locale: string }) {
           <li>
             <strong>Garmin (opcional).</strong> Si conectas tu cuenta de Garmin, guardamos sus tokens de
             acceso, tu identificador de usuario de Garmin y los permisos que diste, para mantener la
-            conexión. Tus resúmenes de Garmin solo se guardan cifrados y por 24 horas como máximo.
+            conexión. Tus resúmenes y carreras de Garmin solo se guardan cifrados, hasta que tu teléfono
+            los descarga: 24 horas como máximo los resúmenes y 7 días las carreras.
           </li>
         </ul>
       </Section>
@@ -228,11 +231,13 @@ function English({ locale }: { locale: string }) {
         <ul className="list-disc pl-5 space-y-2">
           <li>
             <strong>With your Garmin account.</strong> You sign in on Garmin&apos;s own page; we never
-            see your password. With your express consent, Garmin sends us your daily summaries: overnight
-            heart rate variability, sleep, stress and Body Battery. Our server encrypts each one on
-            arrival with a key that exists only on your phone, so it cannot read them, and deletes them
-            as soon as your phone downloads them or, at the latest, after 24 hours. Anything else Garmin
-            may send, such as activities or location, is discarded without being stored.
+            see your password. With your express consent, Garmin sends us your daily summaries (overnight
+            heart rate variability, sleep, stress and Body Battery) and your runs with their GPS route,
+            distance, time, elevation and heart rate; when you connect we also request the last 30 days of
+            runs. Our server encrypts each item on arrival with a key that exists only on your phone, so it
+            cannot read them, and deletes them as soon as your phone downloads them or, at the latest, after
+            24 hours for summaries and 7 days for runs. Anything else Garmin may send, such as other sports,
+            is discarded without being stored.
           </li>
           <li>
             <strong>With your Personal API key.</strong> The key is stored in the iOS Keychain, on this
@@ -256,7 +261,7 @@ function English({ locale }: { locale: string }) {
             Your Garmin Personal API key, if you add one: stored in the iOS Keychain, on this device
             only, never synced to iCloud and never sent to us.
           </li>
-          <li>Your decrypted Garmin days, for the last 60 days.</li>
+          <li>Your decrypted Garmin days, for the last 60 days, and your Garmin runs with their full route.</li>
           <li>The runs you import from Strava, in a local copy refreshed at least every 7 days.</li>
         </ul>
       </Section>
@@ -294,7 +299,8 @@ function English({ locale }: { locale: string }) {
           <li>
             <strong>Garmin (optional).</strong> If you connect your Garmin account, we store its access
             tokens, your Garmin user ID and the permissions you granted, to keep the connection. Your
-            Garmin summaries are only stored encrypted, and for 24 hours at most.
+            Garmin summaries and runs are only stored encrypted until your phone downloads them: 24 hours
+            at most for summaries and 7 days for runs.
           </li>
         </ul>
       </Section>
