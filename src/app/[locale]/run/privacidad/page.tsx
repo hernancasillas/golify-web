@@ -200,56 +200,155 @@ function English({ locale }: { locale: string }) {
     <LegalLayout locale={locale} title="Golify Run Privacy Policy" updated={`Last updated: ${UPDATED}`}>
       <p>
         Golify Run is a running app for iPhone. This policy covers Golify Run only; the Golify
-        football app has its own policy. The Spanish version is the authoritative one.
+        football app has its own policy. The data controller is the Golify team, reachable at <Mail />.
+        If this version and the Spanish one differ, the Spanish version prevails.
       </p>
+
       <Section title="Summary">
         <p>
           Your health data stays on your phone. Our servers only receive what you choose to publish and
           the minimum needed for your account and friends. The one exception is Garmin, if you connect
           your Garmin account: its data passes through our server encrypted with a key only your phone
-          holds. No ads, no data sales, no cross-app tracking.
+          holds. We show no ads, sell no data and do not track you across apps or websites.
         </p>
       </Section>
-      <Section title="Health data">
+
+      <Section title="Health data (sensitive)">
         <p>
-          With your permission the app reads sleep, resting heart rate, heart rate variability and
-          workouts from Apple Health and computes a daily suggestion on device. It is not medical
-          advice. Apple Health data is never uploaded or used for advertising.
+          With your express permission, the app reads your sleep, resting heart rate, heart rate
+          variability and workouts from Apple Health, and saves the runs you record to Apple Health.
+          With that it works out on your phone whether today is a day to run easy, push or rest. That
+          suggestion is not medical advice. Apple Health data is never uploaded to our servers or used
+          for advertising.
         </p>
       </Section>
+
       <Section title="Garmin (optional)">
+        <p>You can connect Garmin in two ways:</p>
+        <ul className="list-disc pl-5 space-y-2">
+          <li>
+            <strong>With your Garmin account.</strong> You sign in on Garmin&apos;s own page; we never
+            see your password. With your express consent, Garmin sends us your daily summaries: overnight
+            heart rate variability, sleep, stress and Body Battery. Our server encrypts each one on
+            arrival with a key that exists only on your phone, so it cannot read them, and deletes them
+            as soon as your phone downloads them or, at the latest, after 24 hours. Anything else Garmin
+            may send, such as activities or location, is discarded without being stored.
+          </li>
+          <li>
+            <strong>With your Personal API key.</strong> The key is stored in the iOS Keychain, on this
+            device only, and your phone requests the data from Garmin directly, without going through
+            us.
+          </li>
+        </ul>
         <p>
-          If you connect your Garmin account, you sign in on Garmin&apos;s page and we never see your
-          password. With your consent, Garmin sends us your daily summaries: overnight heart rate
-          variability, sleep, stress and Body Battery. Our server encrypts each one on arrival with a key
-          that exists only on your phone, so it cannot read them, and deletes them once your phone
-          downloads them or after 24 hours at most. Anything else Garmin may send, such as activities or
-          location, is discarded without being stored. We keep your Garmin tokens, Garmin user ID and
-          granted permissions to maintain the connection. Garmin data is shown only to you and used only
-          to adjust your plan. Disconnecting Garmin in the app deregisters you with Garmin and deletes
-          your Garmin tokens and data from our server and your phone. If you use a Garmin Personal API
-          key instead, it stays in the device Keychain and your phone talks to Garmin directly.
+          Garmin data is shown only to you and used only to adjust your plan. When you disconnect
+          Garmin in the app, we ask Garmin to cancel the registration and delete your Garmin tokens and
+          data from our server and your phone.
         </p>
       </Section>
-      <Section title="What we store">
+
+      <Section title="What stays on your device">
+        <ul className="list-disc pl-5 space-y-1">
+          <li>What the app reads from Apple Health and the calculations it makes with it.</li>
+          <li>Your full GPS route and motion data (cadence and stride).</li>
+          <li>Photos and videos from your library that the app suggests for a run, until you publish.</li>
+          <li>
+            Your Garmin Personal API key, if you add one: stored in the iOS Keychain, on this device
+            only, never synced to iCloud and never sent to us.
+          </li>
+          <li>Your decrypted Garmin days, for the last 60 days.</li>
+          <li>The runs you import from Strava, in a local copy refreshed at least every 7 days.</li>
+        </ul>
+      </Section>
+
+      <Section title="What we store on our servers">
+        <ul className="list-disc pl-5 space-y-2">
+          <li>
+            <strong>Account.</strong> You sign in with Apple. We store an account identifier, your
+            display name and your initials.
+          </li>
+          <li>
+            <strong>What you publish.</strong> Posts and stories with distance, time, pace, elevation
+            gain, the elevation profile, a broad area (never precise coordinates) and your text. The
+            first and last 300 m of every route are trimmed before upload. Stories delete themselves
+            after 24 hours. You choose whether your network, your club or everyone sees them.
+          </li>
+          <li>
+            <strong>Social network.</strong> Who you follow, reactions, comments, clubs, group runs you
+            join, blocks and reports.
+          </li>
+          <li>
+            <strong>Runners like you (optional, off by default).</strong> If you turn it on, we store
+            your neighborhood, pace range, schedule and, if you provide it, your gender, to suggest
+            people nearby. Never your exact location.
+          </li>
+          <li>
+            <strong>Safety contacts (optional).</strong> The name and phone number of the people you
+            add.
+          </li>
+          <li>
+            <strong>Strava (optional).</strong> If you connect Strava, we store its access tokens to
+            renew the connection. Strava data is shown only to you, never appears in the feed and is not
+            used with artificial intelligence.
+          </li>
+          <li>
+            <strong>Garmin (optional).</strong> If you connect your Garmin account, we store its access
+            tokens, your Garmin user ID and the permissions you granted, to keep the connection. Your
+            Garmin summaries are only stored encrypted, and for 24 hours at most.
+          </li>
+        </ul>
+      </Section>
+
+      <Section title="Who we share with">
+        <ul className="list-disc pl-5 space-y-2">
+          <li>
+            <strong>Supabase</strong> hosts our database, authentication and the encrypted Garmin
+            relay, on our behalf.
+          </li>
+          <li>
+            <strong>Apple</strong> processes sign-in and Apple Health under its own policy.
+          </li>
+          <li>
+            <strong>Strava and Garmin</strong>, only if you connect them. The app requests your runs from
+            Strava with your authorization; Garmin sends us your summaries as described above. Each
+            handles your data under its own policy.
+          </li>
+        </ul>
+        <p>We do not sell or share personal data with advertisers or data brokers.</p>
+      </Section>
+
+      <Section title="Artificial intelligence">
         <p>
-          Your Apple sign-in identifier, display name and initials; runs and stories you publish (with
-          the first and last 300 m of the route trimmed, no precise coordinates; stories expire after 24
-          hours); follows, reactions, comments and clubs; optional neighborhood-level matching; optional
-          safety contacts; Strava tokens if you connect Strava; and Garmin tokens, user ID and
-          permissions if you connect your Garmin account.
+          Coach texts are generated on your phone with Apple Intelligence when your device supports
+          it, or with fixed texts when it does not. We do not send your data to any external AI
+          provider.
         </p>
       </Section>
-      <Section title="Sharing">
+
+      <Section title="Your rights and how to delete your data">
         <p>
-          Supabase hosts our database and the encrypted Garmin relay on our behalf. Apple, Strava and
-          Garmin process data under their own policies, and only when you use them. We do not sell
-          personal data.
+          You can delete your account from the app: your profile, everything you published and your
+          Garmin connection are removed. You can disconnect Strava or Garmin at any time, and remove
+          Apple Health access in iOS Settings. To exercise your rights of access, rectification,
+          cancellation or objection (ARCO rights under Mexican law), or to withdraw your consent, write
+          to <Mail />. We reply within 20 business days.
         </p>
       </Section>
-      <Section title="Your rights">
+
+      <Section title="Children">
+        <p>Golify Run is not directed at children under 13.</p>
+      </Section>
+
+      <Section title="Changes">
         <p>
-          Delete your account from the app at any time. For any other request, write to <Mail />.
+          If this policy changes, we will update the date above. A change that expands what we process
+          will be announced in the app before it takes effect.
+        </p>
+      </Section>
+
+      <Section title="Contact">
+        <p>
+          <Mail />
         </p>
       </Section>
     </LegalLayout>
