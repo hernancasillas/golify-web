@@ -68,7 +68,7 @@ function Spanish({ locale }: { locale: string }) {
           <li>
             <strong>Con tu cuenta de Garmin.</strong> Inicias sesión en la página de Garmin; nunca
             vemos tu contraseña. Con tu consentimiento expreso, Garmin nos envía tus resúmenes
-            diarios (variabilidad cardiaca de la noche, sueño, estrés y Body Battery) y tus carreras
+            diarios (variabilidad cardiaca de la noche, sueño, estrés, Body Battery y VO2 max) y tus carreras
             con su ruta GPS, distancia, tiempo, altitud y pulso; al conectar pedimos también las de los
             últimos 30 días. Nuestro servidor los cifra en cuanto llegan con una llave que solo existe
             en tu teléfono, así que no puede leerlos, y los borra en cuanto tu teléfono los descarga o,
@@ -232,7 +232,7 @@ function English({ locale }: { locale: string }) {
           <li>
             <strong>With your Garmin account.</strong> You sign in on Garmin&apos;s own page; we never
             see your password. With your express consent, Garmin sends us your daily summaries (overnight
-            heart rate variability, sleep, stress and Body Battery) and your runs with their GPS route,
+            heart rate variability, sleep, stress, Body Battery and VO2 max) and your runs with their GPS route,
             distance, time, elevation and heart rate; when you connect we also request the last 30 days of
             runs. Our server encrypts each item on arrival with a key that exists only on your phone, so it
             cannot read them, and deletes them as soon as your phone downloads them or, at the latest, after
