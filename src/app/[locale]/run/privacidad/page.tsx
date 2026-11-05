@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { localeAlternates, type Locale } from '@/lib/site';
 import LegalLayout, { Section, CONTACT_EMAIL } from '../../seshio/LegalLayout';
 
-const UPDATED = '2026-11-05';
+const UPDATED = '2026-11-06';
 
 export async function generateMetadata({
   params,
@@ -85,6 +85,13 @@ function Spanish({ locale }: { locale: string }) {
           Los datos de Garmin solo te los mostramos a ti y solo sirven para ajustar tu plan. Al
           desconectar Garmin desde la app, le pedimos a Garmin que cancele el registro y borramos tus
           tokens y tus datos de Garmin del servidor y del teléfono.
+        </p>
+        <p>
+          Si activas «Mandar mis entrenamientos a Garmin» o tocas «Mandar a mi Garmin», enviamos a Garmin, a través
+          de nuestro servidor, solo el plan de tus sesiones: nombre, fecha, pasos, distancias, tiempos, ritmos y zonas
+          objetivo. No enviamos datos de salud, ubicación ni tus carreras. Guardamos únicamente qué fecha corresponde a
+          qué entrenamiento de Garmin, para no duplicarlo y poder actualizarlo o borrarlo; se borra al desconectar
+          Garmin o eliminar tu cuenta. Para esto Garmin te pide aceptar el permiso «Importar entrenamientos».
         </p>
       </Section>
 
@@ -264,6 +271,13 @@ function English({ locale }: { locale: string }) {
           Garmin data is shown only to you and used only to adjust your plan. When you disconnect
           Garmin in the app, we ask Garmin to cancel the registration and delete your Garmin tokens and
           data from our server and your phone.
+        </p>
+              <p>
+          If you turn on “Send my workouts to Garmin” or tap “Send to my Garmin”, we send Garmin, through our server,
+          only the plan of your sessions: name, date, steps, distances, times and target paces and zones. We never send
+          health data, location or your runs. We only keep which date maps to which Garmin workout, to avoid duplicates
+          and to update or delete it; this is deleted when you disconnect Garmin or delete your account. Garmin asks you
+          to accept the “Import workouts” permission for this.
         </p>
       </Section>
 
