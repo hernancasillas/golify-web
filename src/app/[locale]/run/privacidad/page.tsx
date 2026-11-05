@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { localeAlternates, type Locale } from '@/lib/site';
 import LegalLayout, { Section, CONTACT_EMAIL } from '../../seshio/LegalLayout';
 
-const UPDATED = '2026-11-04';
+const UPDATED = '2026-11-05';
 
 export async function generateMetadata({
   params,
@@ -99,6 +99,15 @@ function Spanish({ locale }: { locale: string }) {
           </li>
           <li>Tus días de Garmin ya descifrados, de los últimos 60 días, y tus carreras de Garmin con su ruta completa.</li>
           <li>Las carreras que importas de Strava, en una copia local que se renueva al menos cada 7 días.</li>
+          <li>
+            Tus datos de WHOOP, si lo conectas: recuperación, variabilidad cardiaca, pulso en reposo, sueño y
+            strain de los últimos 14 días. El teléfono se los pide a WHOOP directamente; no pasan por nuestros
+            servidores.
+          </li>
+          <li>
+            El pulso en vivo de tu pulsómetro Bluetooth (por ejemplo WHOOP, Polar o Garmin) mientras corres. Se
+            guarda en Salud con tu carrera y no sale del teléfono.
+          </li>
         </ul>
       </Section>
 
@@ -138,6 +147,10 @@ function Spanish({ locale }: { locale: string }) {
             conexión. Tus resúmenes y carreras de Garmin solo se guardan cifrados, hasta que tu teléfono
             los descarga: 24 horas como máximo los resúmenes y 7 días las carreras.
           </li>
+          <li>
+            <strong>WHOOP (opcional).</strong> Si conectas WHOOP, guardamos sus tokens de acceso para renovar la
+            conexión. Tus datos de WHOOP no llegan a nuestros servidores.
+          </li>
         </ul>
       </Section>
 
@@ -151,7 +164,7 @@ function Spanish({ locale }: { locale: string }) {
             <strong>Apple</strong> procesa el inicio de sesión y Salud bajo su propia política.
           </li>
           <li>
-            <strong>Strava y Garmin</strong>, solo si los conectas. La app le pide tus carreras a
+            <strong>Strava, Garmin y WHOOP</strong>, solo si los conectas. La app le pide tus carreras a
             Strava con tu autorización; Garmin nos envía tus resúmenes como se explica arriba. Cada uno
             los trata bajo su propia política.
           </li>
@@ -164,6 +177,8 @@ function Spanish({ locale }: { locale: string }) {
           Los textos del coach se generan en tu teléfono con Apple Intelligence cuando tu equipo lo
           permite, o con textos fijos cuando no. No enviamos tus datos a ningún proveedor externo de
           IA.
+        
+          Los datos de Strava, Garmin y WHOOP nunca se usan con inteligencia artificial.
         </p>
       </Section>
 
@@ -263,6 +278,14 @@ function English({ locale }: { locale: string }) {
           </li>
           <li>Your decrypted Garmin days, for the last 60 days, and your Garmin runs with their full route.</li>
           <li>The runs you import from Strava, in a local copy refreshed at least every 7 days.</li>
+          <li>
+            Your WHOOP data, if you connect it: recovery, heart rate variability, resting heart rate, sleep and
+            strain for the last 14 days. Your phone requests it from WHOOP directly; it never reaches our servers.
+          </li>
+          <li>
+            Live heart rate from your Bluetooth heart rate monitor (for example WHOOP, Polar or Garmin) while you
+            run. It is saved to Apple Health with your run and never leaves your phone.
+          </li>
         </ul>
       </Section>
 
@@ -302,6 +325,10 @@ function English({ locale }: { locale: string }) {
             Garmin summaries and runs are only stored encrypted until your phone downloads them: 24 hours
             at most for summaries and 7 days for runs.
           </li>
+          <li>
+            <strong>WHOOP (optional).</strong> If you connect WHOOP, we store its access tokens to renew the
+            connection. Your WHOOP data never reaches our servers.
+          </li>
         </ul>
       </Section>
 
@@ -315,7 +342,7 @@ function English({ locale }: { locale: string }) {
             <strong>Apple</strong> processes sign-in and Apple Health under its own policy.
           </li>
           <li>
-            <strong>Strava and Garmin</strong>, only if you connect them. The app requests your runs from
+            <strong>Strava, Garmin and WHOOP</strong>, only if you connect them. The app requests your runs from
             Strava with your authorization; Garmin sends us your summaries as described above. Each
             handles your data under its own policy.
           </li>
@@ -328,6 +355,8 @@ function English({ locale }: { locale: string }) {
           Coach texts are generated on your phone with Apple Intelligence when your device supports
           it, or with fixed texts when it does not. We do not send your data to any external AI
           provider.
+        
+          Strava, Garmin and WHOOP data is never used with artificial intelligence.
         </p>
       </Section>
 
